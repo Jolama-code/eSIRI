@@ -1,0 +1,30 @@
+.rec-table-wrap { overflow-x: auto; }
+.rec-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.rec-table th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.rec-table td { padding: 12px 14px; border-bottom: 1px solid #f0f2f5; vertical-align: middle; }
+.rec-table tr:last-child td { border-bottom: 0; }
+.rec-table .right { text-align: right; }
+.rec-name { font-weight: 500; }
+.rec-name-inner { display: flex; align-items: center; gap: 10px; min-width: 180px; }
+.rec-table td.nowrap { white-space: nowrap; }
+.rec-thumb {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background: var(--cyan-soft);
+  color: var(--cyan-dark);
+  flex: none;
+}
+.rec-actions { white-space: nowrap; }
+.rec-actions .btn + .btn { margin-left: 8px; }

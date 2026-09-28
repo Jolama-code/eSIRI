@@ -1,0 +1,183 @@
+/* Flag stripe: green, yellow, black, yellow, blue */
+.flag-stripe {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.flag-stripe span {
+  display: block;
+  width: 100%;
+}
+.flag-stripe .g { height: 3px; background: var(--tz-green); }
+.flag-stripe .y { height: 2px; background: var(--tz-yellow); }
+.flag-stripe .k { height: 3px; background: var(--tz-black); }
+.flag-stripe .b { height: 3px; background: var(--tz-blue); }
+
+/* Wordmark: navy "e", cyan "Mikutano" */
+.wordmark {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: baseline;
+}
+.wordmark .wm-e {
+  color: var(--navy);
+  font-style: italic;
+  margin-right: 1px;
+}
+.wordmark .wm-rest { color: var(--cyan); }
+.wordmark-md { font-size: 24px; }
+.wordmark-lg { font-size: clamp(22px, 2.6cqi, 44px); }
+.wordmark-lg .wm-e { font-size: 1.18em; }
+
+/* Full header (landing) */
+.full-header {
+  position: relative;
+  container-type: inline-size;
+  background: linear-gradient(180deg, #ffffff 0%, #eef6fb 100%);
+  overflow: hidden;
+}
+.full-header-bg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+.network-dots {
+  width: 34%;
+  height: 100%;
+  opacity: 0.22;
+}
+.network-dots line { stroke: #7a9cb8; stroke-width: 0.8; }
+.network-dots circle { fill: #7a9cb8; }
+.full-header-inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 24px 8px;
+  min-height: 132px;
+}
+.coat-lg { height: clamp(84px, 7.6cqi, 118px); width: auto; }
+.full-header-titles { text-align: center; min-width: 0; }
+.gov-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(20px, 3.1cqi, 56px);
+  white-space: nowrap;
+  color: var(--cyan);
+  letter-spacing: 0.5px;
+  text-shadow: 0 3px 3px rgba(27, 42, 94, 0.28);
+  line-height: 1.1;
+}
+.gov-subtitle {
+  margin-top: 10px;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(13px, 1.75cqi, 30px);
+  color: var(--navy);
+}
+
+/* Compact header */
+.compact-header {
+  background: #fff;
+  position: relative;
+  z-index: 20;
+}
+.compact-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: 0;
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+.brand:hover { background: #f3f8fb; }
+.coat-sm { height: 44px; width: auto; }
+
+.user-menu { position: relative; }
+.user-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: 0;
+  padding: 6px 8px;
+  border-radius: 999px;
+  color: var(--text);
+  font-weight: 500;
+  cursor: pointer;
+}
+.user-menu-btn:hover { background: #f3f5f7; }
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--cyan), #0077b6);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  flex: none;
+}
+.user-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 230px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+  padding: 6px;
+  z-index: 60;
+}
+.user-dropdown button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  background: none;
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.user-dropdown button:hover { background: #f0f8fc; color: var(--navy); }
+.menu-sep { height: 1px; background: var(--border); margin: 4px 6px; }
+
+.page-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  padding: 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+.page-footer span:first-child { color: var(--cyan); font-weight: 600; }
+
+@media (max-width: 760px) {
+  .full-header-inner { grid-template-columns: auto 1fr; }
+  .full-header-inner .wordmark { display: none; }
+  .coat-lg { height: 80px; }
+  .user-name { display: none; }
+}
