@@ -108,7 +108,7 @@ test.describe('eSiri agent @llm', () => {
     await openPanel(page);
     await page
       .getByTestId('esiri-input')
-      .fill("Open Rahma Mbuyu's Room, go to the settings, turn on mute users on join, turn on require moderator approval and generate a moderator access code");
+      .fill("Open Jolama's Room, go to the settings, turn on mute users on join, turn on require moderator approval and generate a moderator access code");
     await page.getByTestId('esiri-send').click();
     const status = page.getByTestId('esiri-status');
     const deadline = Date.now() + 90_000;

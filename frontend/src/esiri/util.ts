@@ -36,7 +36,7 @@ const STOP_WORDS = ['stop', 'cancel', 'simama', 'acha', 'sitisha'];
 /** True when the whole utterance is a stop word. */
 export function isStopUtterance(text: string): boolean {
   const s = text.toLowerCase().replace(/[.,!?¡¿'"]/g, '').trim();
-  return STOP_WORDS.includes(s) || /^(e[\s-]?siri\s+)?(stop|cancel|simama|acha|sitisha)( it| now| sasa)?$/.test(s);
+  return STOP_WORDS.includes(s) || /^((nuru|nooru|noor)\s+)?(stop|cancel|simama|acha|sitisha)( it| now| sasa)?$/.test(s);
 }
 
 const YES = ['yes', 'yeah', 'yep', 'sure', 'ok', 'okay', 'go ahead', 'do it', 'proceed', 'confirm', 'ndiyo', 'ndio', 'sawa', 'endelea', 'haya', 'thibitisha', 'yes please', 'of course'];

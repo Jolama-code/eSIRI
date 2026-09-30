@@ -1,5 +1,7 @@
 # eSiri × e-Mikutano — Code Map
 
+> **Rename note (2026-09-30).** The assistant was renamed from **eSiri** to **NURU** in everything a user sees (spoken as "Nuru"; wake word "Nuru"/"Noor"/"Nooru", deliberately not "new room"), and the signed-in user from **Rahma Mbuyu** to **Jolama** (initials JO, seed room "Jolama's Room", id `jolamas-room-r7k2`, token `JLM-7K2Q`). Internal identifiers keep "esiri" (`frontend/src/esiri/`, `data-esiri-*`, CSS classes, `data-testid`s, localStorage keys). The rest of this document was written before the rename and still uses the old names; the captured snapshots and traces are unchanged historical records.
+
 This document describes what is built in this repository today. Every claim points to a file and a function or component. Where something is uncertain or not verified, it says so. The real snapshots and model trace in sections 9 and 10 were captured from the running app on 2026-09-29 with the project's `.env` key and model `gpt-4.1-mini`.
 
 Paths are relative to the project root. `frontend/src/…` is the browser app, `backend/app/…` is the Python server.

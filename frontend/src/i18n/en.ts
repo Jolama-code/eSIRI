@@ -26,7 +26,7 @@ const en = {
   'footer.releaseNote': 'Release Note',
   'footer.userManual': 'User Manual',
   'footer.faq': 'Frequently asked questions',
-  'footer.copyright': '© 2020 – 2026 e-GA. All rights reserved. | e-Mikutano version 4.0 (eSiri PoC)',
+  'footer.copyright': '© 2020 – 2026 e-GA. All rights reserved. | e-Mikutano version 4.0 (NURU PoC)',
 
   // Rooms dashboard
   'rooms.tabRooms': 'Rooms',
@@ -185,7 +185,7 @@ const en = {
 
   // Audit
   'audit.title': 'Audit Log',
-  'audit.subtitle': 'Every task eSiri performs is recorded here with its steps, confirmations and outcome.',
+  'audit.subtitle': 'Every task NURU performs is recorded here with its steps, confirmations and outcome.',
   'audit.exportCsv': 'Export CSV',
   'audit.clear': 'Clear log',
   'audit.clearTitle': 'Clear audit log',
@@ -193,7 +193,7 @@ const en = {
   'audit.clearConfirm': 'Clear log',
   'audit.cancel': 'Cancel',
   'audit.cleared': 'The audit log has been cleared.',
-  'audit.empty': 'No eSiri tasks have been recorded yet.',
+  'audit.empty': 'No NURU tasks have been recorded yet.',
   'audit.time': 'Time',
   'audit.request': 'Request',
   'audit.outcome': 'Outcome',
@@ -227,9 +227,9 @@ const en = {
   'page.room': 'the room page',
   'page.meeting': 'the meeting',
 
-  // eSiri
-  'esiri.name': 'eSiri',
-  'esiri.orbTooltip': 'Talk to eSiri (Alt+S)',
+  // NURU
+  'esiri.name': 'NURU',
+  'esiri.orbTooltip': 'Talk to NURU (Alt+S)',
   'esiri.status.idle': 'Ready',
   'esiri.status.listening': 'Listening…',
   'esiri.status.thinking': 'Thinking…',
@@ -245,10 +245,10 @@ const en = {
   'esiri.close': 'Close panel',
   'esiri.collapse': 'Collapse panel',
   'esiri.language': 'Switch language',
-  'esiri.wakeMode': "Always listening — say 'eSiri'",
+  'esiri.wakeMode': "Always listening — say 'NURU'",
   'esiri.wakeOn': 'Wake word on',
-  'esiri.noKey': 'The OpenAI API key is missing. Add OPENAI_API_KEY to the .env file and restart eSiri.',
-  'esiri.backendDown': 'The eSiri service is not reachable. Start the backend with ./start.sh.',
+  'esiri.noKey': 'The OpenAI API key is missing. Add OPENAI_API_KEY to the .env file and restart NURU.',
+  'esiri.backendDown': 'The NURU service is not reachable. Start the backend with ./start.sh.',
   'esiri.sttUnsupported': 'Voice input is not available in this browser. You can type your request instead.',
   'esiri.sttNotAllowed': 'Microphone access was blocked. Allow the microphone in the browser address bar, or type instead.',
   'esiri.sttNetwork': 'Voice recognition needs Google Chrome (not Chromium) and internet. You can type instead.',
@@ -260,13 +260,13 @@ const en = {
   'esiri.sayYesNo': 'Please say yes or no.',
   'esiri.stopped': 'Stopped.',
   'esiri.declinedAck': 'Okay, I have not done it.',
-  'esiri.greeting': 'Hello Rahma! How can I help you in e-Mikutano today?',
+  'esiri.greeting': 'Hello Jolama! How can I help you in e-Mikutano today?',
   'esiri.suggest1': 'Create a room called Board Meeting',
   'esiri.suggest2': 'Turn on mute users on join',
   'esiri.suggest3': 'Start the meeting and say hello in the chat',
   'esiri.suggest4': 'Tengeneza chumba kiitwacho Kikao cha Bodi',
   'esiri.errorGeneric': 'Sorry, something went wrong. Please try again.',
-  'esiri.errorNetwork': 'Sorry, I could not reach the eSiri service. Please check the connection and try again.',
+  'esiri.errorNetwork': 'Sorry, I could not reach the Nuru service. Please check the connection and try again.',
   'esiri.errorModel': 'Sorry, the AI model is not available right now. Please check the settings.',
   'esiri.errorNoKey': 'I cannot work without an OpenAI API key. Please add it to the settings file.',
   'esiri.tooManySteps': 'This is taking too many steps, so I stopped. Please try a simpler request.',
@@ -284,7 +284,7 @@ const en = {
   'esiri.langName.sw': 'Swahili',
   'esiri.inputVoice': 'Spoken',
   'esiri.inputText': 'Typed',
-  'esiri.cursorLabel': 'eSiri',
+  'esiri.cursorLabel': 'NURU',
 } as const;
 
 export type I18nKey = keyof typeof en;

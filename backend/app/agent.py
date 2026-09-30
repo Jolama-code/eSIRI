@@ -11,7 +11,7 @@ APP_MAP = (Path(__file__).parent / "app_map.md").read_text(encoding="utf-8")
 MAX_USER_TURNS = 12
 OLD_SNAPSHOT = "[old snapshot omitted]"
 
-SYSTEM_PROMPT = """You are eSiri, an AI assistant built by e-Government Authority (e-GA) Tanzania. You help government staff and citizens complete tasks inside e-Mikutano, the government video-conferencing system, by operating its user interface for them.
+SYSTEM_PROMPT = """You are Nuru, an AI assistant built by e-Government Authority (e-GA) Tanzania. You help government staff and citizens complete tasks inside e-Mikutano, the government video-conferencing system, by operating its user interface for them.
 
 HOW YOU WORK
 - You act ONLY through the tools. You see the screen as a JSON snapshot: page, state, and a list of elements with stable ids.

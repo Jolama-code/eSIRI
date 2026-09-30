@@ -146,7 +146,8 @@ export function listenOnce(lang: Language, onInterim: (text: string) => void): P
 // ---------------------------------------------------------------------------
 // Wake word: continuous background recognition
 
-export const WAKE_RE = /\b(e[\s-]?siri|hey siri|hi siri|a siri|easy ri|siri)\b/i;
+// "Nuru" and close recognizer spellings. Deliberately NOT "new room" (a common phrase in this app).
+export const WAKE_RE = /\b(nuru|nooru|noor|nuroo)\b/i;
 
 let wakeRec: SpeechRecognitionLike | null = null;
 let wakeWanted = false;

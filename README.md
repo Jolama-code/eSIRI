@@ -1,23 +1,25 @@
-# eSiri — AI Government Agent · e-Mikutano Proof of Concept
+# NURU — AI Government Agent · e-Mikutano Proof of Concept
 
-**eSiri** is an AI assistant for government web systems, built as a proof of concept for **e-Government Authority (e-GA), Tanzania**. You speak or type a request in **English or Swahili**, and eSiri completes it *inside the existing web system* by visibly moving its own cursor, clicking and typing, exactly as a person would. It asks before consequential actions, enforces that in code, and records every task in an audit log.
+**NURU** (spoken "Nuru"; formerly *eSiri*) is an AI assistant for government web systems, built as a proof of concept for **e-Government Authority (e-GA), Tanzania**. You speak or type a request in **English or Swahili**, and NURU completes it *inside the existing web system* by visibly moving its own cursor, clicking and typing, exactly as a person would. It asks before consequential actions, enforces that in code, and records every task in an audit log.
 
-The target system in this PoC is a realistic mockup of **e-Mikutano**, Tanzania's government video-conferencing system: rooms, settings, access codes, sharing, presentations, meetings and recordings. There is no real video server. The signed-in user is the fictional **Rahma Mbuyu**.
+The target system in this PoC is a realistic mockup of **e-Mikutano**, Tanzania's government video-conferencing system: rooms, settings, access codes, sharing, presentations, meetings and recordings. There is no real video server. The signed-in user is the fictional **Jolama**.
+
+> **Naming.** Internal identifiers still use `esiri` (the `frontend/src/esiri/` folder, `data-esiri-*` attributes, CSS classes, test ids, storage keys).
 
 > **Private repository.** Internal e-GA proof of concept. Do not share outside the team.
 
-![eSiri in a meeting: the side panel on the right, the e-Mikutano meeting screen on the left](frontend/e2e/screenshots/en-1366-10-meeting-panel.png)
+![NURU in a meeting: the side panel on the right, the e-Mikutano meeting screen on the left](frontend/e2e/screenshots/en-1366-10-meeting-panel.png)
 
 ---
 
 ## How it works
 
-![How eSiri works: look at the screen, think with the AI, check with the user, act with a visible cursor](Documentation/01_conceptual_loop.png)
+![How NURU works: look at the screen, think with the AI, check with the user, act with a visible cursor](Documentation/01_conceptual_loop.png)
 
-1. **Look.** eSiri reads the screen as a compact JSON snapshot: the page, the app state, and every button, field and toggle with a stable id.
+1. **Look.** NURU reads the screen as a compact JSON snapshot: the page, the app state, and every button, field and toggle with a stable id.
 2. **Think.** The OpenAI model (`gpt-4.1-mini` by default) chooses the next steps as tool calls (`click`, `type_text`, `navigate`, `ask_confirmation`, `ask_user`, `set_language`, `finish`).
-3. **Check.** Before an important action (create a room, start or join a meeting, record, leave, remove access, delete), eSiri asks. The app **refuses sensitive clicks in code** until you say yes.
-4. **Act.** eSiri's ghost cursor clicks and types on screen, then the loop repeats until the task is done. The result is spoken aloud and written to the audit log.
+3. **Check.** Before an important action (create a room, start or join a meeting, record, leave, remove access, delete), NURU asks. The app **refuses sensitive clicks in code** until you say yes.
+4. **Act.** NURU's ghost cursor clicks and types on screen, then the loop repeats until the task is done. The result is spoken aloud and written to the audit log.
 
 **The AI decides; the code acts and enforces.** The model never touches the screen or the data itself.
 
@@ -30,8 +32,8 @@ The target system in this PoC is a realistic mockup of **e-Mikutano**, Tanzania'
 - Audit log of every task (steps, confirmations, outcome), with filters and CSV export, also written to `backend/audit_log.jsonl`.
 - Conversation memory across tasks ("Actually, turn it off again.").
 - Swahili speech through OpenAI text-to-speech when Chrome has no Swahili voice.
-- Optional wake-word mode ("eSiri, …").
-- A fully clickable e-Mikutano mockup that also works without eSiri.
+- Optional wake-word mode ("NURU, …").
+- A fully clickable e-Mikutano mockup that also works without NURU.
 
 ---
 
@@ -52,7 +54,7 @@ Open **http://localhost:5173** in **Google Chrome**, allow the microphone, click
 
 | Document | For |
 |---|---|
-| [Plain Language Guide (PDF)](Documentation/eSiri_Plain_Language_Guide.pdf) · [Word](Documentation/eSiri_Plain_Language_Guide.docx) | Non-technical explanation of what eSiri is and how it works |
+| [Plain Language Guide (PDF)](Documentation/eSiri_Plain_Language_Guide.pdf) · [Word](Documentation/eSiri_Plain_Language_Guide.docx) | Non-technical explanation of what NURU is and how it works |
 | [Technical Reference (Word)](Documentation/eSiri_Technical_Reference.docx) | Technical explanation for engineers and reviewers |
 | [`docs/CODEMAP.md`](docs/CODEMAP.md) | The detailed, code-grounded source of truth: architecture, a full end-to-end trace, the system prompt and tool schemas, a real captured model run, safety, speech, i18n, data flow and privacy, tests, decisions, limitations, extension guide, glossary |
 | [`CLAUDE.md`](CLAUDE.md) | Short briefing for AI coding assistants working on this repo |
@@ -93,26 +95,26 @@ Open **http://localhost:5173** in **Google Chrome** and allow the microphone whe
 
 ## How to use
 
-- **The orb.** The iridescent orb at the bottom right is on every page. Click it, or press **Alt+S**, and eSiri opens its side panel and starts listening. Speak your request. The larger orb in the middle shows what eSiri is doing: it breathes when idle, follows your voice when listening, swirls faster when thinking, shows a rotating ring when acting, pulses when speaking, and turns briefly red on an error.
-- **Stop at any time.** Press **Esc**, click the red Stop button in the panel, click the orb while eSiri is working, or say "stop", "cancel", "simama", "acha" or "sitisha". The task stops at once and is logged as *Cancelled*.
-- **The side panel** shows the conversation, the live transcript, every action step (✓/✗), and confirmation cards. It pushes the page aside, so the panel never covers what eSiri clicks. Close it with `»`; a small "eSiri" tab brings it back.
+- **The orb.** The iridescent orb at the bottom right is on every page. Click it, or press **Alt+S**, and NURU opens its side panel and starts listening. Speak your request. The larger orb in the middle shows what NURU is doing: it breathes when idle, follows your voice when listening, swirls faster when thinking, shows a rotating ring when acting, pulses when speaking, and turns briefly red on an error.
+- **Stop at any time.** Press **Esc**, click the red Stop button in the panel, click the orb while NURU is working, or say "stop", "cancel", "simama", "acha" or "sitisha". The task stops at once and is logged as *Cancelled*.
+- **The side panel** shows the conversation, the live transcript, every action step (✓/✗), and confirmation cards. It pushes the page aside, so the panel never covers what NURU clicks. Close it with `»`; a small "NURU" tab brings it back.
 - **Typing works as a fallback.** Type into the panel and press Enter. Suggestion chips show example requests.
-- **Confirmations.** Before creating a room, starting or joining a meeting, starting or stopping a recording, leaving a meeting, removing access or deleting something, eSiri asks. Answer by voice ("yes", "go ahead", "ndiyo", "sawa" / "no", "hapana", "acha") or with the Yes/No buttons. The app enforces this in code, not just in the prompt: a sensitive click without an approval is refused.
-- **Language.** Switch between English and Swahili with the EN/SW chip in the panel, the Swahili/English toggle on the landing page, or by saying "speak Swahili" / "ongea Kiingereza". The whole UI, speech recognition, eSiri's voice and its replies switch together. Swahili speech uses OpenAI TTS when Chrome has no Swahili voice.
-- **Wake mode (optional).** Turn on *"Always listening — say 'eSiri'"* in the panel. eSiri then listens in the background; say "eSiri" or "eSiri, create a room called Finance". A green indicator shows when wake mode is running.
-- **Rehearsals.** Use *Reset demo data* in the user menu (top right, "Rahma Mbuyu") to restore the seeded data and clear the audit log.
-- **Audit Log.** Open it from the user menu or ask eSiri. Expand rows to see every step and confirmation, filter by outcome, and export CSV. Every task is also appended to `backend/audit_log.jsonl`.
+- **Confirmations.** Before creating a room, starting or joining a meeting, starting or stopping a recording, leaving a meeting, removing access or deleting something, NURU asks. Answer by voice ("yes", "go ahead", "ndiyo", "sawa" / "no", "hapana", "acha") or with the Yes/No buttons. The app enforces this in code, not just in the prompt: a sensitive click without an approval is refused.
+- **Language.** Switch between English and Swahili with the EN/SW chip in the panel, the Swahili/English toggle on the landing page, or by saying "speak Swahili" / "ongea Kiingereza". The whole UI, speech recognition, NURU's voice and its replies switch together. Swahili speech uses OpenAI TTS when Chrome has no Swahili voice.
+- **Wake mode (optional).** Turn on *"Always listening — say 'NURU'"* in the panel. NURU then listens in the background; say "Nuru" or "Nuru, create a room called Finance". A green indicator shows when wake mode is running.
+- **Rehearsals.** Use *Reset demo data* in the user menu (top right, "Jolama") to restore the seeded data and clear the audit log.
+- **Audit Log.** Open it from the user menu or ask NURU. Expand rows to see every step and confirmation, filter by outcome, and export CSV. Every task is also appended to `backend/audit_log.jsonl`.
 
-Every screen also works with a normal mouse and keyboard, without eSiri.
+Every screen also works with a normal mouse and keyboard, without NURU.
 
 ---
 
 ## 3-minute demo script
 
-Start on the landing page and click **Reserve a meeting** (or ask eSiri to do it). Then click the orb or press Alt+S and say:
+Start on the landing page and click **Reserve a meeting** (or ask NURU to do it). Then click the orb or press Alt+S and say:
 
-1. **"Create a room called Board Meeting."** eSiri opens *+ New Room*, types the name, and asks for confirmation. Say **"Yes."**
-2. **"Open the settings, turn on mute users on join, and give me a viewer access code."** eSiri reads the new code aloud digit by digit.
+1. **"Create a room called Board Meeting."** NURU opens *+ New Room*, types the name, and asks for confirmation. Say **"Yes."**
+2. **"Open the settings, turn on mute users on join, and give me a viewer access code."** NURU reads the new code aloud digit by digit.
 3. **"Share access with Neema Mwakalinga."**
 4. **"Add the meeting agenda to the presentation."**
 5. **"Start the meeting and tell everyone good morning in the chat."** Say **"Yes"** to confirm. The mic starts muted because of step 2, and the slide shows *Meeting_Agenda.pdf*.
@@ -120,7 +122,7 @@ Start on the landing page and click **Reserve a meeting** (or ask eSiri to do it
 7. **"Speak Swahili."** Then say: **"Tengeneza chumba kiitwacho Kikao cha Bodi."** and **"Ndiyo."**
 8. **"Fungua kumbukumbu za ukaguzi."** ("Open the audit log.") Show the recorded tasks, expand one, and click *Export CSV*.
 
-Optional extras: "What is the viewer code?", "Actually, turn it off again." (eSiri remembers the context), and pressing **Esc** in the middle of a task.
+Optional extras: "What is the viewer code?", "Actually, turn it off again." (NURU remembers the context), and pressing **Esc** in the middle of a task.
 
 ---
 
@@ -130,7 +132,7 @@ Optional extras: "What is the viewer code?", "Actually, turn it off again." (eSi
 |---|---|
 | **Microphone not working / "Microphone access was blocked"** | Click the padlock in Chrome's address bar → allow the microphone → reload. Check the system input device. You can always type instead. |
 | **"Voice recognition needs Google Chrome (not Chromium) and internet"** | This is the `network` error of the Web Speech API. Chromium builds (including snap Chromium on Ubuntu) have no Google speech service. Use Google Chrome with internet access. |
-| **No voice output** | Check the system volume and output device. English uses Chrome's voices (the first speech can take a moment while voices load). Swahili uses OpenAI TTS, which needs a valid key. Set `ESIRI_ENGLISH_TTS=openai` to use OpenAI for English too. If speech fails, eSiri still shows the text. Remove `?mute=1` from the URL if present. |
+| **No voice output** | Check the system volume and output device. English uses Chrome's voices (the first speech can take a moment while voices load). Swahili uses OpenAI TTS, which needs a valid key. Set `ESIRI_ENGLISH_TTS=openai` to use OpenAI for English too. If speech fails, NURU still shows the text. Remove `?mute=1` from the URL if present. |
 | **"The model … is not available"** | Your key cannot use the configured model. Change `OPENAI_MODEL` in `.env` (for example `gpt-4.1-mini`, `gpt-4.1` or `gpt-4o-mini`) and restart `./start.sh`. |
 | **Banner "The OpenAI API key is missing"** | Add `OPENAI_API_KEY=...` to `.env` in the project root and restart. |
 | **Ports in use** (`Address already in use` / Vite "Port 5173 is in use") | Stop the other process: `lsof -i :8000` / `lsof -i :5173`, then `kill <pid>`. Or close the other terminal running `start.sh`. |
@@ -151,7 +153,7 @@ All 48 screenshots (every page, English and Swahili, 1366×768 and 1920×1080) a
 
 ## Architecture
 
-![eSiri system architecture](Documentation/02_architecture.png)
+![NURU system architecture](Documentation/02_architecture.png)
 
 ![What the AI receives at every step](Documentation/03_four_inputs.png)
 
@@ -161,7 +163,7 @@ All 48 screenshots (every page, English and Swahili, 1366×768 and 1920×1080) a
  │ e-Mikutano mockup (every actionable element  │            │ /api/agent/step            │
  │ tagged data-esiri-id / -label / -sensitive)  │  snapshot  │  system prompt + app_map   │
  │                                              │ ─────────▶ │  + session memory          │
- │ eSiri: orb · voice (Web Speech) · panel      │            │  → OpenAI Chat Completions │
+ │ NURU: orb · voice (Web Speech) · panel      │            │  → OpenAI Chat Completions │
  │ controller: loop, confirmation gate, audit   │ ◀───────── │    with tool calling       │
  │ driver ("hands"): ghost cursor click / type  │ tool calls │ /api/tts  (OpenAI TTS)     │
  └──────────────────────────────────────────────┘            │ /api/audit → audit_log.jsonl│
@@ -191,7 +193,7 @@ Guards: at most 30 tool executions per task; stop after the same action fails 3 
 ## Project layout
 
 ```
-frontend/             Vite + React 18 + TypeScript app (mockup + eSiri)
+frontend/             Vite + React 18 + TypeScript app (mockup + NURU)
   src/pages/          Landing, Rooms, Recordings, Room page, Meeting, Audit
   src/esiri/          controller (agent loop), driver + cursor (actions), snapshot, speech (stt/tts), panel, orb
   src/store/          zustand stores (persisted in localStorage)
@@ -219,13 +221,13 @@ npm run build                 # type-check + production build (zero TypeScript e
 npx playwright install chromium
 npx playwright test           # all 27 tests (starts backend + frontend automatically if not running)
 npm run test:e2e:nollm        # 18 tests that do not need the OpenAI key
-npm run test:e2e:llm          # 9 eSiri agent tests (need the key)
+npm run test:e2e:llm          # 9 NURU agent tests (need the key)
 ```
 
 | Suite | Tests | What it proves |
 |---|---|---|
 | `e2e/ui.spec.ts` | 14 | The mockup works for humans (create room, settings, access, presentation, meeting features, recordings, audit, CSV export, language toggle, token join); the code-enforced confirmation gate; the snapshot; the TTS and audit endpoints |
-| `e2e/agent.spec.ts` `@llm` | 8 | The required eSiri scenarios, driven only through the panel's text input, asserting final app state (create, settings, share, meeting + chat, record/stop/leave, Swahili, decline, Esc cancel) |
+| `e2e/agent.spec.ts` `@llm` | 8 | The required NURU scenarios, driven only through the panel's text input, asserting final app state (create, settings, share, meeting + chat, record/stop/leave, Swahili, decline, Esc cancel) |
 | `e2e/demo.spec.ts` `@llm` | 1 | The full demo script as one continuous conversation |
 | `e2e/screenshots.spec.ts` | 4 | Every page in English and Swahili at 1366×768 and 1920×1080, with overflow checks |
 

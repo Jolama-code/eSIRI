@@ -35,7 +35,7 @@ function ensure(): void {
 
   pointer = document.createElement('div');
   pointer.className = 'esiri-pointer';
-  pointer.innerHTML = `${POINTER_SVG}<span class="esiri-pointer-label">eSiri</span>`;
+  pointer.innerHTML = `${POINTER_SVG}<span class="esiri-pointer-label">NURU</span>`;
   root.appendChild(pointer);
 
   document.body.appendChild(root);
@@ -45,7 +45,7 @@ function place(): void {
   if (pointer) pointer.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
 }
 
-export function showCursor(label = 'eSiri'): void {
+export function showCursor(label = 'NURU'): void {
   ensure();
   const lbl = pointer!.querySelector('.esiri-pointer-label');
   if (lbl) lbl.textContent = label;

@@ -130,7 +130,7 @@ export function EsiriRoot() {
 
       {!panelOpen && hasMessages && (
         <button className="panel-tab" onClick={() => useEsiri.getState().setPanelOpen(true)}>
-          eSiri
+          NURU
         </button>
       )}
       <Panel />

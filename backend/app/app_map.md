@@ -1,6 +1,6 @@
 # e-Mikutano app map
 
-The signed-in user is Rahma Mbuyu. The UI language is English (en) or Swahili (sw); element ids never change with language, only labels do.
+The signed-in user is Jolama. The UI language is English (en) or Swahili (sw); element ids never change with language, only labels do.
 
 ## Reading the snapshot
 - `page`: landing | rooms | recordings | room | meeting | audit.
@@ -17,7 +17,7 @@ Entry screen of e-Mikutano. Shown when signed out.
 - `landing.lang.sw` / `landing.lang.en`: switch the UI language (prefer the set_language tool instead).
 - `landing.token-input`: meeting token field (tokens look like `BRD-4K7Q`, see `state.rooms[].token`).
 - `landing.join-btn` ⚠: "Start meeting" – joins the meeting of the room whose token was typed (opens the meeting page). Sensitive.
-- `landing.reserve-btn`: "Reserve a meeting" – signs Rahma in and opens the Rooms dashboard. Use it whenever you need rooms but are on the landing page.
+- `landing.reserve-btn`: "Reserve a meeting" – signs Jolama in and opens the Rooms dashboard. Use it whenever you need rooms but are on the landing page.
 
 ### Rooms dashboard `/rooms` (page = rooms)
 - `header.home`: e-Mikutano logo, goes to the Rooms dashboard.
@@ -64,7 +64,7 @@ Entry screen of e-Mikutano. Shown when signed out.
 - Recordings from every room with `recording.{recId}.play` and `recording.{recId}.delete` ⚠. `rooms.tab.rooms` goes back to the rooms.
 
 ### Meeting screen `/rooms/{roomId}/meeting` (page = meeting)
-- Left sidebar: `meeting.panel.public-chat` (shows Public Chat), `meeting.panel.shared-notes` (shows Shared Notes). Users list shows "Rahma Mbuyu (You)".
+- Left sidebar: `meeting.panel.public-chat` (shows Public Chat), `meeting.panel.shared-notes` (shows Shared Notes). Users list shows "Jolama (You)".
 - Public Chat (visible when panel = chat): `meeting.chat-input` then `meeting.chat-send` to post a message. Typical batch: click `meeting.panel.public-chat` only if the chat panel is not already open, type_text `meeting.chat-input`, click `meeting.chat-send`.
 - Shared Notes (visible when panel = notes): `meeting.notes-input` (type_text replaces the whole notes text).
 - Top bar: `meeting.record-toggle` ⚠ (Start recording / Stop recording; sensitive both ways; disabled when the room's Allow recording setting is off), `meeting.leave` ⚠ (Leave meeting; sensitive).

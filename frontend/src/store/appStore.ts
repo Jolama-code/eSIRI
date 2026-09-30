@@ -214,7 +214,7 @@ export function formatTime(iso: string, lang: Language): string {
   });
 }
 
-const SEED_ROOM_ID = 'rahma-mbuyus-room-r7k2';
+const SEED_ROOM_ID = 'jolamas-room-r7k2';
 
 function seedData(): Pick<PersistedState, 'rooms' | 'recordings' | 'meetings'> {
   const last = new Date(2026, 8, 25, 11, 11).toISOString();
@@ -224,7 +224,7 @@ function seedData(): Pick<PersistedState, 'rooms' | 'recordings' | 'meetings'> {
       {
         id: SEED_ROOM_ID,
         name: `${CURRENT_USER.name}'s Room`,
-        token: 'RMR-7K2Q',
+        token: 'JLM-7K2Q',
         lastSession: last,
         createdAt: new Date(2026, 8, 1, 9, 0).toISOString(),
         settings: { ...DEFAULT_SETTINGS },

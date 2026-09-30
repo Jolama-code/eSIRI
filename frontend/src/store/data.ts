@@ -26,7 +26,7 @@ export const SAMPLE_DOCS: SampleDoc[] = [
   { id: 'previous-minutes', name: 'Previous_Minutes.pdf', size: 312_852 },
 ];
 
-export const CURRENT_USER = { name: 'Rahma Mbuyu', initials: 'RM', email: 'rahma.mbuyu@ega.go.tz' };
+export const CURRENT_USER = { name: 'Jolama', initials: 'JO', email: 'jolama@ega.go.tz' };
 
 export function userById(id: string): DirectoryUser | undefined {
   return DIRECTORY.find((u) => u.id === id);

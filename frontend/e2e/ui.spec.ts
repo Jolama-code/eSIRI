@@ -14,7 +14,7 @@ test.describe('e-Mikutano mockup (human, no LLM)', () => {
     await expect(page.locator('.gov-subtitle')).toHaveText('Mfumo Wa Mawasiliano Kwa Njia ya Video');
     await expect(page.locator('img.coat-lg')).toBeVisible();
     await expect(page.getByText('Conduct a Meeting through the Internet, Anywhere and Anytime')).toBeVisible();
-    await expect(page.getByText('© 2020 – 2026 e-GA. All rights reserved. | e-Mikutano version 4.0 (eSiri PoC)')).toBeVisible();
+    await expect(page.getByText('© 2020 – 2026 e-GA. All rights reserved. | e-Mikutano version 4.0 (NURU PoC)')).toBeVisible();
     const html = await page.content();
     expect(html).not.toMatch(/Joseph Laurent/i);
     expect(html).not.toMatch(/BigBlueButton/i);
@@ -26,7 +26,7 @@ test.describe('e-Mikutano mockup (human, no LLM)', () => {
     await page.locator(esiriId('landing.reserve-btn')).click();
     await expect(page).toHaveURL(/\/rooms$/);
     await expect(page.getByTestId('room-card')).toHaveCount(1);
-    await expect(page.getByText("Rahma Mbuyu's Room")).toBeVisible();
+    await expect(page.getByText("Jolama's Room")).toBeVisible();
     await expect(page.getByText('Last Session: September 25, 2026 at 11:11 AM')).toBeVisible();
   });
 
@@ -53,10 +53,10 @@ test.describe('e-Mikutano mockup (human, no LLM)', () => {
     await page.locator(esiriId('landing.token-input')).fill('NOPE-0000');
     await page.locator(esiriId('landing.join-btn')).click();
     await expect(page.getByTestId('token-error')).toBeVisible();
-    await page.goto('/?token=RMR-7K2Q');
-    await expect(page.locator(esiriId('landing.token-input'))).toHaveValue('RMR-7K2Q');
+    await page.goto('/?token=JLM-7K2Q');
+    await expect(page.locator(esiriId('landing.token-input'))).toHaveValue('JLM-7K2Q');
     await page.locator(esiriId('landing.join-btn')).click();
-    await expect(page).toHaveURL(/\/rooms\/rahma-mbuyus-room-r7k2\/meeting$/);
+    await expect(page).toHaveURL(/\/rooms\/jolamas-room-r7k2\/meeting$/);
     await expect(page.getByTestId('meeting')).toBeVisible();
   });
 
@@ -184,7 +184,7 @@ test.describe('e-Mikutano mockup (human, no LLM)', () => {
     await page.locator(esiriId('header.user-menu')).click();
     await page.locator(esiriId('header.menu.audit-log')).click();
     await expect(page).toHaveURL(/\/audit$/);
-    await expect(page.getByText('No eSiri tasks have been recorded yet.')).toBeVisible();
+    await expect(page.getByText('No NURU tasks have been recorded yet.')).toBeVisible();
     await page.locator(esiriId('header.user-menu')).click();
     await page.locator(esiriId('header.menu.reset-demo')).click();
     await expect(page).toHaveURL(/\/rooms$/);
@@ -198,7 +198,7 @@ test.describe('e-Mikutano mockup (human, no LLM)', () => {
     await startSignedIn(page);
     await page.evaluate(() => {
       const app = (window as any).__esiriTest.useApp.getState();
-      const base = { user: 'Rahma Mbuyu', language: 'en', inputMode: 'text', finalMessage: 'Done.', durationMs: 4200 };
+      const base = { user: 'Jolama', language: 'en', inputMode: 'text', finalMessage: 'Done.', durationMs: 4200 };
       app.addAudit({ ...base, id: 'a1', timestamp: new Date().toISOString(), request: 'Create a room called X', outcome: 'Completed',
         steps: [{ time: new Date().toISOString(), tool: 'click', target: '+ New Room', ok: true }],
         confirmations: [{ summary: 'Create room X?', result: 'approved' }] });
@@ -265,7 +265,7 @@ test.describe('eSiri runtime (no LLM)', () => {
     let snap = await page.evaluate(() => (window as any).__esiriTest.buildSnapshot());
     expect(snap.page).toBe('rooms');
     expect(snap.elements.map((e: any) => e.id)).toContain('rooms.new-room-btn');
-    const start = snap.elements.find((e: any) => e.id === 'room-card.rahma-mbuyus-room-r7k2.start');
+    const start = snap.elements.find((e: any) => e.id === 'room-card.jolamas-room-r7k2.start');
     expect(start.sensitive).toBe(true);
     await page.locator(esiriId('rooms.new-room-btn')).click();
     snap = await page.evaluate(() => (window as any).__esiriTest.buildSnapshot());

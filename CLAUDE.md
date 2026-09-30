@@ -1,6 +1,8 @@
-# CLAUDE.md — eSiri × e-Mikutano PoC
+# CLAUDE.md — NURU × e-Mikutano PoC
 
-eSiri is an AI assistant (English + Swahili, voice or typed) that completes tasks inside a government web system by visibly clicking and typing in its UI, asks before consequential actions, and audits every task. The target system here is a **front-end mockup of e-Mikutano** (Tanzania's government video-conferencing system; BigBlueButton/Greenlight-style). No real video server. The user is always "Rahma Mbuyu".
+NURU is an AI assistant (English + Swahili, voice or typed) that completes tasks inside a government web system by visibly clicking and typing in its UI, asks before consequential actions, and audits every task. The target system here is a **front-end mockup of e-Mikutano** (Tanzania's government video-conferencing system; BigBlueButton/Greenlight-style). No real video server. The user is always "Jolama".
+
+**Naming:** the user-visible assistant name is **NURU** (write "Nuru" in anything spoken); it was formerly "eSiri". Internal identifiers keep `esiri` (folder, `data-esiri-*`, CSS classes, `data-testid`s, localStorage keys) — do not rename them. The signed-in user is "Jolama" (initials JO, seed room "Jolama's Room", `jolamas-room-r7k2`, token `JLM-7K2Q`).
 
 **Full details (architecture, real traces, safety, data flow, decisions): `docs/CODEMAP.md`.** Keep it in sync when you change behaviour.
 
