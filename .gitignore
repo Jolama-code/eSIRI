@@ -22,3 +22,7 @@ test-results/
 .DS_Store
 .vscode/
 .idea/
+
+# kept on the owner's machine only (not in the repository)
+reference/
+ESIRI_BUILD_PROMPT.md

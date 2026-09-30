@@ -93,9 +93,9 @@ eSIRI/
 ├── .gitignore                  ignores .env, .venv, node_modules, dist, audit_log.jsonl, test artifacts
 ├── README.md                   user-facing setup, usage, demo script, troubleshooting
 ├── CLAUDE.md                   short briefing for future Claude Code sessions
-├── ESIRI_BUILD_PROMPT.md       the original build specification
+├── ESIRI_BUILD_PROMPT.md       the original build specification (local only, git-ignored, not in the repo)
 ├── docs/CODEMAP.md             this document
-├── reference/                  original screenshots, orb inspiration image, coat of arms (untouched)
+├── reference/                  original screenshots, orb inspiration image, coat of arms (local only, git-ignored)
 ├── backend/
 │   ├── requirements.txt        Python dependencies
 │   ├── audit_log.jsonl         created at runtime; one JSON line per eSiri task (git-ignored)
@@ -167,7 +167,7 @@ eSIRI/
 
 ## 4. Tech stack
 
-Most choices were fixed by the build specification (`ESIRI_BUILD_PROMPT.md`, section 1). "Why" gives the reason that applies to this project; where the spec mandated it, that is stated.
+Most choices were fixed by the build specification (`ESIRI_BUILD_PROMPT.md`, section 1; kept on the owner's machine, not in the repository). "Why" gives the reason that applies to this project; where the spec mandated it, that is stated.
 
 ### Frontend (`frontend/package.json`; installed versions from `npm ls`)
 

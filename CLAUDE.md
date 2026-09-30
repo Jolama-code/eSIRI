@@ -58,7 +58,7 @@ Loop: snapshot → model returns tool calls (`click`, `type_text`, `navigate`, `
 
 - **Every actionable element** gets `{...ez('area.thing[.action]', t('label.key'), opts)}`. Ids are lower-case, hyphenated, language-independent; list items embed real ids: `room-card.{roomId}.open`, `access.user.{userId}.add`, `recording.{recId}.delete`. Toggles/tabs/stateful buttons pass `state` (`on`/`off`, `selected`/`unselected`). Dialogs use `Modal` from `components/Common.tsx` (sets `data-esiri-modal`), switches use `Toggle`.
 - **Sensitive = consequential** (create room, start/join meeting, start/stop recording, leave meeting, remove access, delete room/recording, clear audit): pass `{ sensitive: true }`. Also list it in `SYSTEM_PROMPT` SAFETY section and mark it ⚠ in `app_map.md`.
-- **No hard-coded UI text.** Add each string to both `en.ts` and `sw.ts` (natural Tanzanian Swahili; follow the glossary in `ESIRI_BUILD_PROMPT.md` §6). User data (room names, chat, file and people names) is never translated. Header title/subtitle stay Swahili in both.
+- **No hard-coded UI text.** Add each string to both `en.ts` and `sw.ts` (natural Tanzanian Swahili; follow the glossary in `ESIRI_BUILD_PROMPT.md` §6 — a local-only file, not in the repo). User data (room names, chat, file and people names) is never translated. Header title/subtitle stay Swahili in both.
 - A new page or element must also be documented in `backend/app/app_map.md`; if the model needs to read data, expose it in `buildSnapshot()` `state`.
 - Driver functions never throw for UI problems; they return `{ok:false, code, error}`. Only cancellation throws.
 - Every tool call id must get a result (`{"skipped": true}` if not run); the backend fills gaps via `repair_dangling_tool_calls`.
@@ -72,7 +72,7 @@ Loop: snapshot → model returns tool calls (`click`, `type_text`, `navigate`, `
 3. Esc / Stop / "stop" must cancel immediately: abort the fetch, stop speech and listening, hide the cursor, log Cancelled.
 4. Every task produces exactly one audit record (`finalizeTask`), in localStorage and `POST /api/audit`.
 5. Never commit `.env`, never print or hardcode the API key; `/api/health` exposes only `has_key`.
-6. Don't modify anything in `reference/`.
+6. Don't modify anything in `reference/`, and never commit it or `ESIRI_BUILD_PROMPT.md` (both are local-only and git-ignored).
 7. `speak()` must always resolve (timeouts), so audio can never block the loop.
 8. Before committing: `npm run build` clean and the Playwright suite passing (at least the non-LLM tests if no key).
 

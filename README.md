@@ -1,8 +1,62 @@
-# eSiri × e-Mikutano — Proof of Concept
+# eSiri — AI Government Agent · e-Mikutano Proof of Concept
 
-**eSiri** is an AI government agent built for e-Government Authority (e-GA) Tanzania. You speak or type a request in plain English or Swahili, and eSiri completes it inside an existing government web system by visibly moving a cursor, clicking, typing and navigating on your screen. It asks before consequential actions and records every task in an audit log.
+**eSiri** is an AI assistant for government web systems, built as a proof of concept for **e-Government Authority (e-GA), Tanzania**. You speak or type a request in **English or Swahili**, and eSiri completes it *inside the existing web system* by visibly moving its own cursor, clicking and typing, exactly as a person would. It asks before consequential actions, enforces that in code, and records every task in an audit log.
 
-In this PoC the target system is a realistic mockup of **e-Mikutano**, the government video-conferencing system (rooms, access codes, sharing, presentations, meetings, recordings). The logged-in user is **Rahma Mbuyu**.
+The target system in this PoC is a realistic mockup of **e-Mikutano**, Tanzania's government video-conferencing system: rooms, settings, access codes, sharing, presentations, meetings and recordings. There is no real video server. The signed-in user is the fictional **Rahma Mbuyu**.
+
+> **Private repository.** Internal e-GA proof of concept. Do not share outside the team.
+
+![eSiri in a meeting: the side panel on the right, the e-Mikutano meeting screen on the left](frontend/e2e/screenshots/en-1366-10-meeting-panel.png)
+
+---
+
+## How it works
+
+![How eSiri works: look at the screen, think with the AI, check with the user, act with a visible cursor](Documentation/01_conceptual_loop.png)
+
+1. **Look.** eSiri reads the screen as a compact JSON snapshot: the page, the app state, and every button, field and toggle with a stable id.
+2. **Think.** The OpenAI model (`gpt-4.1-mini` by default) chooses the next steps as tool calls (`click`, `type_text`, `navigate`, `ask_confirmation`, `ask_user`, `set_language`, `finish`).
+3. **Check.** Before an important action (create a room, start or join a meeting, record, leave, remove access, delete), eSiri asks. The app **refuses sensitive clicks in code** until you say yes.
+4. **Act.** eSiri's ghost cursor clicks and types on screen, then the loop repeats until the task is done. The result is spoken aloud and written to the audit log.
+
+**The AI decides; the code acts and enforces.** The model never touches the screen or the data itself.
+
+### Features
+
+- Voice (Chrome Web Speech API) or typed requests, in English and Swahili; the whole UI, recognition, speech and replies switch language together.
+- Visible ghost cursor with highlight and click ripple; every step listed live in a side panel that pushes the page aside.
+- Code-enforced confirmation gate, answerable by voice ("yes / ndiyo / sawa", "no / hapana") or buttons.
+- Instant cancel: Esc, the Stop button, clicking the orb, or saying "stop / simama / acha".
+- Audit log of every task (steps, confirmations, outcome), with filters and CSV export, also written to `backend/audit_log.jsonl`.
+- Conversation memory across tasks ("Actually, turn it off again.").
+- Swahili speech through OpenAI text-to-speech when Chrome has no Swahili voice.
+- Optional wake-word mode ("eSiri, …").
+- A fully clickable e-Mikutano mockup that also works without eSiri.
+
+---
+
+## Quick start
+
+```bash
+git clone git@github.com:Jolama-code/eSIRI.git
+cd eSIRI
+cp .env.example .env        # then set OPENAI_API_KEY=sk-... in .env
+./start.sh                  # installs everything on the first run, then starts backend + frontend
+```
+
+Open **http://localhost:5173** in **Google Chrome**, allow the microphone, click **Reserve a meeting**, then press **Alt+S** and speak.
+
+---
+
+## Documentation
+
+| Document | For |
+|---|---|
+| [Plain Language Guide (PDF)](Documentation/eSiri_Plain_Language_Guide.pdf) · [Word](Documentation/eSiri_Plain_Language_Guide.docx) | Non-technical explanation of what eSiri is and how it works |
+| [Technical Reference (Word)](Documentation/eSiri_Technical_Reference.docx) | Technical explanation for engineers and reviewers |
+| [`docs/CODEMAP.md`](docs/CODEMAP.md) | The detailed, code-grounded source of truth: architecture, a full end-to-end trace, the system prompt and tool schemas, a real captured model run, safety, speech, i18n, data flow and privacy, tests, decisions, limitations, extension guide, glossary |
+| [`CLAUDE.md`](CLAUDE.md) | Short briefing for AI coding assistants working on this repo |
+| Diagrams | [How it works](Documentation/01_conceptual_loop.png) · [Architecture](Documentation/02_architecture.png) · [What the AI receives](Documentation/03_four_inputs.png) · [One real run, second by second](Documentation/04_real_run_timeline.png) |
 
 ---
 
@@ -14,7 +68,7 @@ In this PoC the target system is a realistic mockup of **e-Mikutano**, the gover
 - An internet connection (Chrome's speech recognition and OpenAI both need it)
 - An **OpenAI API key**
 
-## Setup
+## Setup (details)
 
 ```bash
 cp .env.example .env        # then edit .env and set OPENAI_API_KEY=sk-...
@@ -83,7 +137,23 @@ Optional extras: "What is the viewer code?", "Actually, turn it off again." (eSi
 
 ---
 
+## Screenshots
+
+| Landing page (EN, panel open) | Room settings (Swahili) |
+|---|---|
+| ![Landing page](frontend/e2e/screenshots/en-1920-02-landing-panel.png) | ![Room settings in Swahili](frontend/e2e/screenshots/sw-1366-09-room-settings.png) |
+| **Audit log with a conversation in the panel** | **Rooms dashboard** |
+| ![Audit log](frontend/e2e/screenshots/en-1366-12-audit.png) | ![Rooms dashboard](frontend/e2e/screenshots/en-1366-03-rooms-panel.png) |
+
+All 48 screenshots (every page, English and Swahili, 1366×768 and 1920×1080) are in [`frontend/e2e/screenshots/`](frontend/e2e/screenshots/).
+
+---
+
 ## Architecture
+
+![eSiri system architecture](Documentation/02_architecture.png)
+
+![What the AI receives at every step](Documentation/03_four_inputs.png)
 
 ```
  Chrome (frontend, Vite + React + TS)                         FastAPI backend (Python)
@@ -106,41 +176,70 @@ Optional extras: "What is the viewer code?", "Actually, turn it off again." (eSi
 
 Guards: at most 30 tool executions per task; stop after the same action fails 3 times; any network or model error ends the task with a spoken, localized message; every speech call resolves on a timeout, so audio can never block the loop.
 
-**In production**, the same agent loop drives real legacy government systems. The "hands" become Playwright browser automation (the same snapshot → tool-call → action pattern, run server-side against the real web UI) or direct REST API calls where they exist, with the same confirmation gate and audit trail.
+**Towards production** (not built in this PoC): the same agent loop could drive real legacy government systems. The "hands" would become Playwright browser automation (the same snapshot → tool-call → action pattern, run server-side against the real web UI) or direct REST API calls where they exist, with the same confirmation gate and audit trail. A real system will not have the `data-esiri-*` tags this mockup was built with; see the extension guide in `docs/CODEMAP.md`.
+
+---
+
+### Performance (measured)
+
+![One real run, second by second](Documentation/04_real_run_timeline.png)
+
+"Create a room called Board Meeting" took **15 seconds** from Send to done: 4 AI calls of about 4,200–4,500 prompt tokens each, the cursor animations, and the user's confirmation.
 
 ---
 
 ## Project layout
 
 ```
-reference/            original screenshots and assets (untouched)
 frontend/             Vite + React 18 + TypeScript app (mockup + eSiri)
   src/pages/          Landing, Rooms, Recordings, Room page, Meeting, Audit
-  src/esiri/          controller, driver, cursor, snapshot, speech (tts/stt), panel, orb
-  src/i18n/           en.ts / sw.ts (identical keys)
+  src/esiri/          controller (agent loop), driver + cursor (actions), snapshot, speech (stt/tts), panel, orb
+  src/store/          zustand stores (persisted in localStorage)
+  src/i18n/           en.ts / sw.ts (identical keys, enforced by TypeScript)
   e2e/                Playwright tests and screenshots
 backend/              FastAPI app
   app/main.py         endpoints, session memory, OpenAI calls
   app/agent.py        system prompt, tool definitions, memory helpers
-  app/app_map.md      knowledge about the e-Mikutano mockup (injected into the prompt)
+  app/app_map.md      the agent's knowledge of the e-Mikutano mockup (injected into the prompt)
   app/tts.py          OpenAI text-to-speech with cache
+Documentation/        Plain Language Guide, Technical Reference, diagrams
+docs/CODEMAP.md       detailed technical source of truth
 start.sh              one command to install and run everything
 ```
+
+Not in the repository (kept on the owner's machine, git-ignored): `.env` (the API key), `reference/` (original e-Mikutano screenshots used as design references) and `ESIRI_BUILD_PROMPT.md` (the original build specification). The app does not need them to run.
+
+---
 
 ## Tests
 
 ```bash
 cd frontend
-npm run build                 # type-check + production build
+npm run build                 # type-check + production build (zero TypeScript errors)
 npx playwright install chromium
-npx playwright test           # all tests (starts backend + frontend automatically if not running)
-npm run test:e2e:nollm        # only the tests that do not need the OpenAI key
-npm run test:e2e:llm          # only the eSiri agent scenarios (need the key)
+npx playwright test           # all 27 tests (starts backend + frontend automatically if not running)
+npm run test:e2e:nollm        # 18 tests that do not need the OpenAI key
+npm run test:e2e:llm          # 9 eSiri agent tests (need the key)
 ```
 
-- `e2e/ui.spec.ts`: the mockup for humans (create room, settings, access, presentation, meeting features, recordings, audit, CSV export, language toggle, token join), the code-enforced confirmation gate, the snapshot, and the TTS/audit endpoints.
-- `e2e/agent.spec.ts` (`@llm`): the eight required eSiri scenarios, driven only through the panel's text input.
-- `e2e/demo.spec.ts` (`@llm`): the full demo script above as one continuous conversation.
-- `e2e/screenshots.spec.ts`: screenshots of every page in English and Swahili with the panel open, at 1366×768 and 1920×1080, with overflow checks (saved to `e2e/screenshots/`).
+| Suite | Tests | What it proves |
+|---|---|---|
+| `e2e/ui.spec.ts` | 14 | The mockup works for humans (create room, settings, access, presentation, meeting features, recordings, audit, CSV export, language toggle, token join); the code-enforced confirmation gate; the snapshot; the TTS and audit endpoints |
+| `e2e/agent.spec.ts` `@llm` | 8 | The required eSiri scenarios, driven only through the panel's text input, asserting final app state (create, settings, share, meeting + chat, record/stop/leave, Swahili, decline, Esc cancel) |
+| `e2e/demo.spec.ts` `@llm` | 1 | The full demo script as one continuous conversation |
+| `e2e/screenshots.spec.ts` | 4 | Every page in English and Swahili at 1366×768 and 1920×1080, with overflow checks |
 
-Automated tests run with `?mute=1`, which disables speech output and the microphone. The real microphone and speakers need a manual check in Chrome.
+Latest full run: **27 of 27 passed**. `demo.spec.ts` is occasionally flaky (about 1 in 6 runs, passes on the automatic retry): in a long conversation the model can mistake the Swahili room name "Kikao cha Bodi" for the existing "Board Meeting" and ask a question instead of acting. Automated tests run with `?mute=1` (no speech, no microphone), so real voice input and output need a manual check in Chrome.
+
+---
+
+## Known limitations
+
+- The mockup was built with `data-esiri-*` tags for the agent; a real third-party system will not have them.
+- The confirmation gate runs in the browser (strong against the AI, not a server-side security control), and an approval is not tied to one specific button.
+- Single fictional user, no authentication; all app data lives in the browser's localStorage.
+- Needs internet: OpenAI (reasoning and Swahili speech) and Google (Chrome speech recognition). Voice input needs Google Chrome.
+- Each step's screen snapshot is sent to OpenAI, including room names, join tokens, access codes and recent chat messages.
+- About 15 seconds for a four-step task.
+
+Full, honest list with details: [`docs/CODEMAP.md` §19](docs/CODEMAP.md#19-known-limitations-and-weaknesses).
