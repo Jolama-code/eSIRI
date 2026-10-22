@@ -9,8 +9,9 @@
     "typecheck": "tsc -b --noEmit",
     "preview": "vite preview",
     "test:e2e": "playwright test",
-    "test:e2e:nollm": "playwright test --grep-invert @llm",
-    "test:e2e:llm": "playwright test --grep @llm"
+    "test:e2e:nollm": "playwright test --grep-invert \"@llm|@katibu\"",
+    "test:e2e:llm": "playwright test --grep @llm",
+    "test:e2e:katibu": "playwright test --grep @katibu"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.3.1",
