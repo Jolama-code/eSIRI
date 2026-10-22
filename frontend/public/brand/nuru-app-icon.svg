@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"><rect width="512" height="512" rx="112" fill="#1e2761"/>
+<defs>
+ <radialGradient id="orbi" cx="0.42" cy="0.38" r="0.68">
+  <stop offset="0" stop-color="#23b8ee"/>
+  <stop offset="0.55" stop-color="#254e96"/>
+  <stop offset="1" stop-color="#141b45"/>
+ </radialGradient>
+ <radialGradient id="glowi" cx="0.5" cy="0.5" r="0.5">
+  <stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/>
+  <stop offset="0.35" stop-color="#cef1ff" stop-opacity="0.55"/>
+  <stop offset="1" stop-color="#23b8ee" stop-opacity="0"/>
+ </radialGradient>
+ <linearGradient id="rimi" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0" stop-color="#cef1ff"/>
+  <stop offset="1" stop-color="#23b8ee" stop-opacity="0.2"/>
+ </linearGradient>
+</defs>
+<circle cx="256" cy="256" r="200" fill="url(#orbi)"/>
+<circle cx="256" cy="256" r="194.00" fill="none" stroke="url(#rimi)" stroke-width="7.00"/>
+<path d="M136.00,104.00 A192.00,192.00 0 0 1 328.00,80.00" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="10.00" stroke-linecap="round"/>
+<circle cx="256" cy="256" r="124.00" fill="url(#glowi)"/>
+<path d="M256.00,136.00 C272.00,224.00 288.00,240.00 376.00,256.00 C288.00,272.00 272.00,288.00 256.00,376.00 C240.00,288.00 224.00,272.00 136.00,256.00 C224.00,240.00 240.00,224.00 256.00,136.00 Z" fill="#ffffff"/>
+<path d="M344.00,136.00 C348.00,156.00 352.00,160.00 372.00,164.00 C352.00,168.00 348.00,172.00 344.00,192.00 C340.00,172.00 336.00,168.00 316.00,164.00 C336.00,160.00 340.00,156.00 344.00,136.00 Z" fill="#ff6b35"/>
+<path d="M376.00,208.00 A56.00,56.00 0 0 1 376.00,304.00" fill="none" stroke="#cef1ff" stroke-opacity="0.85" stroke-width="10.00" stroke-linecap="round"/>
+<path d="M396.00,176.00 A88.00,88.00 0 0 1 396.00,336.00" fill="none" stroke="#cef1ff" stroke-opacity="0.45" stroke-width="10.00" stroke-linecap="round"/>
+</svg>

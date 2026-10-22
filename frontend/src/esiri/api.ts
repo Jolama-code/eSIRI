@@ -1,4 +1,5 @@
 import type { Health } from './esiriStore';
+import { authHeaders } from './session';
 
 export interface ToolCall {
   id: string;
@@ -25,9 +26,9 @@ export async function fetchHealth(): Promise<Health> {
     const r = await fetch('/api/health');
     if (!r.ok) throw new Error(String(r.status));
     const j = (await r.json()) as Omit<Health, 'reachable'>;
-    return { reachable: true, has_key: !!j.has_key, model: j.model, english_tts: j.english_tts === 'openai' ? 'openai' : 'browser' };
+    return { reachable: true, has_key: !!j.has_key, model: j.model, english_tts: j.english_tts === 'browser' ? 'browser' : 'openai' };
   } catch {
-    return { reachable: false, has_key: false, model: '', english_tts: 'browser' };
+    return { reachable: false, has_key: false, model: '', english_tts: 'openai' };
   }
 }
 
@@ -36,7 +37,7 @@ export async function agentStep(body: Record<string, unknown>, signal: AbortSign
   try {
     r = await fetch('/api/agent/step', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify(body),
       signal,
     });
@@ -62,7 +63,7 @@ export async function agentStep(body: Record<string, unknown>, signal: AbortSign
 export function resetSession(sessionId: string): void {
   void fetch('/api/agent/reset', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify({ session_id: sessionId }),
   }).catch(() => undefined);
 }
@@ -70,7 +71,7 @@ export function resetSession(sessionId: string): void {
 export function postAudit(record: unknown): void {
   void fetch('/api/audit', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify(record),
     keepalive: true,
   }).catch(() => undefined);
@@ -79,7 +80,7 @@ export function postAudit(record: unknown): void {
 export async function fetchTTS(text: string, lang: 'en' | 'sw', signal?: AbortSignal): Promise<Blob> {
   const r = await fetch('/api/tts', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify({ text, lang }),
     signal,
   });

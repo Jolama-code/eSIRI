@@ -244,3 +244,104 @@ export function stopWake(): void {
 export function isWakeActive(): boolean {
   return wakeWanted;
 }
+
+// ---------------------------------------------------------------------------
+// Long listening (morning briefing): keep recognising until `silenceMs` of silence after speech.
+
+export function listenLong(
+  lang: Language,
+  onInterim: (text: string) => void,
+  opts: { silenceMs?: number; noSpeechMs?: number; maxMs?: number } = {},
+): Promise<ListenResult> {
+  stopListening();
+  stopWake();
+  const Ctor = recognitionCtor();
+  if (!Ctor) return Promise.resolve({ error: 'unsupported' });
+  const silenceMs = opts.silenceMs ?? 2500;
+  const noSpeechMs = opts.noSpeechMs ?? 12000;
+  const maxMs = opts.maxMs ?? 120000;
+
+  return new Promise<ListenResult>((resolve) => {
+    let finalText = '';
+    let interimText = '';
+    let error: ListenError | null = null;
+    let settled = false;
+    let lastSpeech = 0;
+    let rec: SpeechRecognitionLike | null = null;
+    const started = Date.now();
+
+    const text = () => `${finalText} ${interimText}`.replace(/\s+/g, ' ').trim();
+    const finish = (r: ListenResult) => {
+      if (settled) return;
+      settled = true;
+      window.clearInterval(watch);
+      if (activeFinish === finishFromOutside) {
+        active = null;
+        activeFinish = null;
+      }
+      try {
+        rec?.abort();
+      } catch {
+        /* ignore */
+      }
+      resolve(r);
+    };
+    const finishFromOutside = (r: ListenResult) => {
+      const t = text();
+      finish(t ? { text: t } : r);
+    };
+
+    const launch = () => {
+      if (settled) return;
+      const r = new Ctor();
+      rec = r;
+      active = r;
+      activeFinish = finishFromOutside;
+      r.lang = recognitionLang(lang);
+      r.interimResults = true;
+      r.continuous = true;
+      r.maxAlternatives = 1;
+      r.onresult = (e) => {
+        let interim = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          const res = e.results[i];
+          if (res.isFinal) finalText += ' ' + res[0].transcript;
+          else interim += res[0].transcript;
+        }
+        interimText = interim;
+        lastSpeech = Date.now();
+        onInterim(text());
+      };
+      r.onerror = (e) => {
+        if (e.error === 'not-allowed' || e.error === 'service-not-allowed' || e.error === 'audio-capture') error = 'not-allowed';
+        else if (e.error === 'network') error = 'network';
+        else if (e.error === 'aborted') error = 'aborted';
+      };
+      r.onend = () => {
+        if (settled) return;
+        finalText = `${finalText} ${interimText}`;
+        interimText = '';
+        if (error === 'not-allowed' || error === 'network' || error === 'aborted') {
+          const t = text();
+          finish(t ? { text: t } : { error });
+          return;
+        }
+        window.setTimeout(launch, 150); // Chrome ends continuous sessions on pauses: keep going
+      };
+      try {
+        r.start();
+      } catch {
+        finish({ error: 'other' });
+      }
+    };
+
+    const watch = window.setInterval(() => {
+      const now = Date.now();
+      const t = text();
+      if (t && lastSpeech && now - lastSpeech > silenceMs) finish({ text: t });
+      else if (!t && now - started > noSpeechMs) finish({ error: 'no-speech' });
+      else if (now - started > maxMs) finish(t ? { text: t } : { error: 'no-speech' });
+    }, 250);
+    launch();
+  });
+}

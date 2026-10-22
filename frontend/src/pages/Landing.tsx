@@ -5,6 +5,7 @@ import { FullHeader } from '../components/Header';
 import { ez } from '../components/esiriProps';
 import { useT } from '../i18n';
 import { useApp } from '../store/appStore';
+import { useSession } from '../esiri/session';
 import './Landing.css';
 
 export default function Landing() {
@@ -14,6 +15,7 @@ export default function Landing() {
   const language = useApp((s) => s.language);
   const setLanguage = useApp((s) => s.setLanguage);
   const signIn = useApp((s) => s.signIn);
+  const authed = useSession((s) => s.status === 'authed');
   const rooms = useApp((s) => s.rooms);
   const [token, setToken] = useState(params.get('token') ?? '');
   const [error, setError] = useState<'empty' | 'invalid' | null>(null);
@@ -96,8 +98,11 @@ export default function Landing() {
             <button
               className="reserve-btn"
               onClick={() => {
-                signIn();
-                navigate('/rooms');
+                // Single sign-on: the NURU account is the e-Mikutano account.
+                if (authed) {
+                  signIn();
+                  navigate('/rooms');
+                } else navigate('/hub/login?next=/rooms');
               }}
               {...ez('landing.reserve-btn', t('landing.reserve'))}
             >

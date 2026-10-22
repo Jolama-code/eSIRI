@@ -1,4 +1,4 @@
-"""eSiri backend: agent step endpoint, TTS, audit log."""
+"""NURU backend: agent step, TTS, Hub/GMS/WERIS/Katibu APIs, SSE events and the reminder scheduler."""
 
 from __future__ import annotations
 
@@ -6,60 +6,62 @@ import asyncio
 import json
 import logging
 import os
-from pathlib import Path
+from contextlib import asynccontextmanager
 from typing import Any, Literal, Optional
 
 import openai
-from dotenv import load_dotenv
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
-from openai import AsyncOpenAI
 from pydantic import BaseModel, Field
 
-from . import agent
-from .tts import synthesize
-
-BACKEND_DIR = Path(__file__).resolve().parent.parent
-PROJECT_ROOT = BACKEND_DIR.parent
-load_dotenv(PROJECT_ROOT / ".env")
-
-AUDIT_FILE = BACKEND_DIR / "audit_log.jsonl"
+from . import agent, api_hub, api_mail, api_weris, katibu, llm
+from .core import current_user, init_db
+from .models import User
+from .seed import seed_if_empty
+from .services import scheduler_loop
+from .tts import synthesize, tts_provider
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("esiri")
 
 
-def model_name() -> str:
-    return os.getenv("OPENAI_MODEL", "gpt-4.1-mini").strip() or "gpt-4.1-mini"
-
-
-def api_key() -> str:
-    return os.getenv("OPENAI_API_KEY", "").strip()
-
-
 def english_tts() -> str:
-    value = os.getenv("ESIRI_ENGLISH_TTS", "browser").split("#")[0].strip().lower()
-    return "openai" if value == "openai" else "browser"
+    value = os.getenv("ESIRI_ENGLISH_TTS", "openai").split("#")[0].strip().lower()
+    return "browser" if value == "browser" else "openai"
 
 
-_client: Optional[AsyncOpenAI] = None
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    init_db()
+    seed_if_empty()
+    stop = asyncio.Event()
+    task = asyncio.create_task(scheduler_loop(stop))
+    katibu.resume_jobs()
+    try:
+        yield
+    finally:
+        stop.set()
+        task.cancel()
 
 
-def client() -> AsyncOpenAI:
-    global _client
-    if _client is None:
-        _client = AsyncOpenAI(api_key=api_key(), timeout=60.0, max_retries=1)
-    return _client
+app = FastAPI(title="NURU backend", lifespan=lifespan)
+app.include_router(api_hub.router)
+app.include_router(api_mail.router)
+app.include_router(api_weris.router)
+app.include_router(katibu.router)
 
 
-app = FastAPI(title="NURU backend")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+@app.exception_handler(HTTPException)
+async def http_error(_req: Request, exc: HTTPException) -> JSONResponse:
+    detail = exc.detail if isinstance(exc.detail, dict) else {"code": "error", "error": str(exc.detail)}
+    return JSONResponse(status_code=exc.status_code, content=detail)
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_error(_req: Request, exc: RequestValidationError) -> JSONResponse:
+    return JSONResponse(status_code=422, content={"code": "bad_request", "error": "Invalid request.", "details": json.loads(json.dumps(exc.errors(), default=str))})
+
 
 # session_id -> list of chat messages (see agent.py for the format)
 SESSIONS: dict[str, list[dict[str, Any]]] = {}
@@ -95,23 +97,24 @@ class TTSRequest(BaseModel):
 
 @app.get("/api/health")
 async def health() -> dict[str, Any]:
-    return {"ok": True, "has_key": bool(api_key()), "model": model_name(), "english_tts": english_tts()}
+    return {"ok": True, "has_key": bool(llm.api_key()), "model": llm.model_name(), "english_tts": english_tts(), "tts_provider": tts_provider()}
 
 
 @app.post("/api/agent/reset")
-async def reset(req: ResetRequest) -> dict[str, Any]:
+async def reset(req: ResetRequest, user: User = Depends(current_user)) -> dict[str, Any]:
     SESSIONS.pop(req.session_id, None)
     return {"ok": True}
 
 
 @app.post("/api/agent/step")
-async def step(req: StepRequest):
-    if not api_key():
+async def step(req: StepRequest, user: User = Depends(current_user)):
+    if not llm.api_key():
         return error(400, "no_key", "OPENAI_API_KEY is not set. Add it to the .env file in the project root and restart.")
 
-    lock = LOCKS.setdefault(req.session_id, asyncio.Lock())
+    key = f"{user.id}:{req.session_id}"
+    lock = LOCKS.setdefault(key, asyncio.Lock())
     async with lock:
-        messages = SESSIONS.setdefault(req.session_id, [])
+        messages = SESSIONS.setdefault(key, [])
         snapshot_text = agent.compact_json(req.snapshot) if req.snapshot is not None else None
 
         if req.user_message is not None:
@@ -150,12 +153,12 @@ async def step(req: StepRequest):
         if trimmed is not messages:
             messages[:] = trimmed
 
-        api_messages = [{"role": "system", "content": agent.build_system_prompt(req.language)}]
+        api_messages = [{"role": "system", "content": agent.build_system_prompt(req.language, user)}]
         api_messages += agent.render_messages(messages)
 
         try:
-            completion = await client().chat.completions.create(
-                model=model_name(),
+            completion = await llm.client().chat.completions.create(
+                model=llm.model_name(),
                 messages=api_messages,
                 tools=agent.TOOLS,
                 temperature=0.2,
@@ -166,7 +169,7 @@ async def step(req: StepRequest):
             return error(
                 502,
                 "model_not_found",
-                f"The model '{model_name()}' is not available for this API key. Change OPENAI_MODEL in the .env file (for example gpt-4.1-mini or gpt-4o-mini) and restart.",
+                f"The model '{llm.model_name()}' is not available for this API key. Change OPENAI_MODEL in the .env file (for example gpt-4.1-mini or gpt-4o-mini) and restart.",
             )
         except openai.AuthenticationError:
             return error(401, "auth", "The OpenAI API key was rejected. Check OPENAI_API_KEY in the .env file.")
@@ -175,9 +178,9 @@ async def step(req: StepRequest):
         except openai.BadRequestError as exc:
             log.error("Bad request: %s", exc)
             if "model" in str(exc).lower() and ("does not exist" in str(exc).lower() or "not found" in str(exc).lower()):
-                return error(502, "model_not_found", f"The model '{model_name()}' is not available. Change OPENAI_MODEL in the .env file.")
+                return error(502, "model_not_found", f"The model '{llm.model_name()}' is not available. Change OPENAI_MODEL in the .env file.")
             # Most likely a corrupted history: start fresh next time.
-            SESSIONS.pop(req.session_id, None)
+            SESSIONS.pop(key, None)
             return error(502, "bad_request", f"The AI service rejected the request: {exc}")
         except (openai.APIConnectionError, openai.APITimeoutError) as exc:
             return error(504, "network", f"Could not reach the AI service: {exc}")
@@ -206,7 +209,8 @@ async def step(req: StepRequest):
         messages.append(assistant_msg)
 
         log.info(
-            "session=%s tools=%s text=%r",
+            "user=%s session=%s tools=%s text=%r",
+            user.username,
             req.session_id[:8],
             [f'{t["name"]}({t["arguments"].get("element_id") or t["arguments"].get("page") or ""})' for t in tool_calls_out],
             (choice.content or "")[:80],
@@ -222,24 +226,12 @@ def _room_names(snapshot: Any) -> list[str]:
 
 
 @app.post("/api/tts")
-async def tts(req: TTSRequest):
-    if not api_key():
+async def tts(req: TTSRequest, user: User = Depends(current_user)):
+    if not llm.api_key():
         return error(400, "no_key", "OPENAI_API_KEY is not set.")
     try:
-        audio = await synthesize(client(), req.text, req.lang)
+        audio = await synthesize(req.text, req.lang)
     except Exception as exc:  # noqa: BLE001
         log.error("TTS failed: %s", exc)
         return error(502, "tts_failed", f"Text-to-speech failed: {exc}")
     return Response(content=audio, media_type="audio/mpeg", headers={"Cache-Control": "no-store"})
-
-
-@app.post("/api/audit")
-async def audit(record: dict[str, Any]) -> dict[str, Any]:
-    line = json.dumps(record, ensure_ascii=False)
-    await asyncio.to_thread(_append_audit, line)
-    return {"ok": True}
-
-
-def _append_audit(line: str) -> None:
-    with AUDIT_FILE.open("a", encoding="utf-8") as fh:
-        fh.write(line + "\n")

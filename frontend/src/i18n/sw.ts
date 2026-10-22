@@ -1,6 +1,8 @@
 import type { Dict } from './en';
+import v2sw from './v2sw';
 
 const sw: Dict = {
+  ...v2sw,
   'header.title': 'Jamhuri ya Muungano wa Tanzania',
   'header.subtitle': 'Mfumo Wa Mawasiliano Kwa Njia ya Video',
   'header.home': 'Ukurasa wa mwanzo wa e-Mikutano',

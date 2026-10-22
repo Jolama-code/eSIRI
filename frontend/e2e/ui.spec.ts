@@ -3,13 +3,14 @@
  * the language toggle, token join, the confirmation gate and the snapshot.
  */
 import { test, expect } from '@playwright/test';
-import { createRoomByHand, esiriId, openPanel, startSignedIn, store } from './helpers';
+import { API, apiLogin, auth, createRoomByHand, esiriId, openPanel, signIn, startSignedIn, store } from './helpers';
 
 test.describe('e-Mikutano mockup (human, no LLM)', () => {
   test('landing page branding, no forbidden names, health check', async ({ page, request }) => {
-    const health = await (await request.get('http://localhost:8000/api/health')).json();
+    const health = await (await request.get('http://localhost:8010/api/health')).json();
     expect(health.ok).toBe(true);
     await page.goto('/?mute=1');
+    await page.locator(esiriId('landing.lang.en')).click();
     await expect(page.locator('.gov-title')).toHaveText('Jamhuri ya Muungano wa Tanzania');
     await expect(page.locator('.gov-subtitle')).toHaveText('Mfumo Wa Mawasiliano Kwa Njia ya Video');
     await expect(page.locator('img.coat-lg')).toBeVisible();
@@ -20,18 +21,25 @@ test.describe('e-Mikutano mockup (human, no LLM)', () => {
     expect(html).not.toMatch(/BigBlueButton/i);
   });
 
-  test('sign-in gate: /rooms redirects to the landing page when signed out', async ({ page }) => {
+  test('single sign-on gate: /rooms needs the NURU sign-in, then shows the seeded rooms', async ({ page }) => {
     await page.goto('/rooms?mute=1');
-    await expect(page).toHaveURL(/\/$/);
+    await expect(page).toHaveURL(/\/hub\/login\?next=%2Frooms/);
+    await page.goto('/?mute=1');
+    await page.locator(esiriId('landing.lang.en')).click();
     await page.locator(esiriId('landing.reserve-btn')).click();
+    await expect(page).toHaveURL(/\/hub\/login\?next=/);
+    await page.getByTestId('login-username').fill('jolama');
+    await page.getByTestId('login-password').fill('Demo@2026');
+    await page.getByTestId('login-submit').click();
     await expect(page).toHaveURL(/\/rooms$/);
-    await expect(page.getByTestId('room-card')).toHaveCount(1);
+    await expect(page.getByTestId('room-card')).toHaveCount(2);
+    await expect(page.getByText('Kamati ya Bajeti')).toBeVisible();
     await expect(page.getByText("Jolama's Room")).toBeVisible();
     await expect(page.getByText('Last Session: September 25, 2026 at 11:11 AM')).toBeVisible();
   });
 
   test('language toggle switches the whole UI to Swahili and back', async ({ page }) => {
-    await page.goto('/?mute=1');
+    await signIn(page, 'jolama', '/', 'en');
     await page.locator(esiriId('landing.lang.sw')).click();
     await expect(page.getByText('Fanya Mkutano kupitia Mtandao, Mahali Popote na Wakati Wowote')).toBeVisible();
     await expect(page.locator(esiriId('landing.reserve-btn'))).toHaveText('Hifadhi mkutano');
@@ -74,7 +82,7 @@ test.describe('e-Mikutano mockup (human, no LLM)', () => {
     const room = (await store(page)).rooms.find((r) => r.name === 'Board Meeting')!;
     expect(room.token).toMatch(/^BRD-[A-Z0-9]{4}$/);
     await page.locator(esiriId('room.home-btn')).click();
-    await expect(page.getByTestId('room-card')).toHaveCount(2);
+    await expect(page.getByTestId('room-card')).toHaveCount(3);
     await page.locator(esiriId('rooms.search')).fill('board');
     await expect(page.getByTestId('room-card')).toHaveCount(1);
   });
@@ -188,7 +196,7 @@ test.describe('e-Mikutano mockup (human, no LLM)', () => {
     await page.locator(esiriId('header.user-menu')).click();
     await page.locator(esiriId('header.menu.reset-demo')).click();
     await expect(page).toHaveURL(/\/rooms$/);
-    await expect(page.getByTestId('room-card')).toHaveCount(1);
+    await expect(page.getByTestId('room-card')).toHaveCount(2);
     await page.locator(esiriId('header.user-menu')).click();
     await page.locator(esiriId('header.menu.sign-out')).click();
     await expect(page).toHaveURL(/\/$/);
@@ -254,7 +262,7 @@ test.describe('eSiri runtime (no LLM)', () => {
     expect(res.r2.ok).toBe(true);
     expect(res.r3.ok).toBe(false);
     expect(res.r3.code).toBe('confirmation_required');
-    expect(res.roomsAfterRefusal).toBe(1);
+    expect(res.roomsAfterRefusal).toBe(2);
     expect(res.r4.ok).toBe(true);
     expect(res.creditsLeft).toBe(0);
     expect(res.rooms).toContain('Gate Test');
@@ -277,14 +285,16 @@ test.describe('eSiri runtime (no LLM)', () => {
     expect(snap.elements.find((e: any) => e.id === 'rooms.tab.rooms').label).toBe('Vyumba');
   });
 
-  test('backend: TTS returns MP3 audio for Swahili, audit endpoint accepts records', async ({ request }) => {
-    const health = await (await request.get('http://localhost:8000/api/health')).json();
+  test('backend: TTS returns MP3 audio for Swahili, audit endpoint accepts records (signed in)', async ({ request }) => {
+    const health = await (await request.get(`${API}/api/health`)).json();
     test.skip(!health.has_key, 'needs OPENAI_API_KEY');
-    const r = await request.post('http://localhost:8000/api/tts', { data: { text: 'Karibu kwenye e-Mikutano.', lang: 'sw' } });
+    expect((await request.post(`${API}/api/tts`, { data: { text: 'x', lang: 'sw' } })).status()).toBe(401);
+    const { token } = await apiLogin(request);
+    const r = await request.post(`${API}/api/tts`, { headers: auth(token), data: { text: 'Karibu kwenye e-Mikutano.', lang: 'sw' } });
     expect(r.status()).toBe(200);
     expect(r.headers()['content-type']).toContain('audio/mpeg');
     expect((await r.body()).length).toBeGreaterThan(1000);
-    const a = await request.post('http://localhost:8000/api/audit', { data: { id: 'test', outcome: 'Completed', request: 'e2e audit check' } });
+    const a = await request.post(`${API}/api/audit`, { headers: auth(token), data: { id: 'test', outcome: 'Completed', request: 'e2e audit check' } });
     expect((await a.json()).ok).toBe(true);
   });
 });

@@ -1,4 +1,6 @@
-const en = {
+import v2en from './v2en';
+
+const base = {
   // Header (title and subtitle stay in Swahili, as on the real site)
   'header.title': 'Jamhuri ya Muungano wa Tanzania',
   'header.subtitle': 'Mfumo Wa Mawasiliano Kwa Njia ya Video',
@@ -286,6 +288,8 @@ const en = {
   'esiri.inputText': 'Typed',
   'esiri.cursorLabel': 'NURU',
 } as const;
+
+const en = { ...base, ...v2en } as const;
 
 export type I18nKey = keyof typeof en;
 export type Dict = Record<I18nKey, string>;

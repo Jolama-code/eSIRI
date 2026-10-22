@@ -1,183 +1,3 @@
-/* ============================================================
-   ORB — iridescent glass sphere (pastel blue, lilac, pink,
-   white specular highlight, soft rim). Pure CSS gradients.
-   ============================================================ */
-@property --orb-angle {
-  syntax: '<angle>';
-  inherits: false;
-  initial-value: 0deg;
-}
-
-.orb {
-  --level: 0;
-  --speed: 14s;
-  position: relative;
-  flex: none;
-  border-radius: 50%;
-  transform: scale(calc(1 + var(--level) * 0.16));
-  transition: transform 0.08s linear, filter 0.3s;
-}
-.orb-body {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0) 58%, rgba(255, 255, 255, 0.4) 70%, rgba(255, 255, 255, 0) 73%),
-    radial-gradient(circle at 30% 26%, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 26%),
-    radial-gradient(circle at 64% 80%, rgba(255, 110, 196, 0.95) 0%, rgba(255, 110, 196, 0) 46%),
-    radial-gradient(circle at 24% 66%, rgba(124, 92, 255, 0.9) 0%, rgba(124, 92, 255, 0) 50%),
-    radial-gradient(circle at 74% 30%, rgba(64, 184, 255, 0.95) 0%, rgba(64, 184, 255, 0) 54%),
-    linear-gradient(160deg, #8fd3ff 0%, #a99bff 50%, #ffa6d8 100%);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.55),
-    inset -6px -10px 22px rgba(120, 90, 200, 0.28),
-    inset 8px 10px 22px rgba(255, 255, 255, 0.5);
-}
-.orb-swirl {
-  position: absolute;
-  inset: -20%;
-  border-radius: 50%;
-  background: conic-gradient(
-    from var(--orb-angle),
-    rgba(120, 200, 255, 0.0),
-    rgba(120, 200, 255, 0.75),
-    rgba(190, 150, 255, 0.7),
-    rgba(255, 150, 210, 0.75),
-    rgba(255, 255, 255, 0.35),
-    rgba(120, 200, 255, 0.0)
-  );
-  filter: blur(8px);
-  mix-blend-mode: soft-light;
-  animation: orb-spin var(--speed) linear infinite;
-  opacity: 0.9;
-}
-.orb-swirl-2 {
-  inset: 8%;
-  mix-blend-mode: screen;
-  opacity: 0.45;
-  filter: blur(6px);
-  animation-direction: reverse;
-  animation-duration: calc(var(--speed) * 1.4);
-}
-.orb-caustic {
-  position: absolute;
-  left: 30%;
-  bottom: 4%;
-  width: 40%;
-  height: 26%;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(255, 250, 235, 0.95), rgba(255, 220, 240, 0) 70%);
-  filter: blur(3px);
-  opacity: 0.8;
-}
-.orb-highlight {
-  position: absolute;
-  top: 9%;
-  left: 17%;
-  width: 38%;
-  height: 26%;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at 45% 40%, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0) 70%);
-  transform: rotate(-24deg);
-  filter: blur(1px);
-}
-.orb-rim {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  box-shadow:
-    inset 0 0 0 1.5px rgba(255, 255, 255, 0.85),
-    inset 0 0 12px 2px rgba(255, 255, 255, 0.45);
-}
-.orb-glow {
-  position: absolute;
-  inset: -18%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(170, 160, 255, 0.45), rgba(120, 200, 255, 0.18) 50%, transparent 70%);
-  opacity: calc(0.35 + var(--level) * 1.2);
-  filter: blur(6px);
-  transition: opacity 0.1s;
-}
-.orb-ring {
-  position: absolute;
-  inset: -9%;
-  border-radius: 50%;
-  opacity: 0;
-  background: conic-gradient(from var(--orb-angle), transparent 0deg, #00aeef 90deg, #b59cff 180deg, transparent 260deg);
-  -webkit-mask: radial-gradient(circle, transparent 64%, #000 66%);
-  mask: radial-gradient(circle, transparent 64%, #000 66%);
-  transition: opacity 0.3s;
-}
-@keyframes orb-spin { to { --orb-angle: 360deg; } }
-@keyframes orb-breathe {
-  0%, 100% { transform: scale(0.97); }
-  50% { transform: scale(1.03); }
-}
-@keyframes orb-shimmer {
-  0%, 100% { filter: saturate(1) brightness(1); }
-  50% { filter: saturate(1.6) brightness(1.04) hue-rotate(12deg); }
-}
-
-/* Idle: slow breathing */
-.orb--idle { animation: orb-breathe 5s ease-in-out infinite; }
-/* Listening: size and glow follow the microphone */
-.orb--listening { --speed: 9s; }
-.orb--listening .orb-glow { background: radial-gradient(circle, rgba(0, 174, 239, 0.55), rgba(120, 200, 255, 0.2) 55%, transparent 72%); }
-/* Thinking: faster swirl + shimmer */
-.orb--thinking { --speed: 2.2s; animation: orb-shimmer 1.1s ease-in-out infinite; }
-.orb--thinking .orb-swirl { opacity: 1; }
-/* Acting: steady rotating ring */
-.orb--acting { --speed: 6s; }
-.orb--acting .orb-ring { opacity: 1; animation: orb-spin 1.6s linear infinite; }
-/* Speaking: pulses with the audio */
-.orb--speaking { --speed: 7s; }
-.orb--speaking .orb-glow { background: radial-gradient(circle, rgba(255, 150, 210, 0.5), rgba(170, 160, 255, 0.22) 55%, transparent 72%); }
-/* Error: brief red tint */
-.orb--error { filter: hue-rotate(-60deg) saturate(2.2); }
-.orb--error .orb-glow { background: radial-gradient(circle, rgba(229, 56, 59, 0.6), transparent 70%); opacity: 0.9; }
-
-@media (prefers-reduced-motion: reduce) {
-  .orb, .orb-swirl, .orb-ring { animation: none !important; }
-}
-
-/* ============================================================
-   Floating orb button (bottom-right) and stage orb
-   ============================================================ */
-.orb-fab {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  z-index: 950;
-  border: 0;
-  padding: 0;
-  background: none;
-  border-radius: 50%;
-  transition: right 0.28s ease, bottom 0.2s, opacity 0.2s;
-  filter: drop-shadow(0 6px 16px rgba(80, 70, 180, 0.35));
-}
-.orb-fab.on-meeting { bottom: 76px; }
-.orb-fab.dim { opacity: 0.55; }
-.orb-fab:hover .orb-tooltip, .orb-fab:focus-visible .orb-tooltip { opacity: 1; transform: translate(0, -50%); }
-.orb-tooltip {
-  position: absolute;
-  right: calc(100% + 12px);
-  top: 50%;
-  transform: translate(6px, -50%);
-  white-space: nowrap;
-  background: var(--navy);
-  color: #fff;
-  font-size: 13px;
-  padding: 6px 10px;
-  border-radius: 6px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s, transform 0.15s;
-}
-@media (min-width: 1000px) {
-  .panel-open .orb-fab { right: calc(var(--panel-w) + 24px); }
-}
-
 .esiri-stage {
   position: fixed;
   left: 0;
@@ -494,3 +314,37 @@
 @media (max-width: 999px) {
   .esiri-panel { box-shadow: -12px 0 40px rgba(16, 24, 40, 0.25); }
 }
+
+/* ============================================================
+   NURU v2 look for the panel (design-system colours)
+   ============================================================ */
+.esiri-panel {
+  --cyan: var(--nuru-royal);
+  --cyan-soft: var(--nuru-frost);
+  --navy: var(--nuru-navy);
+  background: linear-gradient(180deg, #ffffff 0%, var(--nuru-frost) 100%);
+  font-family: var(--nuru-font-sans);
+}
+.esiri-panel .ep-head { background: var(--nuru-gradient-header); color: #fff; border-bottom: 0; position: relative; }
+.esiri-panel .ep-head::after { content: ''; position: absolute; left: 0; right: 0; bottom: -4px; height: 4px; background: var(--nuru-gradient-flag); }
+.esiri-panel .ep-name { color: #fff; font-family: var(--nuru-font-display); letter-spacing: 0.06em; }
+.esiri-panel .ep-status { color: rgba(255, 255, 255, 0.82); }
+.esiri-panel .ep-icon { color: rgba(255, 255, 255, 0.85); }
+.esiri-panel .ep-icon:hover { background: rgba(255, 255, 255, 0.14); color: #fff; }
+.esiri-panel .lang-chip { background: rgba(255, 255, 255, 0.14); border-color: rgba(255, 255, 255, 0.25); }
+.esiri-panel .lang-chip span { color: rgba(255, 255, 255, 0.8); }
+.esiri-panel .lang-chip span.on { background: #fff; color: var(--nuru-navy); }
+.esiri-panel .wake-row { margin-top: 4px; }
+.esiri-panel .bubble-user { background: var(--nuru-navy); }
+.esiri-panel .bubble-assistant { border-color: var(--nuru-periwinkle); }
+.esiri-panel .ep-greeting { font-family: var(--nuru-font-display); color: var(--nuru-navy); }
+.esiri-panel .suggest-chip { border-color: var(--nuru-periwinkle); color: var(--nuru-navy); border-radius: var(--nuru-radius-lg); }
+.esiri-panel .pm-step .step-icon { color: var(--nuru-royal); }
+.esiri-panel .confirm-card { border-radius: 14px; }
+.esiri-panel .ep-round.send { background: var(--nuru-royal); border-color: var(--nuru-royal); }
+.esiri-panel .ep-round.live { background: var(--nuru-cyan); border-color: var(--nuru-cyan); color: var(--nuru-navy); }
+.esiri-panel .status-dot.s-listening { background: var(--nuru-cyan); }
+.esiri-panel .status-dot.s-thinking, .esiri-panel .status-dot.s-acting { background: var(--nuru-ice); }
+.esiri-panel .status-dot.s-speaking { background: var(--nuru-orange); }
+.panel-tab { background: var(--nuru-navy); font-family: var(--nuru-font-display); letter-spacing: 0.1em; }
+.stage-caption { background: rgba(30, 39, 97, 0.88); font-family: var(--nuru-font-sans); }

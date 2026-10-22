@@ -46,10 +46,17 @@ APP MAP
 """
 
 
-def build_system_prompt(language: str) -> str:
+def build_system_prompt(language: str, user: Any = None) -> str:
     lang_name = "Swahili (sw)" if language == "sw" else "English (en)"
+    who = ""
+    if user is not None:
+        who = (
+            f"\nSIGNED-IN USER: {user.display_name} (username {user.username}, {user.title}, role {user.role}, "
+            f"e-mail {user.email}, user id {user.id}). \"I\", \"me\" and \"my\" mean this person.\n"
+        )
     return (
         SYSTEM_PROMPT.replace("{app_map}", APP_MAP)
+        + who
         + f"\nCURRENT LANGUAGE: {lang_name}. Reply, confirm and ask in this language.\n"
     )
 

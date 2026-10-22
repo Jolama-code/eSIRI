@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, FileClock, LogOut, RotateCcw } from 'lucide-react';
+import { ChevronDown, FileClock, LayoutDashboard, LogOut, RotateCcw } from 'lucide-react';
 import { useT } from '../i18n';
 import { useApp } from '../store/appStore';
-import { CURRENT_USER } from '../store/data';
+import { logout, useCurrentPerson } from '../esiri/session';
 import { ez } from './esiriProps';
 import { newConversation } from '../esiri/controller';
 import './Header.css';
@@ -82,6 +82,7 @@ function UserMenu() {
   const signOut = useApp((s) => s.signOut);
   const resetDemo = useApp((s) => s.resetDemo);
   const toast = useApp((s) => s.toast);
+  const me = useCurrentPerson();
 
   useEffect(() => {
     if (!open) return;
@@ -99,14 +100,24 @@ function UserMenu() {
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        {...ez('header.user-menu', CURRENT_USER.name, { state: open ? 'open' : 'closed' })}
+        {...ez('header.user-menu', me.name, { state: open ? 'open' : 'closed' })}
       >
-        <span className="avatar">{CURRENT_USER.initials}</span>
-        <span className="user-name">{CURRENT_USER.name}</span>
+        <span className="avatar">{me.initials}</span>
+        <span className="user-name">{me.name}</span>
         <ChevronDown size={16} />
       </button>
       {open && (
         <div className="user-dropdown" role="menu">
+          <button
+            role="menuitem"
+            onClick={() => {
+              setOpen(false);
+              navigate('/hub');
+            }}
+            {...ez('header.menu.hub', t('header.nuruHub'))}
+          >
+            <LayoutDashboard size={16} /> {t('header.nuruHub')}
+          </button>
           <button
             role="menuitem"
             onClick={() => {
@@ -136,6 +147,7 @@ function UserMenu() {
             onClick={() => {
               setOpen(false);
               signOut();
+              void logout();
               navigate('/');
             }}
             {...ez('header.menu.sign-out', t('header.signOut'))}

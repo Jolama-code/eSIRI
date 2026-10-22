@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import {
-  AlertTriangle, ArrowRightLeft, Check, CheckCircle2, ChevronsRight, Globe, Keyboard, Loader2, Mic, MicOff, MousePointerClick,
+  AlarmClock, AlertTriangle, ArrowRightLeft, FileText, ListChecks, UserCheck, Check, CheckCircle2, ChevronsRight, Globe, Keyboard, Loader2, Mic, MicOff, MousePointerClick,
   Navigation, Radio, RotateCcw, Send, ShieldAlert, Square, ToggleRight, Type, X, XCircle,
 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { useT } from '../../i18n';
+import { systemFromPath } from '../nav';
+import { useSession } from '../session';
 import { useApp } from '../../store/appStore';
 import { useEsiri, type Msg, type StepIcon } from '../esiriStore';
 import { activate, answerConfirmation, cancel, isBusy, newConversation, submit } from '../controller';
@@ -18,6 +21,10 @@ const STEP_ICONS: Record<StepIcon, JSX.Element> = {
   navigate: <Navigation size={14} />,
   language: <Globe size={14} />,
   blocked: <ShieldAlert size={14} />,
+  select: <ListChecks size={14} />,
+  moderator: <UserCheck size={14} />,
+  reminder: <AlarmClock size={14} />,
+  katibu: <FileText size={14} />,
 };
 
 function MessageView({ m }: { m: Msg }) {
@@ -130,7 +137,17 @@ export function Panel() {
     void submit(v, 'text');
   };
 
-  const suggestions = [t('esiri.suggest1'), t('esiri.suggest2'), t('esiri.suggest3'), t('esiri.suggest4')];
+  const system = systemFromPath(useLocation().pathname);
+  const role = useSession((s) => s.user?.role);
+  const firstName = useSession((s) => s.user?.first_name ?? '');
+  const suggestions =
+    system === 'hub'
+      ? [t('esiri.suggest.hub1'), t('esiri.suggest.hub2'), t('esiri.suggest.hub3')]
+      : system === 'gms'
+        ? [t('esiri.suggest.gms1'), t('esiri.suggest.gms2')]
+        : system === 'weris'
+          ? [role === 'supervisor' ? t('esiri.suggest.weris1') : t('esiri.suggest.weris2')]
+          : [t('esiri.suggest1'), t('esiri.suggest2'), t('esiri.suggest3'), t('esiri.suggest4')];
 
   return (
     <aside className={`esiri-panel ${open ? 'open' : ''}`} aria-hidden={!open} aria-label="NURU">
@@ -183,7 +200,7 @@ export function Panel() {
         {messages.length === 0 && (
           <div className="ep-empty">
             <Orb size={84} state={orbState} />
-            <p className="ep-greeting">{t('esiri.greeting')}</p>
+            <p className="ep-greeting">{system === 'mikutano' ? t('esiri.greeting') : t('esiri.greetingName', { name: firstName })}</p>
             <div className="chips-col">
               {suggestions.map((s) => (
                 <button key={s} className="suggest-chip" onClick={() => void submit(s, 'text')} disabled={busy}>

@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test';
 import { askEsiri, esiriId, roomByName, startSignedIn, store } from './helpers';
 
 test('demo script end to end (English + Swahili) @llm', async ({ page, request }) => {
-  const health = await (await request.get('http://localhost:8000/api/health')).json();
+  const health = await (await request.get('http://localhost:8010/api/health')).json();
   test.skip(!health.has_key, 'needs OPENAI_API_KEY in .env');
   test.setTimeout(600_000);
   await startSignedIn(page);

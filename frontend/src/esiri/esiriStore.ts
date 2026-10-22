@@ -16,7 +16,7 @@ export type Msg =
   | { id: string; kind: 'confirm'; summary: string; state: 'pending' | 'approved' | 'declined' }
   | { id: string; kind: 'notice'; text: string; tone: 'error' | 'info' };
 
-export type StepIcon = 'click' | 'type' | 'tab' | 'toggle' | 'navigate' | 'language' | 'blocked';
+export type StepIcon = 'click' | 'type' | 'tab' | 'toggle' | 'navigate' | 'language' | 'blocked' | 'select' | 'moderator' | 'reminder' | 'katibu';
 
 export interface Health {
   reachable: boolean;

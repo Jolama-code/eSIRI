@@ -300,3 +300,42 @@
   .meeting { grid-template-columns: 0 0 1fr; }
   .mt-sidebar, .mt-panel { display: none; }
 }
+
+/* NURU v2: moderator mode, lobby, Katibu recording */
+.mt-mod-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px 4px 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #1e2761, #254e96);
+  color: #fff;
+  font: 700 12px/1 Montserrat, Inter, sans-serif;
+  margin-right: 10px;
+  box-shadow: 0 0 0 2px rgba(35, 184, 238, 0.5);
+}
+.mt-mod-badge button { border: 0; border-radius: 999px; background: #fff; color: #1e2761; font: 700 11px/1 Montserrat, Inter, sans-serif; padding: 5px 9px; }
+.mt-katibu-rec { display: inline-flex; align-items: center; gap: 6px; color: #ffb4b4; font-size: 12px; font-weight: 600; margin-right: 10px; white-space: nowrap; }
+.mt-katibu-rec .dot { width: 9px; height: 9px; border-radius: 50%; background: #ff3b3b; animation: pulse-op 1.2s infinite; }
+.mt-katibu-rec.off { color: #9aa4b2; }
+.mt-katibu-rec.off .dot { background: #9aa4b2; animation: none; }
+.mt-avatar.other { background: #3a84b1; }
+.mt-joined { animation: nuru-rise 0.4s var(--nuru-ease, ease) both; }
+.mt-lobby {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 5;
+  width: min(340px, calc(100% - 28px));
+  background: #fff;
+  color: #1f2937;
+  border-radius: 14px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  animation: nuru-slide-down 0.35s ease both;
+}
+.mt-lobby-head { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #1e2761; color: #fff; font: 700 13px/1.2 Montserrat, Inter, sans-serif; }
+.mt-lobby-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-top: 1px solid #eef2f7; animation: nuru-slide-in 0.35s ease both; }
+.mt-lobby-name { flex: 1; min-width: 0; font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mt-admit { border: 0; border-radius: 8px; background: #1eb53a; color: #fff; font-weight: 700; padding: 6px 10px; font-size: 13px; }
+.mt-deny { border: 0; border-radius: 8px; background: #eef2f7; color: #374151; font-weight: 600; padding: 6px 10px; font-size: 13px; }

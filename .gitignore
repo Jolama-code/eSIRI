@@ -26,3 +26,8 @@ test-results/
 # kept on the owner's machine only (not in the repository)
 reference/
 ESIRI_BUILD_PROMPT.md
+
+# NURU v2 runtime data (database, recordings, converted sample)
+backend/data/
+backend/assets/*.wav
+NURU_V2_BUILD_PROMPT.md

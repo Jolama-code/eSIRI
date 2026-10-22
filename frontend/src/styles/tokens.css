@@ -1,0 +1,112 @@
+/* NURU v2 design tokens — values exactly from reference/nuru-v2/nuru-v2-design/design-system/tokens.json */
+
+@font-face { font-family: 'Montserrat'; font-weight: 500; font-display: swap; src: url('/fonts/Montserrat-500.woff2') format('woff2'); }
+@font-face { font-family: 'Montserrat'; font-weight: 600; font-display: swap; src: url('/fonts/Montserrat-600.woff2') format('woff2'); }
+@font-face { font-family: 'Montserrat'; font-weight: 700; font-display: swap; src: url('/fonts/Montserrat-700.woff2') format('woff2'); }
+@font-face { font-family: 'Montserrat'; font-weight: 800; font-display: swap; src: url('/fonts/Montserrat-800.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 400; font-display: swap; src: url('/fonts/Inter-400.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 500; font-display: swap; src: url('/fonts/Inter-500.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 600; font-display: swap; src: url('/fonts/Inter-600.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-weight: 700; font-display: swap; src: url('/fonts/Inter-700.woff2') format('woff2'); }
+@font-face { font-family: 'DM Sans'; font-weight: 500; font-display: swap; src: url('/fonts/DMSans-500.woff2') format('woff2'); }
+@font-face { font-family: 'DM Sans'; font-weight: 700; font-display: swap; src: url('/fonts/DMSans-700.woff2') format('woff2'); }
+
+:root {
+  /* colour */
+  --nuru-ocean: #0b5b8c;
+  --nuru-azure: #3a84b1;
+  --nuru-sky: #4aa8c3;
+  --nuru-ice: #cef1ff;
+  --nuru-mist: #ecf9ff;
+  --nuru-navy: #1e2761;
+  --nuru-navy-deep: #141b45;
+  --nuru-royal: #254e96;
+  --nuru-cyan: #23b8ee;
+  --nuru-orange: #ff6b35;
+  --nuru-orange-ink: #c2410c;
+  --nuru-sand: #e8ded6;
+  --nuru-frost: #eef3fc;
+  --nuru-periwinkle: #cadcfc;
+  --nuru-slate: #5b6b8c;
+  --nuru-flag-green: #1eb53a;
+  --nuru-flag-yellow: #fcd116;
+  --nuru-flag-black: #000000;
+  --nuru-flag-blue: #00a3dd;
+  --nuru-surface: #ffffff;
+  --nuru-surface-card: #ffffff;
+  --nuru-ink: #000000;
+  --nuru-ink-navy: #1e2761;
+  --nuru-ink-muted: #3b4650;
+  --nuru-accent: #0b5b8c;
+  --nuru-line: #3a84b1;
+  --nuru-on-panel: #ffffff;
+
+  /* gradients */
+  --nuru-gradient-panel: linear-gradient(135deg, #0b5b8c 0%, #3a84b1 45%, #4aa8c3 75%, #cef1ff 100%);
+  --nuru-gradient-band: linear-gradient(90deg, #0b5b8c 0%, #2f7aa8 55%, #4aa8c3 100%);
+  --nuru-gradient-wash: linear-gradient(180deg, #ffffff 0%, #ecf9ff 100%);
+  --nuru-gradient-header: linear-gradient(90deg, #1e2761 0%, #254e96 38%, #1f8fd6 72%, #23b8ee 100%);
+  --nuru-gradient-sidebar: linear-gradient(165deg, #1a6fb5 0%, #254e96 60%, #1e2761 100%);
+  --nuru-gradient-closing: linear-gradient(135deg, #1a6fb5 0%, #1f8fd6 100%);
+  --nuru-gradient-flag: linear-gradient(90deg, #1eb53a 0 25.5%, #fcd116 25.5% 42.5%, #000000 42.5% 59.5%, #fcd116 59.5% 76.5%, #00a3dd 76.5% 100%);
+
+  /* radius, shadow, spacing */
+  --nuru-radius-sm: 6px;
+  --nuru-radius-md: 16px;
+  --nuru-radius-lg: 28px;
+  --nuru-radius-full: 9999px;
+  --nuru-shadow-card: 0 8px 24px rgba(30, 39, 97, 0.12);
+  --nuru-shadow-pill: 6px 8px 0 rgba(20, 27, 69, 0.3);
+  --nuru-space-1: 8px;
+  --nuru-space-2: 16px;
+  --nuru-space-3: 24px;
+  --nuru-space-4: 40px;
+
+  /* type */
+  --nuru-font-display: Montserrat, 'Segoe UI', system-ui, sans-serif;
+  --nuru-font-sans: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --nuru-font-numeric: 'DM Sans', Montserrat, system-ui, sans-serif;
+
+  --nuru-ease: cubic-bezier(0.22, 0.8, 0.24, 1);
+}
+
+/* App type scale (tokens are for 1920 px slides; scaled down for an app) */
+.t-page { font: 700 28px/34px var(--nuru-font-display); color: var(--nuru-ink-navy); margin: 0; letter-spacing: -0.01em; }
+.t-section { font: 700 18px/24px var(--nuru-font-display); color: var(--nuru-ink-navy); margin: 0; }
+.t-card { font: 600 16px/22px var(--nuru-font-display); color: var(--nuru-ink-navy); margin: 0; }
+.t-body { font: 400 15px/22px var(--nuru-font-sans); color: var(--nuru-ink); }
+.t-small { font: 400 13px/18px var(--nuru-font-sans); color: var(--nuru-ink-muted); }
+.t-label { font: 700 11px/14px var(--nuru-font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--nuru-slate); }
+.t-time { font: 700 32px/1 var(--nuru-font-numeric); color: var(--nuru-ink-navy); font-variant-numeric: tabular-nums; }
+.t-num { font-family: var(--nuru-font-numeric); font-variant-numeric: tabular-nums; }
+@media (max-width: 767px) {
+  .t-page { font-size: 24px; line-height: 29px; }
+  .t-section { font-size: 16px; line-height: 21px; }
+  .t-time { font-size: 27px; }
+}
+
+.flag-stripe-v2 { height: 6px; background: var(--nuru-gradient-flag); }
+
+/* Motion */
+@keyframes nuru-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes nuru-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes nuru-shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+@keyframes nuru-slide-in { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes nuru-slide-down { from { opacity: 0; transform: translateY(-24px); } to { opacity: 1; transform: none; } }
+
+.rise { animation: nuru-rise 0.45s var(--nuru-ease) both; animation-delay: calc(var(--i, 0) * 40ms); }
+.skeleton {
+  background: linear-gradient(90deg, #e6edf8 0%, #f5f8fd 40%, #e6edf8 80%);
+  background-size: 800px 100%;
+  animation: nuru-shimmer 1.3s linear infinite;
+  border-radius: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -8,7 +8,7 @@ import { askEsiri, createRoomByHand, esiriId, openPanel, roomByName, startSigned
 
 test.describe('eSiri agent @llm', () => {
   test.beforeEach(async ({ request }) => {
-    const health = await (await request.get('http://localhost:8000/api/health')).json();
+    const health = await (await request.get('http://localhost:8010/api/health')).json();
     test.skip(!health.has_key, 'needs OPENAI_API_KEY in .env');
   });
 

@@ -4,9 +4,10 @@
  */
 import { clearHighlight, glideTo, highlight, press, ripple, showCursor } from './cursor';
 import { describeElement, isDisabled, isReachable, isVisible, openModalEl } from './snapshot';
-import { goTo, pageFromPath, type PageName } from './nav';
+import { goTo, NAV_PAGES, pageFromPath } from './nav';
 import { nextFrames, sleep } from './util';
 import { useApp } from '../store/appStore';
+import { useSession } from './session';
 
 export interface ActionResult {
   ok: boolean;
@@ -140,13 +141,26 @@ export async function typeText(id: string, text: string, ctx: DriverContext): Pr
   await press(ctx.signal);
   el.focus();
   el.click();
+  const whole = el instanceof HTMLInputElement && ['date', 'time', 'datetime-local', 'month', 'week'].includes(el.type);
   setNativeValue(el, '');
   await sleep(80, ctx.signal);
-  let cur = '';
-  for (const ch of Array.from(text)) {
-    cur += ch;
-    setNativeValue(el, cur);
-    await sleep(35, ctx.signal);
+  if (whole) {
+    // Date/time fields only accept complete values.
+    setNativeValue(el, text);
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    await sleep(120, ctx.signal);
+  } else {
+    // Long texts (e-mail bodies) are typed in small chunks so it stays visible but quick.
+    const chars = Array.from(text);
+    const step = chars.length > 240 ? 4 : chars.length > 120 ? 2 : 1;
+    const delay = chars.length > 240 ? 18 : 35;
+    let cur = '';
+    for (let i = 0; i < chars.length; i += step) {
+      cur += chars.slice(i, i + step).join('');
+      setNativeValue(el, cur);
+      if (el instanceof HTMLTextAreaElement) el.scrollTop = el.scrollHeight;
+      await sleep(delay, ctx.signal);
+    }
   }
   clearHighlight();
   await settle(ctx.signal, window.location.pathname);
@@ -157,14 +171,17 @@ export async function typeText(id: string, text: string, ctx: DriverContext): Pr
 }
 
 export async function navigate(page: string, roomId: string | undefined, ctx: DriverContext): Promise<ActionResult> {
-  const pages: PageName[] = ['landing', 'rooms', 'recordings', 'audit', 'room', 'meeting'];
-  if (!pages.includes(page as PageName)) return { ok: false, code: 'invalid', error: `Unknown page "${page}".` };
+  const pages = [...Object.keys(NAV_PAGES), 'room', 'meeting'];
+  if (!pages.includes(page)) return { ok: false, code: 'invalid', error: `Unknown page "${page}". Known pages: ${pages.join(', ')}.` };
   const current = pageFromPath(window.location.pathname);
   if (current === 'meeting' && page !== 'meeting') {
     return { ok: false, code: 'invalid', error: 'You are in a meeting. Use meeting.leave (after confirmation) to leave it.' };
   }
-  const { rooms, signedIn, signIn } = useApp.getState();
-  let path = '/';
+  if (page !== 'landing' && !useSession.getState().token) {
+    return { ok: false, code: 'invalid', error: 'The user is not signed in to NURU.' };
+  }
+  const { rooms } = useApp.getState();
+  let path = NAV_PAGES[page] ?? '/';
   if (page === 'room' || page === 'meeting') {
     if (!roomId) return { ok: false, code: 'invalid', error: `navigate to "${page}" needs room_id.` };
     if (!rooms.some((r) => r.id === roomId)) {
@@ -175,18 +192,56 @@ export async function navigate(page: string, roomId: string | undefined, ctx: Dr
         return {
           ok: false,
           code: 'confirmation_required',
-          error: 'confirmation_required: starting a meeting is sensitive. Call ask_confirmation first.',
+          error: 'confirmation_required: starting or joining a meeting is sensitive. Call ask_confirmation first.',
         };
       }
       ctx.useCredit();
     }
     path = page === 'room' ? `/rooms/${roomId}` : `/rooms/${roomId}/meeting`;
-  } else if (page === 'rooms') path = '/rooms';
-  else if (page === 'recordings') path = '/recordings';
-  else if (page === 'audit') path = '/audit';
-  if (page !== 'landing' && !signedIn) signIn();
+  }
   const before = window.location.pathname;
   goTo(path);
   await settle(ctx.signal, before);
   return { ok: true };
+}
+
+const fold = (x: string) => x.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+
+/** Choose an option of a <select> by value or visible label (case- and accent-insensitive), visibly. */
+export async function selectOption(id: string, value: string, ctx: DriverContext): Promise<ActionResult> {
+  const el = await find(id, ctx.signal, ctx.appearWaitMs);
+  if (!el) return notFound(id);
+  if (!isReachable(el)) return { ok: false, code: 'not_found', error: `Element "${id}" is behind an open modal.` };
+  if (!(el instanceof HTMLSelectElement)) return { ok: false, code: 'not_editable', error: `"${id}" is not a select list.` };
+  if (isDisabled(el)) return { ok: false, code: 'disabled', error: `"${id}" is disabled right now.` };
+  const want = fold(value);
+  const opts = Array.from(el.options);
+  const opt =
+    opts.find((o) => fold(o.value) === want) ??
+    opts.find((o) => fold(o.textContent ?? '') === want) ??
+    opts.find((o) => o.value && fold(o.textContent ?? '').startsWith(want)) ??
+    opts.find((o) => o.value && want.length >= 3 && fold(o.textContent ?? '').includes(want));
+  if (!opt) {
+    return {
+      ok: false,
+      code: 'invalid',
+      error: `No option "${value}" in "${id}". Options: ${opts.map((o) => `${(o.textContent ?? '').trim()} [${o.value}]`).join(', ')}`,
+    };
+  }
+  const { x, y } = await approach(el, ctx.signal);
+  ripple(x, y);
+  await press(ctx.signal);
+  el.focus();
+  const setter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value')?.set;
+  if (setter) setter.call(el, opt.value);
+  else el.value = opt.value;
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+  el.dispatchEvent(new Event('change', { bubbles: true }));
+  await sleep(150, ctx.signal);
+  clearHighlight();
+  await settle(ctx.signal, window.location.pathname);
+  if (el.isConnected && el.value !== opt.value) {
+    return { ok: false, error: `"${id}" shows "${el.value}" instead of "${opt.value}".` };
+  }
+  return { ok: true, selected: { value: opt.value, label: (opt.textContent ?? '').trim() } };
 }

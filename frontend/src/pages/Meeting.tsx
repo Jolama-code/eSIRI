@@ -7,8 +7,13 @@ import {
 import { ez } from '../components/esiriProps';
 import { useT, useLang } from '../i18n';
 import { useApp, formatTime } from '../store/appStore';
-import { CURRENT_USER } from '../store/data';
+import { useCurrentPerson } from '../esiri/session';
 import { Wordmark } from '../components/Header';
+import { Orb } from '../esiri/ui/Orb';
+import { admit, deny, disableModerator, handBack } from '../esiri/moderator';
+import { offerMinutes, onMeetingOpened, scheduledMeetingFor, startMeetingRecording, stopMeetingRecording, useRecorder } from '../esiri/meetingFlow';
+import { api } from '../esiri/session';
+import { useHub } from '../hub/hubStore';
 import './Meeting.css';
 
 const REACTIONS = [
@@ -36,6 +41,7 @@ export default function Meeting() {
   const t = useT();
   const lang = useLang();
   const navigate = useNavigate();
+  const me = useCurrentPerson();
   const room = useApp((s) => s.rooms.find((r) => r.id === roomId));
   const live = useApp((s) => s.live);
   const meeting = useApp((s) => s.meetings[roomId]);
@@ -50,6 +56,19 @@ export default function Meeting() {
   useEffect(() => {
     if (roomExists) startMeeting(roomId);
   }, [roomExists, roomId, startMeeting]);
+
+  // Live recording for KatibuAI while the meeting is open; link to the scheduled meeting.
+  const recActive = useRecorder((s) => s.active);
+  const recUnavailable = useRecorder((s) => s.unavailable);
+  useEffect(() => {
+    if (!roomExists) return;
+    void startMeetingRecording(roomId);
+    void onMeetingOpened(roomId);
+    return () => {
+      // Navigated away without "Leave": stop the microphone, keep the recording for later.
+      if (useRecorder.getState().active) void stopMeetingRecording();
+    };
+  }, [roomExists, roomId]);
 
   useEffect(() => {
     chatEnd.current?.scrollIntoView({ block: 'end' });
@@ -99,9 +118,16 @@ export default function Meeting() {
 
   const leave = () => {
     const wasRecording = !!L?.recording;
+    if (L?.moderator) disableModerator('left');
+    const blob = stopMeetingRecording();
     leaveMeeting();
     if (wasRecording) toast(t('meeting.recordingSaved'));
     navigate(`/rooms/${room.id}`);
+    // The meeting ended: mark the scheduled meeting and offer Katibu minutes.
+    const sm = scheduledMeetingFor(room.id);
+    const row = sm ? useHub.getState().meetings.find((m) => m.id === sm.id) : undefined;
+    if (sm && row?.is_organizer) void api(`/api/meetings/${sm.id}`, { method: 'PATCH', body: { status: 'ended' } }).then(() => useHub.getState().loadMeetings()).catch(() => undefined);
+    void blob.then((b) => offerMinutes(room.id, b));
   };
 
   const features = [
@@ -139,11 +165,11 @@ export default function Meeting() {
           <FileText size={18} /> {t('meeting.sharedNotes')}
         </button>
         <div className="mt-side-section">
-          <Users size={13} /> {t('meeting.users', { n: 1 })}
+          <Users size={13} /> {t('meeting.users', { n: 1 + (L?.participants.length ?? 0) })}
         </div>
         <div className="mt-user" data-testid="meeting-user">
           <span className="mt-avatar">
-            {CURRENT_USER.initials}
+            {me.initials}
             {!micOn && (
               <span className="mt-muted-dot">
                 <MicOff size={9} />
@@ -151,7 +177,7 @@ export default function Meeting() {
             )}
           </span>
           <span className="mt-user-name">
-            {CURRENT_USER.name} {t('meeting.you')}
+            {me.name} {t('meeting.you')}
           </span>
           {L?.handRaised && (
             <span className="mt-hand" data-testid="hand-indicator" aria-label={t('meeting.raiseHand')}>
@@ -159,6 +185,12 @@ export default function Meeting() {
             </span>
           )}
         </div>
+        {L?.participants.map((p) => (
+          <div className="mt-user mt-joined" key={p.id} data-testid="meeting-participant">
+            <span className="mt-avatar other">{p.name.replace(/^Dkt\.\s*/, '').split(/\s+/).map((w) => w[0]).slice(0, 2).join('')}</span>
+            <span className="mt-user-name">{p.name}</span>
+          </div>
+        ))}
       </aside>
 
       {/* Chat / notes panel */}
@@ -170,11 +202,11 @@ export default function Meeting() {
           <>
             <div className="mt-chat" data-testid="chat-messages">
               <div className="mt-system">
-                <Presentation size={14} /> {t('meeting.presenter', { name: CURRENT_USER.name })}
+                <Presentation size={14} /> {t('meeting.presenter', { name: me.name })}
               </div>
               {chat.map((m) => (
                 <div className="mt-msg" key={m.id}>
-                  <span className="mt-avatar sm">{CURRENT_USER.initials}</span>
+                  <span className="mt-avatar sm">{me.initials}</span>
                   <div className="mt-msg-body">
                     <div className="mt-msg-meta">
                       <strong>{m.author}</strong> <span>{formatTime(m.time, lang)}</span>
@@ -238,6 +270,20 @@ export default function Meeting() {
             </span>
           </div>
           <div className="mt-top-right">
+            {L?.moderator && (
+              <span className="mt-mod-badge" data-testid="moderator-badge">
+                <Orb size={22} state="idle" />
+                {t('moderator.badge')}
+                <button onClick={handBack} {...ez('meeting.moderator.handback', t('moderator.handback'))}>
+                  {t('moderator.handback')}
+                </button>
+              </span>
+            )}
+            {recActive && (
+              <span className={`mt-katibu-rec ${recUnavailable ? 'off' : ''}`} data-testid="katibu-recording" title={recUnavailable ? t('meeting.katibuRecOff') : t('meeting.katibuRec')}>
+                <span className="dot" /> {recUnavailable ? t('meeting.katibuRecOff') : t('meeting.katibuRec')}
+              </span>
+            )}
             <span className="mt-signal">
               <BarChart3 size={16} />
             </span>
@@ -256,8 +302,8 @@ export default function Meeting() {
           {L?.camera && (
             <div className="mt-webcams">
               <div className="mt-webcam" data-testid="webcam-tile">
-                <span className="mt-avatar lg">{CURRENT_USER.initials}</span>
-                <span className="mt-webcam-name">{CURRENT_USER.name}</span>
+                <span className="mt-avatar lg">{me.initials}</span>
+                <span className="mt-webcam-name">{me.name}</span>
               </div>
             </div>
           )}
@@ -301,6 +347,26 @@ export default function Meeting() {
           <div className="mt-slide-nav">
             <ChevronLeft size={16} /> {t('meeting.slide', { n: 1 })} <ChevronDown size={14} /> <ChevronRight size={16} />
           </div>
+
+          {L && L.lobby.length > 0 && (
+            <div className="mt-lobby" data-testid="lobby">
+              <div className="mt-lobby-head">
+                <Users size={15} /> {t('moderator.lobby', { n: L.lobby.length })}
+              </div>
+              {L.lobby.map((p) => (
+                <div className="mt-lobby-row" key={p.id} data-testid="lobby-person">
+                  <span className="mt-avatar other sm">{p.name.replace(/^Dkt\.\s*/, '').split(/\s+/).map((w) => w[0]).slice(0, 2).join('')}</span>
+                  <span className="mt-lobby-name">{p.name}</span>
+                  <button className="mt-admit" onClick={() => admit(p.id)} {...ez(`meeting.lobby.${p.id}.admit`, `${t('moderator.admit')}: ${p.name}`)}>
+                    {t('moderator.admit')}
+                  </button>
+                  <button className="mt-deny" onClick={() => deny(p.id)} {...ez(`meeting.lobby.${p.id}.deny`, `${t('moderator.deny')}: ${p.name}`)}>
+                    {t('moderator.deny')}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="mt-floating">
             {floating.map((f) => (

@@ -3,13 +3,20 @@
  * the confirmation gate, cancellation, listening and the audit trail.
  */
 import { useApp, randomId, type AuditConfirmation, type AuditRecord, type AuditStep, type Language, type Outcome } from '../store/appStore';
-import { CURRENT_USER } from '../store/data';
+import { currentPerson } from './session';
 import { t, tr, type I18nKey } from '../i18n';
 import { useEsiri, type Status, type StepIcon } from './esiriStore';
 import { agentStep, ApiError, postAudit, type ToolCall } from './api';
 import { buildSnapshot, describeElement } from './snapshot';
-import { click, elementPresent, navigate, typeText, type ActionResult, type DriverContext } from './driver';
+import { click, elementPresent, navigate, selectOption, typeText, type ActionResult, type DriverContext } from './driver';
+import { api, HttpError } from './session';
+import { enableModerator, disableModerator } from './moderator';
+import { prepareMinutes } from './meetingFlow';
+import { sendMinutes } from './katibuActions';
+import { useHub } from '../hub/hubStore';
+import { goTo, pageFromPath } from './nav';
 import { hideCursor } from './cursor';
+import { systemFromPath } from './nav';
 import { isMuted, speak, stopSpeaking } from './tts';
 import { listenOnce, stopListening, sttSupported, type ListenResult } from './stt';
 import { startMicLevel, stopMicLevel } from './audioLevel';
@@ -37,7 +44,8 @@ interface Task {
 
 let current: Task | null = null;
 let awaitingAnswer = false;
-let pendingConfirm: { resolve: (v: boolean) => void; msgId: string } | null = null;
+type ConfirmAnswer = boolean | { change: string };
+let pendingConfirm: { resolve: (v: ConfirmAnswer) => void; msgId: string } | null = null;
 
 const es = () => useEsiri.getState();
 const app = () => useApp.getState();
@@ -153,7 +161,17 @@ function focusInput(): void {
 // ---------------------------------------------------------------------------
 // Messages from the user
 
-export async function submit(rawText: string, mode: 'voice' | 'text'): Promise<void> {
+export interface SubmitOptions {
+  /** Extra context for the model (e.g. the reminder the user is answering). */
+  context?: string;
+  /**
+   * The user already said yes to a NURU question that is itself the confirmation (a reminder's
+   * "Shall I start it for you?"). Grants credits scoped to this new task only, and is audited.
+   */
+  preapproved?: { summary: string; covers: number };
+}
+
+export async function submit(rawText: string, mode: 'voice' | 'text', opts: SubmitOptions = {}): Promise<void> {
   const text = rawText.trim();
   if (!text) return;
 
@@ -162,6 +180,7 @@ export async function submit(rawText: string, mode: 'voice' | 'text'): Promise<v
     es().addMsg({ kind: 'user', text, mode });
     const yn = parseYesNo(text);
     if (yn) answerConfirmation(yn === 'yes');
+    else if (isChangeRequest(text)) answerChange(text);
     else void say(t('esiri.sayYesNo'));
     return;
   }
@@ -176,14 +195,20 @@ export async function submit(rawText: string, mode: 'voice' | 'text'): Promise<v
 
   es().addMsg({ kind: 'user', text, mode });
 
-  if (current && awaitingAnswer) {
+  if (current && awaitingAnswer && !opts.preapproved) {
     awaitingAnswer = false;
     current.request = `${current.request} → ${text}`;
   } else {
     if (current) finalizeTask(current, 'Cancelled', '');
+    awaitingAnswer = false;
     current = newTask(text, mode);
+    if (opts.preapproved) {
+      current.credits += Math.max(1, Math.min(5, opts.preapproved.covers));
+      current.confirmations.push({ summary: opts.preapproved.summary, result: 'approved' });
+    }
   }
-  await runLoop(current, { user_message: text, input_mode: mode });
+  const message = opts.context ? `${text}\n${opts.context}` : text;
+  await runLoop(current, { user_message: message, input_mode: mode });
 }
 
 function newTask(request: string, inputMode: 'voice' | 'text'): Task {
@@ -421,8 +446,23 @@ async function execute(task: Task, call: ToolCall, appearWaitMs: number): Promis
       }
       const summary = str('summary') || '…';
       const covers = Math.max(1, Math.min(10, Math.round(Number(a.covers ?? 1)) || 1));
-      const confirmed = await askConfirmation(task, summary);
+      const answer = await askConfirmation(task, summary);
       if (task.done) return { result: { ok: false, cancelled: true }, end: 'abort' };
+      if (typeof answer === 'object') {
+        // Not a yes or no: the user asked for a change (e.g. "make it more formal"). Not a decline.
+        task.confirmations.push({ summary, result: 'changed' });
+        setStatus('thinking');
+        return {
+          result: {
+            ok: true,
+            confirmed: false,
+            change_request: answer.change,
+            note: 'The user did not approve yet; they asked for this change. Apply it (for an e-mail, retype the whole body with type_text), then call ask_confirmation again. Do not perform the sensitive action now.',
+          },
+          stopBatch: true,
+        };
+      }
+      const confirmed = answer;
       task.confirmations.push({ summary, result: confirmed ? 'approved' : 'declined' });
       if (confirmed) task.credits += covers;
       else task.declined = true;
@@ -444,6 +484,144 @@ async function execute(task: Task, call: ToolCall, appearWaitMs: number): Promis
       await finishTask(task, str('message') || '✓');
       return { result: { ok: true }, end: 'finish' };
     }
+    case 'select_option': {
+      setStatus('acting');
+      const id = str('element_id');
+      const value = str('value');
+      const el = document.querySelector<HTMLElement>(`[data-esiri-id="${CSS.escape(id)}"]`);
+      const label = el ? describeElement(el).label || id : id;
+      const msgId = stepLine(t('esiri.step.select', { label, value }), 'select');
+      const res = await selectOption(id, value, ctx);
+      es().patchMsg(msgId, { status: res.ok ? 'ok' : 'fail' });
+      record(task, 'select_option', label, res, value);
+      return { result: res, failed: !res.ok };
+    }
+    case 'moderator_mode': {
+      setStatus('acting');
+      const enabled = a.enabled !== false;
+      const mute = a.mute_user === true;
+      const msgId = stepLine(t(enabled ? 'esiri.step.moderatorOn' : 'esiri.step.moderatorOff'), 'moderator');
+      let res: ActionResult;
+      if (enabled) {
+        // Enabling it acts in the meeting on the user's behalf: needs an approved confirmation (enforced here).
+        if (task.credits <= 0) {
+          res = { ok: false, code: 'confirmation_required', error: 'confirmation_required: moderator mode acts on the user\'s behalf. Call ask_confirmation first.' };
+        } else {
+          res = enableModerator(mute);
+          if (res.ok) task.credits = Math.max(0, task.credits - 1);
+        }
+      } else res = disableModerator();
+      if (res.code === 'confirmation_required') es().patchMsg(msgId, { icon: 'blocked' });
+      es().patchMsg(msgId, { status: res.ok ? 'ok' : 'fail' });
+      record(task, 'moderator_mode', enabled ? `on${mute ? ' (mute)' : ''}` : 'off', res);
+      return { result: res, failed: !res.ok };
+    }
+    case 'schedule_reminder': {
+      setStatus('acting');
+      const title = str('title');
+      const at = str('at');
+      const kind = ['meeting', 'task', 'call', 'personal', 'other'].includes(str('kind')) ? str('kind') : 'other';
+      const msgId = stepLine(t('esiri.step.reminder', { title, at }), 'reminder');
+      let res: ActionResult;
+      try {
+        const item = await api<{ id: number; time: string; date: string }>('/api/day/items', { body: { title, at, kind }, signal: task.abort.signal });
+        res = { ok: true, item_id: item.id, date: item.date, time: item.time, note: 'Saved on the user\'s day with a reminder before it.' };
+        void useHub.getState().loadDay();
+      } catch (e) {
+        if (isAbort(e)) throw e;
+        res = { ok: false, code: 'invalid', error: e instanceof HttpError ? e.message : String(e) };
+      }
+      es().patchMsg(msgId, { status: res.ok ? 'ok' : 'fail' });
+      record(task, 'schedule_reminder', `${at} ${title}`, res);
+      return { result: res, failed: !res.ok };
+    }
+    case 'update_task_status': {
+      setStatus('acting');
+      const taskId = Number(a.task_id);
+      const status = str('status');
+      const msgId = stepLine(t('esiri.step.taskStatus', { status: t(`task.status.${status}` as I18nKey) }), 'select');
+      let res: ActionResult;
+      const selId = `weris.task.${taskId}.status`;
+      const onScreen = document.querySelector(`[data-esiri-id="${CSS.escape(selId)}"]`);
+      if (!['assigned', 'in_progress', 'done'].includes(status)) res = { ok: false, code: 'invalid', error: 'status must be assigned, in_progress or done' };
+      else if (onScreen) res = await selectOption(selId, status, ctx);
+      else {
+        try {
+          await api(`/api/tasks/${taskId}`, { method: 'PATCH', body: { status }, signal: task.abort.signal });
+          res = { ok: true, status };
+          void useHub.getState().loadTasks();
+          window.dispatchEvent(new CustomEvent('nuru:tasks'));
+        } catch (e) {
+          if (isAbort(e)) throw e;
+          res = { ok: false, code: 'invalid', error: e instanceof HttpError ? e.message : String(e) };
+        }
+      }
+      es().patchMsg(msgId, { status: res.ok ? 'ok' : 'fail' });
+      record(task, 'update_task_status', `${taskId} → ${status}`, res);
+      return { result: res, failed: !res.ok };
+    }
+    case 'katibu_prepare_minutes': {
+      setStatus('acting');
+      const live = app().live;
+      const roomId = str('room_id') || live?.roomId || (pageFromPath(window.location.pathname) === 'room' ? window.location.pathname.split('/')[2] : '');
+      const msgId = stepLine(t('esiri.step.katibuPrepare'), 'katibu');
+      let res: ActionResult;
+      if (!roomId) res = { ok: false, code: 'invalid', error: 'Which meeting? Give room_id (from state.rooms).' };
+      else {
+        const job = await prepareMinutes(roomId, { confirmed: false });
+        res = job ? { ok: true, job_id: job.id, status: job.status, audio_source: job.audio_source, note: 'Katibu is preparing the minutes; NURU will announce when they are ready.' } : { ok: false, error: 'Katibu could not start.' };
+      }
+      es().patchMsg(msgId, { status: res.ok ? 'ok' : 'fail' });
+      record(task, 'katibu_prepare_minutes', roomId, res);
+      return { result: res, failed: !res.ok };
+    }
+    case 'katibu_status': {
+      await useHub.getState().loadJobs();
+      const jobs = useHub.getState().jobs.slice(0, 5).map((j) => ({ job_id: j.id, title: j.title, status: j.status, stage: j.stage, progress: j.progress, audio_source: j.audio_source }));
+      const res = { ok: true, jobs };
+      record(task, 'katibu_status', '', res);
+      return { result: res };
+    }
+    case 'katibu_open_minutes': {
+      setStatus('acting');
+      await useHub.getState().loadJobs();
+      const jobs = useHub.getState().jobs;
+      const id = Number(a.job_id) || jobs[0]?.id;
+      const msgId = stepLine(t('esiri.step.navigate', { page: t('hub.nav.minutes') }), 'navigate');
+      let res: ActionResult;
+      if (!id) res = { ok: false, code: 'invalid', error: 'There are no minutes yet.' };
+      else if (pageFromPath(window.location.pathname) === 'meeting') res = { ok: false, code: 'invalid', error: 'Leave the meeting first.' };
+      else {
+        goTo(`/hub/minutes/${id}`);
+        await new Promise((r) => window.setTimeout(r, 600));
+        res = { ok: true, job_id: id };
+      }
+      es().patchMsg(msgId, { status: res.ok ? 'ok' : 'fail' });
+      record(task, 'katibu_open_minutes', String(id ?? ''), res);
+      return { result: res, failed: !res.ok };
+    }
+    case 'katibu_send_minutes': {
+      setStatus('acting');
+      await useHub.getState().loadJobs();
+      const jobs = useHub.getState().jobs;
+      const id = Number(a.job_id) || jobs.find((j) => j.status === 'ready')?.id || 0;
+      const msgId = stepLine(t('esiri.step.katibuSend'), 'katibu');
+      let res: ActionResult;
+      if (task.credits <= 0) {
+        // Sending minutes is sensitive: enforced in code, not only in the prompt.
+        res = { ok: false, code: 'confirmation_required', error: 'confirmation_required: sending minutes is sensitive. Call ask_confirmation first (say how many recipients).' };
+        es().patchMsg(msgId, { icon: 'blocked' });
+      } else if (!id) res = { ok: false, code: 'invalid', error: 'No minutes are ready to send.' };
+      else {
+        task.credits = Math.max(0, task.credits - 1);
+        const conf = task.confirmations[task.confirmations.length - 1]?.summary ?? '';
+        const r = await sendMinutes(id, { confirmedSummary: conf });
+        res = r.ok ? { ok: true, job_id: id, recipients: r.job?.recipients ?? [] } : { ok: false, error: r.error };
+      }
+      es().patchMsg(msgId, { status: res.ok ? 'ok' : 'fail' });
+      record(task, 'katibu_send_minutes', String(id), res);
+      return { result: res, failed: !res.ok };
+    }
     default:
       return { result: { ok: false, error: `Unknown tool "${call.name}".` }, failed: true };
   }
@@ -452,10 +630,15 @@ async function execute(task: Task, call: ToolCall, appearWaitMs: number): Promis
 // ---------------------------------------------------------------------------
 // Confirmation
 
-function askConfirmation(task: Task, summary: string): Promise<boolean> {
+/** A reply to a confirmation that is neither yes nor no but asks for a change ("ifanye rasmi zaidi"). */
+function isChangeRequest(text: string): boolean {
+  return text.trim().split(/\s+/).length >= 2 && !isStopUtterance(text);
+}
+
+function askConfirmation(task: Task, summary: string): Promise<ConfirmAnswer> {
   const msgId = es().addMsg({ kind: 'confirm', summary, state: 'pending' });
   setStatus('awaiting_confirmation');
-  const answer = new Promise<boolean>((resolve) => {
+  const answer = new Promise<ConfirmAnswer>((resolve) => {
     pendingConfirm = { resolve, msgId };
   });
   void (async () => {
@@ -472,6 +655,10 @@ function askConfirmation(task: Task, summary: string): Promise<boolean> {
           answerConfirmation(yn === 'yes');
           return;
         }
+        if (isChangeRequest(res.text)) {
+          answerChange(res.text);
+          return;
+        }
       } else if (res.error && res.error !== 'no-speech') {
         if (res.error !== 'aborted') sttErrorNotice(res.error);
         return; // wait for the buttons
@@ -485,6 +672,16 @@ function askConfirmation(task: Task, summary: string): Promise<boolean> {
     answerConfirmation(false);
   })();
   return answer;
+}
+
+function answerChange(text: string): void {
+  const p = pendingConfirm;
+  if (!p) return;
+  pendingConfirm = null;
+  stopListening();
+  stopSpeaking();
+  es().patchMsg(p.msgId, { state: 'declined' });
+  p.resolve({ change: text });
 }
 
 export function answerConfirmation(yes: boolean): void {
@@ -507,8 +704,9 @@ function finalizeTask(task: Task, outcome: Outcome, finalMessage: string): void 
   awaitingAnswer = false;
   const rec: AuditRecord = {
     id: task.id,
+    system: systemFromPath(window.location.pathname),
     timestamp: new Date(task.startedAt).toISOString(),
-    user: CURRENT_USER.name,
+    user: currentPerson().name,
     language: task.language,
     inputMode: task.inputMode,
     request: task.request,
@@ -517,6 +715,36 @@ function finalizeTask(task: Task, outcome: Outcome, finalMessage: string): void 
     outcome,
     finalMessage,
     durationMs: Date.now() - task.startedAt,
+  };
+  app().addAudit(rec);
+  postAudit(rec);
+}
+
+/** Audit record for things NURU does outside the agent loop (briefing, reminders, moderator mode, Katibu). */
+export function logActivity(r: {
+  system: NonNullable<AuditRecord['system']>;
+  request: string;
+  outcome: Outcome;
+  finalMessage?: string;
+  inputMode?: AuditRecord['inputMode'];
+  steps?: AuditStep[];
+  confirmations?: AuditConfirmation[];
+  startedAt?: number;
+}): void {
+  const started = r.startedAt ?? Date.now();
+  const rec: AuditRecord = {
+    id: `act-${Date.now()}-${randomId(4)}`,
+    system: r.system,
+    timestamp: new Date(started).toISOString(),
+    user: currentPerson().name,
+    language: lang(),
+    inputMode: r.inputMode ?? 'auto',
+    request: r.request,
+    steps: r.steps ?? [],
+    confirmations: r.confirmations ?? [],
+    outcome: r.outcome,
+    finalMessage: r.finalMessage ?? '',
+    durationMs: Date.now() - started,
   };
   app().addAudit(rec);
   postAudit(rec);
