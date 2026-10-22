@@ -213,13 +213,14 @@ BRIEFING_SCHEMA: dict[str, Any] = {
                 "type": "object",
                 "properties": {
                     "title": {"type": "string", "description": "Short title in the user's own language and words"},
+                    "spoken_time": {"type": "string", "description": "The exact words the user used for this item's time, copied from the transcript (e.g. 'saa kumi jioni', 'saa nne na nusu asubuhi', '4 pm'), or an empty string"},
                     "start": {"type": "string", "description": "Start time HH:MM, 24-hour, local time"},
                     "end": {"type": ["string", "null"], "description": "End time HH:MM or null"},
                     "duration_min": {"type": ["integer", "null"]},
                     "kind": {"type": "string", "enum": ["meeting", "task", "call", "personal", "other"]},
                     "notes": {"type": "string"},
                 },
-                "required": ["title", "start", "end", "duration_min", "kind", "notes"],
+                "required": ["title", "spoken_time", "start", "end", "duration_min", "kind", "notes"],
                 "additionalProperties": False,
             },
         },
@@ -234,7 +235,8 @@ Today is {weekday} {date}; the local time now is {now} (Africa/Dar_es_Salaam).
 Rules:
 - Use ONLY what the user said. Never invent items, people, places or times.
 - Keep each title short and in the user's own language and wording (Swahili stays Swahili, English stays English).
-- start is HH:MM in 24-hour local time. Swahili time: "saa nne asubuhi" = 10:00, "saa nane mchana" = 14:00,
+- spoken_time: copy the user's exact words for the time ("saa kumi jioni", "4 pm"); the app converts them.
+- start is HH:MM in 24-hour local time. Swahili time counts from 06:00: "saa nne asubuhi" = 10:00, "saa nane mchana" = 14:00,
   "saa tatu usiku" = 21:00, "saa mbili asubuhi" = 08:00, "saa saba mchana" = 13:00, "saa kumi jioni" = 16:00.
 - If a time is vague ("after lunch", "baada ya chakula cha mchana", "jioni"), pick a sensible time
   (after lunch = 14:00, morning = 09:00, evening = 17:00) AND add one short question asking the user to confirm it.
@@ -274,6 +276,16 @@ async def briefing_parse(body: BriefingParse, db: DBSession = Depends(get_db), u
         raise bad(502, "llm_failed", f"Could not prepare the plan: {exc}", "Sikuweza kuandaa mpango. Jaribu tena.")
     items = []
     for it in data.get("items", []):
+        # Times are converted in code from the user's own words (the model mis-reads Swahili clock time).
+        fixed = llm.parse_spoken_time(it.pop("spoken_time", "") or "")
+        if fixed:
+            if it.get("end") and it.get("start"):
+                try:
+                    delta = _local_time_today(it["end"]) - _local_time_today(it["start"])
+                    it["end"] = (datetime.combine(local_today(), time(*map(int, fixed.split(":")))) + delta).strftime("%H:%M")
+                except (ValueError, KeyError):
+                    it["end"] = None
+            it["start"] = fixed
         try:
             _local_time_today(it["start"])
         except (ValueError, KeyError):
