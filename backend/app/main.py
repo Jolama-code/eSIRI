@@ -120,6 +120,11 @@ async def step(req: StepRequest, user: User = Depends(current_user)):
         if req.user_message is not None:
             agent.repair_dangling_tool_calls(messages)
             content = f"[language={req.language}] [input={req.input_mode}] User request: {req.user_message}"
+            notes = llm.time_notes(req.user_message)
+            if notes:
+                content += "\n(Time conversion, computed by the app — use these exact 24-hour times: " + "; ".join(
+                    f'"{p}" = {t}' for p, t in notes
+                ) + ".)"
             names = _room_names(req.snapshot)
             if names:
                 content += (

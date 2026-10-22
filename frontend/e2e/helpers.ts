@@ -109,19 +109,12 @@ export async function createRoomByHand(page: Page, name: string): Promise<string
 }
 
 /**
- * Send a typed request to eSiri and wait until it is idle again.
- * Confirmation cards are answered with `confirm` (default yes).
+ * Wait until NURU is idle again, answering confirmation cards with `confirm` (default yes).
+ * Returns how many confirmations were answered. Throws if NURU asks a clarifying question.
  */
-export async function askEsiri(
-  page: Page,
-  text: string,
-  opts: { confirm?: 'yes' | 'no'; timeout?: number } = {},
-): Promise<string> {
+export async function driveUntilIdle(page: Page, opts: { confirm?: 'yes' | 'no'; timeout?: number; label?: string } = {}): Promise<number> {
   const confirm = opts.confirm ?? 'yes';
   const status = page.getByTestId('esiri-status');
-  await openPanel(page);
-  await page.getByTestId('esiri-input').fill(text);
-  await page.getByTestId('esiri-send').click();
   await expect(status).not.toHaveText('idle', { timeout: 5_000 }).catch(() => undefined);
   const deadline = Date.now() + (opts.timeout ?? 105_000);
   let answered = 0;
@@ -133,14 +126,30 @@ export async function askEsiri(
       continue;
     }
     const s = (await status.textContent())?.trim();
-    if (s === 'idle') return s;
+    if (s === 'idle') return answered;
     if (s === 'awaiting_answer') {
       const q = await page.getByTestId('esiri-reply').last().textContent();
-      throw new Error(`eSiri asked a clarifying question instead of acting: "${q}"`);
+      throw new Error(`NURU asked a clarifying question instead of acting: "${q}"`);
     }
     await page.waitForTimeout(250);
   }
-  throw new Error(`eSiri did not finish "${text}" in time (confirmations answered: ${answered})`);
+  throw new Error(`NURU did not finish "${opts.label ?? ''}" in time (confirmations answered: ${answered})`);
+}
+
+/**
+ * Send a typed request to NURU and wait until it is idle again.
+ * Confirmation cards are answered with `confirm` (default yes).
+ */
+export async function askEsiri(
+  page: Page,
+  text: string,
+  opts: { confirm?: 'yes' | 'no'; timeout?: number } = {},
+): Promise<string> {
+  await openPanel(page);
+  await page.getByTestId('esiri-input').fill(text);
+  await page.getByTestId('esiri-send').click();
+  await driveUntilIdle(page, { ...opts, label: text });
+  return 'idle';
 }
 
 export async function roomByName(page: Page, name: string) {

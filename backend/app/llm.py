@@ -176,3 +176,21 @@ def parse_spoken_time(phrase: str) -> Optional[str]:
     if m:
         return f"{int(m.group(1)):02d}:{m.group(2)}"
     return None
+
+
+_SW_FULL_RE = re.compile(
+    rf"\bsaa\s+(?:{_SW_NUM})\b"
+    r"(?:\s+(?:na nusu|na robo|kasoro robo|na dakika\s+\d{1,2}|kasoro dakika\s+\d{1,2}))?"
+    r"(?:\s+(?:za\s+)?(?:asubuhi|mchana|jioni|usiku|alfajiri))?",
+    re.I,
+)
+
+
+def time_notes(text: str) -> list[tuple[str, str]]:
+    """Every Swahili clock phrase in a request with its 24-hour value (for the agent; computed in code)."""
+    out = []
+    for m in _SW_FULL_RE.finditer(text or ""):
+        hhmm = parse_spoken_time(m.group(0))
+        if hhmm:
+            out.append((m.group(0), hhmm))
+    return out

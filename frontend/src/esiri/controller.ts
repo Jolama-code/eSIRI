@@ -491,7 +491,19 @@ async function execute(task: Task, call: ToolCall, appearWaitMs: number): Promis
       const el = document.querySelector<HTMLElement>(`[data-esiri-id="${CSS.escape(id)}"]`);
       const label = el ? describeElement(el).label || id : id;
       const msgId = stepLine(t('esiri.step.select', { label, value }), 'select');
-      const res = await selectOption(id, value, ctx);
+      let res = await selectOption(id, value, ctx);
+      const taskSel = /^(?:hub|weris)\.task\.(\d+)\.status$/.exec(id);
+      if (!res.ok && res.code === 'not_found' && taskSel && ['assigned', 'in_progress', 'done'].includes(value)) {
+        // The task list is not on this page: set the status directly (same effect, the assigner is told).
+        try {
+          await api(`/api/tasks/${taskSel[1]}`, { method: 'PATCH', body: { status: value }, signal: task.abort.signal });
+          void useHub.getState().loadTasks();
+          window.dispatchEvent(new CustomEvent('nuru:tasks'));
+          res = { ok: true, status: value, note: 'The task list was not on screen, so the status was set directly.' };
+        } catch (e) {
+          if (isAbort(e)) throw e;
+        }
+      }
       es().patchMsg(msgId, { status: res.ok ? 'ok' : 'fail' });
       record(task, 'select_option', label, res, value);
       return { result: res, failed: !res.ok };
