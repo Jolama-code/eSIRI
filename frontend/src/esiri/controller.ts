@@ -809,3 +809,12 @@ export function newConversation(): void {
 export function trFor(l: Language, key: I18nKey): string {
   return tr(l, key);
 }
+
+/** Automated tests only: run one tool call in a throwaway task with the given confirmation credits. */
+export async function testExecuteTool(name: string, args: Record<string, unknown>, credits = 0): Promise<Record<string, unknown>> {
+  const task = newTask(`[test] ${name}`, 'text');
+  task.credits = credits;
+  const out = await execute(task, { id: 'test', name, arguments: args }, 150);
+  task.done = true;
+  return { ...out.result, credits_left: task.credits };
+}

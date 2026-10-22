@@ -13,10 +13,11 @@ import { useHub } from './hub/hubStore';
 import { useNuru } from './esiri/nuruStore';
 import { useEvents } from './esiri/events';
 import { enableModerator } from './esiri/moderator';
+import { testExecuteTool } from './esiri/controller';
 
 // Hooks for automated tests (non-LLM checks of the snapshot, the confirmation gate and moderator mode).
 (window as unknown as Record<string, unknown>).__esiriTest = {
-  buildSnapshot, click, typeText, selectOption, useEsiri, useApp, speak, useSession, useHub, useNuru, useEvents, enableModerator,
+  buildSnapshot, click, typeText, selectOption, useEsiri, useApp, speak, useSession, useHub, useNuru, useEvents, enableModerator, testExecuteTool,
 };
 
 // PWA: cache the app shell (API calls always go to the network; see public/sw.js).

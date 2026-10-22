@@ -87,7 +87,6 @@ async function admitVisibly(p: LobbyPerson): Promise<void> {
     });
     hideCursor();
     if (!res.ok && useApp.getState().live?.lobby.some((x) => x.id === p.id)) admit(p.id); // off-screen: admit anyway
-    s.steps.push({ time: new Date().toISOString(), tool: 'admit', target: p.name, ok: true });
   } catch {
     /* moderator mode ended */
   }
@@ -104,7 +103,10 @@ export function admit(id: string): void {
     participants: [...live.participants, p],
     admittedWhileModerating: live.moderator ? [...live.admittedWhileModerating, p.name] : live.admittedWhileModerating,
   });
-  if (live.moderator) void announce(tr(lang(), 'moderator.joined', { name: p.name }), { force: true });
+  if (live.moderator) {
+    mod?.steps.push({ time: new Date().toISOString(), tool: 'admit', target: p.name, ok: true });
+    void announce(tr(lang(), 'moderator.joined', { name: p.name }), { force: true });
+  }
 }
 
 export function deny(id: string): void {

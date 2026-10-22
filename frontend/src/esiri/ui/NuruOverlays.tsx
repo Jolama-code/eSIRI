@@ -422,10 +422,10 @@ export function DemoPanel() {
           <p className="t-small">{t('demo.signInFirst')}</p>
         ) : (
           <div className="demo-grid">
-            <button className="hbtn" data-testid="demo-meeting-soon" onClick={() => void run(t('demo.meetingSoon'), () => api('/api/demo/meeting-soon', { body: { minutes: 2 } }))}>
+            <button className="hbtn" data-testid="demo-meeting-soon" onClick={() => void run(t('demo.meetingSoon'), async () => { setOpen(false); await api('/api/demo/meeting-soon', { body: { minutes: 2 } }); })}>
               {t('demo.meetingSoon')}
             </button>
-            <button className="hbtn" data-testid="demo-fire-reminder" onClick={() => void run(t('demo.fireNext'), () => api('/api/demo/fire-next-reminder', { method: 'POST' }))}>
+            <button className="hbtn" data-testid="demo-fire-reminder" onClick={() => void run(t('demo.fireNext'), async () => { setOpen(false); await api('/api/demo/fire-next-reminder', { method: 'POST' }); })}>
               {t('demo.fireNext')}
             </button>
             <button
