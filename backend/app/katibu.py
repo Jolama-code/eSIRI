@@ -320,10 +320,15 @@ def _save(job: KatibuJob) -> KatibuJob:
         return job
 
 
+class JobGone(Exception):
+    """The job was deleted (e.g. by a demo reset) while it was running."""
+
+
 def _load(job_id: int) -> KatibuJob:
     with DBSession(engine) as db:
         j = db.get(KatibuJob, job_id)
-        assert j is not None
+        if j is None:
+            raise JobGone(job_id)
         return j
 
 
@@ -378,11 +383,19 @@ async def run_job(job_id: int, wav: Path) -> None:
         _save(job)
         _progress(job)
         await poll_job(job.id)  # type: ignore[arg-type]
+    except JobGone:
+        log.info("katibu job %s was deleted while running; stopping", job_id)
     except KatibuError as exc:
-        _fail(_load(job_id), exc.en, exc.sw)
+        try:
+            _fail(_load(job_id), exc.en, exc.sw)
+        except JobGone:
+            pass
     except Exception as exc:  # noqa: BLE001
         log.exception("katibu job %s failed", job_id)
-        _fail(_load(job_id), str(exc), "Hitilafu isiyotarajiwa.")
+        try:
+            _fail(_load(job_id), str(exc), "Hitilafu isiyotarajiwa.")
+        except JobGone:
+            pass
 
 
 async def poll_job(job_id: int) -> None:
@@ -437,12 +450,19 @@ async def _on_ready(job_id: int) -> None:
                data={"job": job_view(job)})
 
 
+async def _poll_safely(job_id: int) -> None:
+    try:
+        await poll_job(job_id)
+    except JobGone:
+        log.info("katibu job %s was deleted while polling; stopping", job_id)
+
+
 def resume_jobs() -> None:
     with DBSession(engine) as db:
         rows = list(db.exec(select(KatibuJob).where(KatibuJob.status.in_(["processing", "uploading"]))))  # type: ignore[attr-defined]
     for j in rows:
         if j.katibu_meeting_uid and j.status == "processing":
-            _spawn(poll_job(j.id))  # type: ignore[arg-type]
+            _spawn(_poll_safely(j.id))  # type: ignore[arg-type]
         else:
             j.status, j.error = "failed", {"en": "Interrupted by a restart.", "sw": "Ilikatizwa na kuanzishwa upya kwa mfumo."}
             _save(j)
@@ -558,6 +578,13 @@ def _minutes_mail_body(job: KatibuJob) -> str:
 
 
 async def _track_deliveries(job_id: int) -> None:
+    try:
+        await _track_deliveries_inner(job_id)
+    except JobGone:
+        pass
+
+
+async def _track_deliveries_inner(job_id: int) -> None:
     for _ in range(20):
         await asyncio.sleep(3)
         job = _load(job_id)

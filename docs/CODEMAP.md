@@ -1,6 +1,121 @@
-# eSiri × e-Mikutano — Code Map
+# NURU (eSiri) — Code Map
 
 > **Rename note (2026-09-30).** The assistant was renamed from **eSiri** to **NURU** in everything a user sees (spoken as "Nuru"; wake word "Nuru"/"Noor"/"Nooru", deliberately not "new room"), and the signed-in user from **Rahma Mbuyu** to **Jolama** (initials JO, seed room "Jolama's Room", id `jolamas-room-r7k2`, token `JLM-7K2Q`). Internal identifiers keep "esiri" (`frontend/src/esiri/`, `data-esiri-*`, CSS classes, `data-testid`s, localStorage keys). The rest of this document was written before the rename and still uses the old names; the captured snapshots and traces are unchanged historical records.
+
+> **NURU v2 (2026-10-22).** Section 0 below describes v2: accounts, the Hub, proactive NURU, GMS, WERIS and KatibuAI. Sections 1–20 were written for v1 (the e-Mikutano agent). They remain accurate for that layer except for these changes:
+> - the backend runs on **port 8010** (KatibuAI uses 8000);
+> - the hard-coded user is replaced by the signed-in account (`session.ts` `currentPerson()`);
+> - the default language is Swahili;
+> - all speech defaults to OpenAI TTS;
+> - every `/api/*` route except `/api/health` and `/api/auth/login` needs a bearer token;
+> - the snapshot gains `system`, `user` and per-system state;
+> - the agent has 15 tools.
+
+## 0. NURU v2
+
+### 0.1 Pieces
+
+| Layer | Where | What |
+|---|---|---|
+| Database | `backend/app/models.py`, `core.py` | SQLite `backend/data/nuru.db` via SQLModel. Tables: User, Session, ScheduledMeeting, ScheduleItem, Reminder, Task, Notification, MailMessage, Project, PdpEntry, WeeklyReport, KatibuJob, AuditRecord. Datetimes are stored as naive UTC (`NaiveDatetime`) and shown in `NURU_TZ`. |
+| Seed | `seed.py` | 3 accounts + 6 directory entries; Budget Committee meeting 12 min after seeding (room `kamati-ya-bajeti-k7b2`); a second meeting today and one tomorrow; tasks; two briefing items; 6 inbox / 3 sent mails for Jolama; WERIS projects, PDP and weeks W−6…W0 (current = DRAFT). `POST /api/demo/reset` → `reset_all()` wipes everything except users and sessions, then re-seeds. |
+| Auth | `core.py`, `api_hub.py` | bcrypt passwords; `POST /api/auth/login` → random token (7 days) stored in Session; `Authorization: Bearer`. Directory-only people (`has_account=False`) cannot sign in. |
+| Events | `core.Broker`, `GET /api/events?token=` | One SSE stream per device: `retry`, a 2 KB comment, `hello`, typed events, a `: ping` every 15 s. The broker also keeps 200 events per user for **`GET /api/events/poll?token=&after=`** (long-poll, waits up to 20 s). The client (`events.ts`) switches to long-polling when no `hello` arrives within 5 s: cloudflared quick tunnels buffer streams until they end, verified with a probe on 2026-10-22. After a reconnect the client refetches everything and restores open reminders. |
+| Scheduler | `services.scheduler_loop` | Every 10 s: reminders with `fire_at <= now`, not fired, not dismissed → `fire_reminder` builds the bilingual message at fire time (minutes left), sets `fired_at` (never fires twice), stores a Notification and pushes `reminder`. Snooze sets `fire_at = now + 5 min` and clears `fired_at`. Dismiss/snooze push `reminder_closed` so the user's other devices drop the card. |
+| Reminder rules | `services.sync_*_reminders` | Meeting: `start − lead` (per user's `reminder_lead_min`) for the organizer and invitees with accounts. Task: `due − 30 min` for the assignee. Day item: `start − lead`. A reminder whose source already started is created as fired (no stale alerts). Changing a source re-arms it. |
+| Day view | `services.day_items` | ScheduleItems of the date + meetings I organise or am invited to + my tasks due that date, sorted by start. |
+
+### 0.2 HTTP API (all `/api`, bearer unless noted)
+
+- **Auth and profile:** `POST /auth/login` (no auth), `POST /auth/logout`, `GET/PATCH /me` (language, voice, lead time 2/5/10/15, meeting audio source, wake word; changing the lead time re-syncs reminders), `GET /users`.
+- **Day and briefing:** `GET /day?date=`, `POST/PATCH/DELETE /day/items/{id}` (`at` is `HH:MM` today or ISO local), `POST /briefing/parse`, `POST /briefing/save`.
+- **Meetings, tasks, reminders, notifications:** `GET/POST /meetings`, `PATCH /meetings/{id}`, `GET /tasks?scope=mine|assigned_by_me|all`, `POST /tasks`, `PATCH /tasks/{id}`, `GET /reminders` (`open` fired in the last 30 min + `upcoming`), `POST /reminders/{id}/snooze|dismiss`, `GET /notifications`, `POST /notifications/{id}/read`, `POST /notifications/read-all`, `POST/GET /audit`.
+- **GMS:** `GET /mail?folder=`, `GET /mail/{id}`, `POST /mail/{id}/read`, `DELETE /mail/{id}`, `POST /mail/drafts`, `PATCH /mail/drafts/{id}`, `POST /mail/send`.
+- **WERIS:** `GET /weris/dashboard`, `GET/POST /weris/projects|pdp|reports`.
+- **Katibu:** `GET /katibu/status`, `POST /katibu/jobs` (multipart), `GET /katibu/jobs`, `GET /katibu/jobs/{id}`, `POST /katibu/jobs/{id}/send`, `GET /katibu/jobs/{id}/documents/{lang}/{fmt}`.
+- **Events and demo:** `GET /events`, `GET /events/poll`, `POST /demo/reset|meeting-soon|fire-next-reminder|briefing-prompt`.
+- **Errors:** errors are `{code, error, error_en, error_sw}`. HTTP 401 makes the client sign out.
+
+Event types: `reminder`, `reminder_closed`, `task_assigned`, `task_updated`, `mail_received`, `katibu_progress`, `katibu_ready`, `katibu_sent`, `katibu_failed`, `katibu_delivery`, `notification`, `day_updated`, `briefing_prompt`, `demo_reset`. Each carries `message_sw`, `message_en`, `announce`, `data`.
+
+### 0.3 NURU-to-NURU messages (exact wording in `api_hub.py`, `api_mail.py`, `katibu.py`)
+
+- **Task assigned** → assignee: "{first}, umepewa kazi mpya na {assigner}: {title}, iwe tayari {sw_when}." The due phrase comes from `llm.sw_when`, e.g. "Ijumaa saa nane mchana".
+- **Status set to in_progress/done by the assignee** → assigner: "{first}, {name} ameanza/amekamilisha kazi: {title}."
+- **Mail delivered to a demo user** → "Umepokea barua pepe mpya kutoka kwa {name}: {subject}."
+- **Minutes ready** → "Kumbukumbu za {title} ziko tayari. Ungependa kuziona?"
+- **Announcements:** shown as a toast, spoken through `proactive.announce` (a queue that waits until the agent is idle), stored as Notifications, and sent as a system notification when the page is hidden.
+
+### 0.4 Frontend
+
+- **Routing and sign-in** (`App.tsx`): `/hub/*`, `/gms/*`, `/weris/*` and e-Mikutano routes. `RequireNuru` sends signed-out users to `/hub/login?next=` (or `/gms/login`). The e-Mikutano meeting route stays open (token join).
+- **Session** (`session.ts`): token and user in localStorage. On login the device keeps its current language and pushes it to the account.
+- **Per-system state for the snapshot:**
+  - `useHub` (`hub/hubStore.ts`);
+  - `useGms` (folder, opened e-mail, compose);
+  - `useWeris` and `useTaskForm`;
+  - `useNuru` (reminder cards, toasts, briefing, unlock, demo panel, minutes offer).
+- **Overlays** (`ui/EsiriRoot.tsx`): the floating stack (e-Mikutano, GMS, WERIS) or the Hub orbs, plus the panel, reminder cards, event toasts, briefing sheet, demo panel and unlock overlay.
+- **Unlock overlay:** shown on the first visit per device (`nuru-unlocked-v1`), when audio playback is blocked (`nuru:audio-locked`), or with `?unlock=1`. Never shown in mute mode.
+- **Reminder answers** (`proactive.handleReminderAnswer`):
+  - "baadaye/later" → snooze;
+  - a short "hapana" → dismiss;
+  - a plain "ndiyo" → start or join the meeting deterministically (`moderator.startModerated`);
+  - a fuller meeting answer → agent task with the reminder as context; an explicit yes pre-approves 3 credits for that task only;
+  - anything unclear leaves the card waiting.
+  The **Anzisha kama msimamizi** button starts the meeting, mutes the user and turns moderator mode on, without the LLM.
+- **Moderator mode** (`moderator.ts`):
+  - **On:** sets require-approval on, mutes the user if asked, then lets an invitee from the scheduled meeting (or a fallback list) knock every 6–10 s.
+  - **Admitting:** NURU waits until the agent is not acting, clicks `meeting.lobby.{id}.admit` with the cursor, announces "{name} amejiunga na mkutano." and records an `admit` step.
+  - **Off:** returns the summary "Karibu tena. Watu {n} wamejiunga: …" and writes one audit record.
+- **Meeting ↔ Katibu** (`meetingFlow.ts`):
+  - **While open:** the meeting page records the microphone (MediaRecorder, Opus/WebM) and marks the scheduled meeting live (organizer).
+  - **On leave:** recording stops, the meeting is marked ended, and `offerMinutes` asks "Mkutano umeisha… Nianze?". A yes posts the blob to `/api/katibu/jobs`.
+  - **In the backend** (`katibu.prepare_audio`): ffmpeg converts to 16 kHz mono WAV. It uses the sample (`backend/assets/sample_meeting.wav`, git-ignored, copied by `start.sh`) when the setting says sample, there is no recording, or it is <20 s, unreadable or silent (mean volume < −50 dB). The job records the source and the Hub shows it.
+- **KatibuAI client** (`katibu.py`):
+  - **Auth and calls:** password grant with refresh and re-login on 401. GraphQL is checked against the `code` envelope (9001 = success).
+  - **Upload and processing:** `createMeeting(UNSTRUCTURED, UPLOAD, MIXED)`, then a chunked upload and `complete`. `getProcessingStatus` is polled every 3 s (max 10 min). When ready, it reads the SW and EN minutes and `getMeetingDocuments`.
+  - **Send:** `approveAndSendMinutes(languages [SW, EN], formats [PDF], recipientEmails [], extraEmails)`; deliveries are then followed with `getMeetingDeliveries`. Recipients come from `MINUTES_RECIPIENTS` or the request, but are **forced to `KATIBU_TEST_RECIPIENT` in test mode**. A GMS copy goes to every demo participant.
+  - **Resume:** jobs still processing are resumed after a restart.
+  - **Measured on 2026-10-22:** 59 s from upload to READY for the 2-minute sample.
+- **Briefing** (`briefing.ts`, `api_hub.briefing_parse`):
+  - **Flow:** a guided flow, not the agent. Long listening stops after 2.5 s of silence; then the parse (OpenAI structured output, JSON schema); a review merged with existing items, with clashes in orange; the spoken summary and "Nihifadhi mpango huu?"; on yes, save.
+  - **Times:** the model copies the user's words (`spoken_time`), and `llm.parse_spoken_time` converts them in code. Swahili clock time is (N + 6) mod 12 with asubuhi/mchana/jioni/usiku/alfajiri, plus na nusu / na robo / kasoro robo; English am/pm and 24 h are also handled.
+- **PWA:** `public/manifest.webmanifest` (start `/hub`, standalone, navy/frost, 192/512 + maskable icons) and `public/sw.js`. The service worker serves pages network-first with the cached `/hub` shell as fallback, static assets cache-first, and never caches `/api`, `/@vite`, `/src` or `/node_modules`. It is registered in all builds.
+
+### 0.5 Agent changes
+
+- **New tools:** `select_option` (value or label, accent-insensitive, native setter + `change`), `moderator_mode`, `schedule_reminder`, `update_task_status`, and the four `katibu_*` tools. `navigate` knows 23 pages (`nav.NAV_PAGES`).
+- **Gates in executors:** `moderator_mode(enabled)` and `katibu_send_minutes` need credits; `weris.task.submit` is sensitive only when the assignee is someone else.
+- **Change requests:** a confirmation answer that is not yes/no and has 2+ words becomes `{confirmed:false, change_request}`. It is not a decline, and the model redrafts and asks again.
+- **Task-status fallback:** a select for a task status that is not on screen falls back to `PATCH /api/tasks/{id}`.
+- **Prompt context:** the system prompt adds the signed-in user, today's date and time, and the next 7 dates with Swahili weekday names. The user message adds code-computed 24 h values for Swahili clock phrases (`llm.time_notes`), because the model misread "saa nane mchana" in testing.
+- **Typing:** date/time inputs are filled whole; long texts are typed in chunks.
+
+### 0.6 Tests (frontend/e2e)
+
+| File | What | Needs |
+|---|---|---|
+| `ui.spec.ts` (14) | v1 e-Mikutano human flows, gate, snapshot, TTS/audit with auth | — |
+| `v2.spec.ts` (16) | sign-in/out, SSO, timeline + now marker, unlock, demo panel, reminder on two contexts, snooze, meeting-soon, start as moderator from the card, lobby, GMS reply/draft/delivery/external, WERIS NURU-to-NURU within 3 s, the code gates, PWA, overflow at 390/1366/1920, briefing parse | key for the parse test |
+| `v2-agent.spec.ts` (8) | the eight @llm scenarios of the build prompt | key |
+| `agent.spec.ts` (8), `demo.spec.ts` | v1 agent scenarios and demo script | key |
+| `katibu.spec.ts` | real KatibuAI with the sample; sends only to the test recipient | KatibuAI on :8000 |
+| `mobile.spec.ts` (4) | Pixel 7 Hub layout | — |
+| `screenshots.spec.ts`, `screenshots-v2.spec.ts` | visual sets (`e2e/screenshots/`, `e2e/screenshots/v2/`) with overflow checks | — |
+
+### 0.7 Decisions and limits (v2)
+
+- **Ports:** the backend moved to 8010 because KatibuAI owns 8000.
+- **Room state:** e-Mikutano rooms stay in localStorage, with fixed seed ids so scheduled meetings can refer to them on any device.
+- **Reminder answers:** the reminder question counts as the confirmation for starting/joining (rule 1 in `CLAUDE.md`), so the stage line needs one "ndiyo", not two.
+- **Share mode:** serves a production build: the dev server took 28 s to load through the tunnel, the build 2–9 s.
+- **Voice:** OpenAI `coral` for both languages. It was not compared by ear against other voices.
+- **Limits:**
+  - the gate is client-side;
+  - the lobby is simulated;
+  - the long-poll history is in RAM, so a backend restart loses undelivered events (clients refetch);
+  - the live microphone also records NURU's own voice.
 
 This document describes what is built in this repository today. Every claim points to a file and a function or component. Where something is uncertain or not verified, it says so. The real snapshots and model trace in sections 9 and 10 were captured from the running app on 2026-09-29 with the project's `.env` key and model `gpt-4.1-mini`.
 
@@ -46,7 +161,7 @@ Paths are relative to the project root. `frontend/src/…` is the browser app, `
 
 ```bash
 cp .env.example .env      # put OPENAI_API_KEY=sk-... in .env
-./start.sh                # first run installs everything; then starts backend :8000 and frontend :5173
+./start.sh                # first run installs everything; then starts backend :8010 and frontend :5173
 ```
 
 Open `http://localhost:5173` in **Google Chrome** (not Chromium; Chromium's speech recognition fails with a `network` error on Linux).
@@ -57,11 +172,11 @@ What `start.sh` does, in order:
 3. Warns (does not exit) if `.env` is missing, or if `OPENAI_API_KEY` is missing or still the `sk-...` placeholder.
 4. Creates `backend/.venv` and runs `pip install -r backend/requirements.txt` if `backend/.venv/bin/uvicorn` does not exist.
 5. Runs `npm install` in `frontend/` if `frontend/node_modules` does not exist.
-6. Starts `uvicorn app.main:app --host 127.0.0.1 --port 8000` in the background (cwd `backend/`).
+6. Starts `uvicorn app.main:app --host 127.0.0.1 --port 8010` in the background (cwd `backend/`).
 7. Installs a `trap cleanup EXIT INT TERM` that kills the backend when the script ends (Ctrl+C).
 8. Prints `Open http://localhost:5173 in Google Chrome (not Chromium).` and runs `npm run dev` (Vite, port 5173, `--strictPort`) in the foreground.
 
-Verified during the build: fresh clone into a path containing spaces → install → both servers up; Ctrl+C left no process listening on 8000/5173; without `.env` it printed the warning and `/api/health` reported `has_key: false`.
+Verified during the build: fresh clone into a path containing spaces → install → both servers up; Ctrl+C left no process listening on 8010/5173; without `.env` it printed the warning and `/api/health` reported `has_key: false`.
 
 ### Environment variables (read from `.env` in the project root)
 
@@ -109,7 +224,7 @@ eSIRI/
 │       └── tts.py              synthesize(): OpenAI TTS with tts-1 fallback and in-memory cache
 └── frontend/
     ├── package.json            npm scripts and dependencies
-    ├── vite.config.ts          dev server :5173, proxy /api → http://localhost:8000
+    ├── vite.config.ts          dev server :5173, proxy /api → http://localhost:8010
     ├── playwright.config.ts    e2e config; webServer starts backend (venv uvicorn) + frontend
     ├── tsconfig*.json          TypeScript strict config (app + node/e2e)
     ├── index.html              HTML shell; loads Inter + Montserrat from Google Fonts
@@ -232,7 +347,7 @@ Most choices were fixed by the build specification (`ESIRI_BUILD_PROMPT.md`, sec
 └──────────────────────────────────────────┬──────────────────────────────┬────────────────────────┘
                                  /api/* (Vite proxy)                     │ Chrome speech → Google
                                            ▼                              
-┌────────────────────── FastAPI backend (http://127.0.0.1:8000) ─────────────────────┐
+┌────────────────────── FastAPI backend (http://127.0.0.1:8010) ─────────────────────┐
 │ /api/agent/step  main.step(): session memory (SESSIONS), prune/trim (agent.py),     │
 │                  system prompt + app_map.md + TOOLS  ──────────▶ OpenAI Chat        │
 │ /api/tts         tts.synthesize() (cache) ─────────────────────▶ OpenAI TTS         │
@@ -276,7 +391,7 @@ This follows one request from the key press to the audit record, in call order. 
 ### Step 2 — Starting the task (frontend)
 
 5. `controller.ts` `submit()`: no pending confirmation, not busy, not a stop word → `useEsiri.addMsg({kind:'user', …})` → `newTask()` creates the `Task` object (`credits: 0`, `abort: new AbortController()`, …) → `runLoop(task, { user_message, input_mode })`.
-6. `runLoop()`: `setStatus('thinking')` → `buildSnapshot()` (`snapshot.ts`, see section 9) → `agentStep(body, task.abort.signal)` (`api.ts`) → `fetch('POST /api/agent/step')`. Vite's proxy (`vite.config.ts`) forwards `/api` to `http://localhost:8000`.
+6. `runLoop()`: `setStatus('thinking')` → `buildSnapshot()` (`snapshot.ts`, see section 9) → `agentStep(body, task.abort.signal)` (`api.ts`) → `fetch('POST /api/agent/step')`. Vite's proxy (`vite.config.ts`) forwards `/api` to `http://localhost:8010`.
 
 ### Step 3 — First model call (backend)
 
@@ -1646,7 +1761,7 @@ All tests are Playwright end-to-end tests in `frontend/e2e/`. There are **no uni
 
 ### Configuration (`frontend/playwright.config.ts`)
 
-Chromium (Playwright's bundled build), viewport 1366×768, `timeout: 120_000` per test, `expect` timeout 15 s, `retries: 1`, `workers: 1` (serial), traces and screenshots kept on failure in `e2e/test-results/`, HTML report in `e2e/report/`. `webServer` starts the backend with `".venv/bin/uvicorn" app.main:app --port 8000` (cwd `backend/`, so the spaces in the path don't matter) and the frontend with `npm run dev`; both `reuseExistingServer: true`.
+Chromium (Playwright's bundled build), viewport 1366×768, `timeout: 120_000` per test, `expect` timeout 15 s, `retries: 1`, `workers: 1` (serial), traces and screenshots kept on failure in `e2e/test-results/`, HTML report in `e2e/report/`. `webServer` starts the backend with `".venv/bin/uvicorn" app.main:app --port 8010 (test mode, own database)` (cwd `backend/`, so the spaces in the path don't matter) and the frontend with `npm run dev`; both `reuseExistingServer: true`.
 
 Each test gets a new browser context (fresh localStorage). Tests open the app with `?mute=1`. Prerequisites for LLM scenarios are created through the human UI (`helpers.ts` `createRoomByHand()`), not by earlier tests.
 

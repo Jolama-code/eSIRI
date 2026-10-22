@@ -313,9 +313,16 @@
   font: 700 12px/1 Montserrat, Inter, sans-serif;
   margin-right: 10px;
   box-shadow: 0 0 0 2px rgba(35, 184, 238, 0.5);
+  white-space: nowrap;
+}
+/* keep the slide clear of NURU's floating button stack on the right edge */
+@media (min-width: 768px) {
+  .app-shell.on-meeting .mt-slide { padding-right: 96px; }
 }
 .mt-mod-badge button { border: 0; border-radius: 999px; background: #fff; color: #1e2761; font: 700 11px/1 Montserrat, Inter, sans-serif; padding: 5px 9px; }
-.mt-katibu-rec { display: inline-flex; align-items: center; gap: 6px; color: #ffb4b4; font-size: 12px; font-weight: 600; margin-right: 10px; white-space: nowrap; }
+.mt-katibu-rec { display: inline-flex; align-items: center; gap: 6px; color: #ffb4b4; font-size: 12px; font-weight: 600; margin-left: 10px; white-space: nowrap; min-width: 0; overflow: hidden; }
+.mt-katibu-text { overflow: hidden; text-overflow: ellipsis; }
+.mt-top-left { min-width: 0; }
 .mt-katibu-rec .dot { width: 9px; height: 9px; border-radius: 50%; background: #ff3b3b; animation: pulse-op 1.2s infinite; }
 .mt-katibu-rec.off { color: #9aa4b2; }
 .mt-katibu-rec.off .dot { background: #9aa4b2; animation: none; }
@@ -339,3 +346,6 @@
 .mt-lobby-name { flex: 1; min-width: 0; font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mt-admit { border: 0; border-radius: 8px; background: #1eb53a; color: #fff; font-weight: 700; padding: 6px 10px; font-size: 13px; }
 .mt-deny { border: 0; border-radius: 8px; background: #eef2f7; color: #374151; font-weight: 600; padding: 6px 10px; font-size: 13px; }
+.mt-topbar .mt-top-left { flex: 1 1 0; }
+.mt-topbar .mt-top-center { flex: none; }
+.mt-topbar .mt-top-right { flex: none; justify-content: flex-end; }

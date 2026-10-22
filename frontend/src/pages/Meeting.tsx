@@ -251,6 +251,11 @@ export default function Meeting() {
         <header className="mt-topbar">
           <div className="mt-top-left">
             <Users size={18} />
+            {recActive && (
+              <span className={`mt-katibu-rec ${recUnavailable ? 'off' : ''}`} data-testid="katibu-recording" title={recUnavailable ? t('meeting.katibuRecOff') : t('meeting.katibuRec')}>
+                <span className="dot" /> <span className="mt-katibu-text">{recUnavailable ? t('meeting.katibuRecOff') : t('meeting.katibuRec')}</span>
+              </span>
+            )}
           </div>
           <div className="mt-top-center">
             <span className="mt-room-name">
@@ -277,11 +282,6 @@ export default function Meeting() {
                 <button onClick={handBack} {...ez('meeting.moderator.handback', t('moderator.handback'))}>
                   {t('moderator.handback')}
                 </button>
-              </span>
-            )}
-            {recActive && (
-              <span className={`mt-katibu-rec ${recUnavailable ? 'off' : ''}`} data-testid="katibu-recording" title={recUnavailable ? t('meeting.katibuRecOff') : t('meeting.katibuRec')}>
-                <span className="dot" /> {recUnavailable ? t('meeting.katibuRecOff') : t('meeting.katibuRec')}
               </span>
             )}
             <span className="mt-signal">

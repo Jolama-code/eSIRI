@@ -237,7 +237,9 @@ async function onKatibuReady(e: NuruEvent): Promise<void> {
   void useHub.getState().loadNotifications();
   await announce(msg(e));
   // The minutes open in the Hub (unless NURU is in the middle of something).
-  if (job && !agentBusy() && pageFromPath(window.location.pathname) !== 'meeting') goTo(`/hub/minutes/${job.id}`);
+  // Only from the Hub or the room page the meeting returned to, never in the middle of other work.
+  const page = pageFromPath(window.location.pathname);
+  if (job && !agentBusy() && (page.startsWith('hub_') || page === 'room')) goTo(`/hub/minutes/${job.id}`);
 }
 
 let wired = false;

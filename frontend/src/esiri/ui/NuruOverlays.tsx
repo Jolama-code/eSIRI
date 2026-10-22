@@ -202,6 +202,31 @@ export function UnlockOverlay() {
 // ---------------------------------------------------------------------------
 // Morning briefing sheet
 
+/** 24-hour HH:MM text field (a browser time input shows 12-hour times and can cut off AM/PM). */
+function TimeField({ value, onCommit, label }: { value: string; onCommit: (v: string) => void; label: string }) {
+  const [text, setText] = useState(value);
+  useEffect(() => setText(value), [value]);
+  const commit = () => {
+    const m = /^(\d{1,2})[:.]?(\d{2})$/.exec(text.trim());
+    if (m && Number(m[1]) < 24 && Number(m[2]) < 60) onCommit(`${m[1].padStart(2, '0')}:${m[2]}`);
+    else setText(value);
+  };
+  return (
+    <input
+      className="brief-time t-num"
+      inputMode="numeric"
+      maxLength={5}
+      value={text}
+      onChange={(e) => setText(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+      }}
+      aria-label={label}
+    />
+  );
+}
+
 export function BriefingSheet() {
   const t = useT();
   const lang = useLang();
@@ -275,13 +300,7 @@ export function BriefingSheet() {
                     data-testid={r.isNew ? 'briefing-item' : 'briefing-existing'}
                   >
                     {r.isNew ? (
-                      <input
-                        className="brief-time"
-                        type="time"
-                        value={r.start}
-                        onChange={(e) => editBriefingItem(r.index, { start: e.target.value })}
-                        aria-label={t('briefing.time')}
-                      />
+                      <TimeField value={r.start} onCommit={(v) => editBriefingItem(r.index, { start: v })} label={t('briefing.time')} />
                     ) : (
                       <span className="brief-time static t-num">{r.start}</span>
                     )}

@@ -5,7 +5,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { esiriId, openPanel } from './helpers';
+import { esiriId, openPanel, resetDemo, signIn } from './helpers';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const outDir = path.join(here, 'screenshots');
@@ -24,7 +24,7 @@ async function noHorizontalOverflow(page: Page, label: string) {
     document.querySelectorAll<HTMLElement>('.app-shell *').forEach((el) => {
       const r = el.getBoundingClientRect();
       if (r.width === 0 || r.height === 0) return;
-      if (el.closest('.esiri-panel, .esiri-stage, .orb-fab, .toasts, .modal-backdrop, .rec-table-wrap, .audit-table-wrap, .full-header-bg, .mt-floating')) return;
+      if (el.closest('.esiri-panel, .esiri-stage, .orb-fab, .nuru-stack, .rem-stack, .ev-toasts, .toasts, .modal-backdrop, .rec-table-wrap, .audit-table-wrap, .full-header-bg, .mt-floating')) return;
       if (r.right > limit + 1) offenders.push(`${el.tagName.toLowerCase()}.${el.className} → ${Math.round(r.right)} > ${Math.round(limit)}`);
     });
     return { scroll: doc.scrollWidth > doc.clientWidth + 1, offenders: offenders.slice(0, 5) };
@@ -39,6 +39,10 @@ async function shot(page: Page, name: string) {
   await page.screenshot({ path: path.join(outDir, `${name}.png`) });
 }
 
+test.beforeEach(async ({ request }) => {
+  await resetDemo(request);
+});
+
 for (const size of SIZES) {
   for (const lang of ['en', 'sw'] as const) {
     test(`screenshots ${lang} ${size.w}x${size.h}`, async ({ page }) => {
@@ -46,8 +50,7 @@ for (const size of SIZES) {
       await page.setViewportSize({ width: size.w, height: size.h });
       const tag = `${lang}-${size.w}`;
 
-      await page.goto('/?mute=1');
-      if (lang === 'sw') await page.locator(esiriId('landing.lang.sw')).click();
+      await signIn(page, 'jolama', '/', lang);
       await shot(page, `${tag}-01-landing`);
       await openPanel(page);
       await shot(page, `${tag}-02-landing-panel`);
