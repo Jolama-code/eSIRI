@@ -1,247 +1,159 @@
-# NURU — AI Government Agent · e-Mikutano Proof of Concept
+# NURU v2 — a personal AI assistant for every official
 
-**NURU** (spoken "Nuru"; formerly *eSiri*) is an AI assistant for government web systems, built as a proof of concept for **e-Government Authority (e-GA), Tanzania**. You speak or type a request in **English or Swahili**, and NURU completes it *inside the existing web system* by visibly moving its own cursor, clicking and typing, exactly as a person would. It asks before consequential actions, enforces that in code, and records every task in an audit log.
+**NURU** (spoken "Nuru"; internal code name *eSiri*) is an AI assistant built by **e-Government Authority (e-GA), Tanzania**. Each official signs in to their own NURU, on a laptop or a phone. NURU plans their day, reminds them aloud before meetings and deadlines, starts and moderates their e-Mikutano meetings, asks **KatibuAI** to prepare the minutes, drafts and sends e-mails in GMS, and shares tasks between supervisors and staff in WERIS. It works in **Swahili (default) and English**, by voice or typing. It operates each system **visibly**, with its own cursor, **asks before anything consequential (enforced in code)**, and records every task in an activity log.
 
-The target system in this PoC is a realistic mockup of **e-Mikutano**, Tanzania's government video-conferencing system: rooms, settings, access codes, sharing, presentations, meetings and recordings. There is no real video server. The signed-in user is the fictional **Jolama**.
+> **Demo build.** e-Mikutano, GMS and WERIS are front-end **mockups** with fictional people (domain `mfano.go.tz`). KatibuAI is the **real** eGA backend. Internal identifiers still use `esiri` (`frontend/src/esiri/`, `data-esiri-*`, test ids). Private repository: do not share outside the team.
 
-> **Naming.** Internal identifiers still use `esiri` (the `frontend/src/esiri/` folder, `data-esiri-*` attributes, CSS classes, test ids, storage keys).
-
-> **Private repository.** Internal e-GA proof of concept. Do not share outside the team.
-
-![NURU in a meeting: the side panel on the right, the e-Mikutano meeting screen on the left](frontend/e2e/screenshots/en-1366-10-meeting-panel.png)
+**Rehearsal and stage:** see [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md).
 
 ---
 
-## How it works
+## What it does
 
-![How NURU works: look at the screen, think with the AI, check with the user, act with a visible cursor](Documentation/01_conceptual_loop.png)
-
-1. **Look.** NURU reads the screen as a compact JSON snapshot: the page, the app state, and every button, field and toggle with a stable id.
-2. **Think.** The OpenAI model (`gpt-4.1-mini` by default) chooses the next steps as tool calls (`click`, `type_text`, `navigate`, `ask_confirmation`, `ask_user`, `set_language`, `finish`).
-3. **Check.** Before an important action (create a room, start or join a meeting, record, leave, remove access, delete), NURU asks. The app **refuses sensitive clicks in code** until you say yes.
-4. **Act.** NURU's ghost cursor clicks and types on screen, then the loop repeats until the task is done. The result is spoken aloud and written to the audit log.
-
-**The AI decides; the code acts and enforces.** The model never touches the screen or the data itself.
-
-### Features
-
-- Voice (Chrome Web Speech API) or typed requests, in English and Swahili; the whole UI, recognition, speech and replies switch language together.
-- Visible ghost cursor with highlight and click ripple; every step listed live in a side panel that pushes the page aside.
-- Code-enforced confirmation gate, answerable by voice ("yes / ndiyo / sawa", "no / hapana") or buttons.
-- Instant cancel: Esc, the Stop button, clicking the orb, or saying "stop / simama / acha".
-- Audit log of every task (steps, confirmations, outcome), with filters and CSV export, also written to `backend/audit_log.jsonl`.
-- Conversation memory across tasks ("Actually, turn it off again.").
-- Swahili speech through OpenAI text-to-speech when Chrome has no Swahili voice.
-- Optional wake-word mode ("NURU, …").
-- A fully clickable e-Mikutano mockup that also works without NURU.
-
----
-
-## Quick start
-
-```bash
-git clone git@github.com:Jolama-code/eSIRI.git
-cd eSIRI
-cp .env.example .env        # then set OPENAI_API_KEY=sk-... in .env
-./start.sh                  # installs everything on the first run, then starts backend + frontend
-```
-
-Open **http://localhost:5173** in **Google Chrome**, allow the microphone, click **Reserve a meeting**, then press **Alt+S** and speak.
-
----
-
-## Documentation
-
-| Document | For |
+| | |
 |---|---|
-| [Plain Language Guide (PDF)](Documentation/eSiri_Plain_Language_Guide.pdf) · [Word](Documentation/eSiri_Plain_Language_Guide.docx) | Non-technical explanation of what NURU is and how it works |
-| [Technical Reference (Word)](Documentation/eSiri_Technical_Reference.docx) | Technical explanation for engineers and reviewers |
-| [`docs/CODEMAP.md`](docs/CODEMAP.md) | The detailed, code-grounded source of truth: architecture, a full end-to-end trace, the system prompt and tool schemas, a real captured model run, safety, speech, i18n, data flow and privacy, tests, decisions, limitations, extension guide, glossary |
-| [`CLAUDE.md`](CLAUDE.md) | Short briefing for AI coding assistants working on this repo |
-| Diagrams | [How it works](Documentation/01_conceptual_loop.png) · [Architecture](Documentation/02_architecture.png) · [What the AI receives](Documentation/03_four_inputs.png) · [One real run, second by second](Documentation/04_real_run_timeline.png) |
+| **NURU Hub** (`/hub`, installable app) | Today (greeting, animated orb, timeline with a live "now" marker), Tasks, Meetings, Minutes, Notifications, Systems, Activity, Settings |
+| **Accounts** | Three demo accounts with server-side data shared across devices; one sign-in opens every system (single sign-on) |
+| **Proactive reminders** | Spoken on every signed-in device before meetings, tasks and plan items; answer by voice or tap; snooze; the first device to answer closes the card on the others |
+| **Morning briefing** | Describe your day aloud; NURU turns it into an ordered timetable (Swahili clock times converted in code), shows clashes, and saves it after a "ndiyo" |
+| **Moderator mode** | From a reminder: "Ndiyo, anza kama msimamizi na uninyamazishe" — NURU starts the meeting, mutes you, admits people from the waiting room visibly and announces each one, then summarises when you say "Nimerudi" |
+| **KatibuAI minutes** | When a meeting ends NURU offers to ask Katibu; the live recording (or the sample recording) goes to the real KatibuAI; minutes appear in the Hub ("Imeandaliwa na KatibuAI"); sent only after your approval, and copied into the participants' GMS inboxes |
+| **GMS** (`/gms`) | NURU replies to an e-mail or writes one from an idea, using only the facts given, reads it back, accepts changes ("ifanye rasmi zaidi"), and sends only after "ndiyo"; delivery between demo users is live |
+| **WERIS** (`/weris`) | Dashboard, projects, PDP, special tasks, weekly reports. A supervisor's NURU assigns a task; the staff member's NURU announces it within seconds; progress flows back |
+| **NURU everywhere** | The orb sits at the top of a floating button stack on the right edge of e-Mikutano, GMS and WERIS (like huduma.serikali.go.tz); Alt+S or the orb opens the side panel |
 
 ---
 
 ## Requirements
 
-- **Node.js 18+** and npm
-- **Python 3.10+**
-- **Google Chrome**. Do not use Chromium: its speech recognition fails on Linux with a "network" error.
-- An internet connection (Chrome's speech recognition and OpenAI both need it)
-- An **OpenAI API key**
+- Ubuntu (or another Linux/macOS), **Python 3.10+**, **Node.js 18+**, **ffmpeg** (`sudo apt install ffmpeg`).
+- **Google Chrome** (voice input uses Chrome's Web Speech API; Chromium's does not work). Android Chrome on phones.
+- An **OpenAI API key** (agent, briefing parser, speech).
+- **KatibuAI** running locally (default `http://localhost:8000`) with a KatibuAI user account.
+- For phones: `cloudflared` (HTTPS tunnel) and optionally `qrencode` (QR code in the terminal).
 
-## Setup (details)
+## Setup
 
 ```bash
-cp .env.example .env        # then edit .env and set OPENAI_API_KEY=sk-...
-./start.sh                  # installs everything on the first run, then starts backend + frontend
+cp .env.example .env     # then fill in the values below
+./start.sh               # first run installs everything; backend :8010, frontend :5173
 ```
 
-Open **http://localhost:5173** in **Google Chrome** and allow the microphone when asked.
+Open **http://localhost:5173/hub** in Google Chrome. `Ctrl+C` stops everything.
 
-`start.sh` creates `backend/.venv`, installs the Python requirements, runs `npm install` in `frontend/` if needed, starts the FastAPI backend on port 8000 and the Vite frontend on port 5173. Press **Ctrl+C** to stop both. The script works from any path, including paths with spaces.
+**Start KatibuAI first** (in its own folder: `make demo`, port 8000). NURU starts without it, but minutes will fail until it is up.
 
-### `.env` settings
+### `.env`
 
-| Variable | Default | Meaning |
+| Variable | Meaning |
+|---|---|
+| `OPENAI_API_KEY` | Required. Never commit or print it. |
+| `OPENAI_MODEL` | Default `gpt-4.1-mini` |
+| `OPENAI_TTS_MODEL`, `OPENAI_TTS_VOICE` | Default `gpt-4o-mini-tts`, voice `coral` (one voice for Swahili and English) |
+| `TTS_PROVIDER` | `openai` (default). `chatterbox` is a documented stub for later; it falls back to OpenAI |
+| `ESIRI_ENGLISH_TTS` | `openai` (default) or `browser` |
+| `NURU_TZ` | `Africa/Dar_es_Salaam` |
+| `MINUTES_RECIPIENTS` | Comma-separated addresses that approved minutes are e-mailed to (e.g. `jolama0001@gmail.com`) |
+| `KATIBU_BASE_URL`, `KATIBU_CLIENT_ID`, `KATIBU_USERNAME`, `KATIBU_PASSWORD` | KatibuAI connection (password grant, client `katibuai-android`) |
+| `KATIBU_TEST_RECIPIENT` | The only address automated tests ever send minutes to |
+| `NURU_DB` | Optional SQLite path (default `backend/data/nuru.db`, git-ignored) |
+| `NURU_TEST_MODE` | Set by Playwright; forces Katibu e-mails to `KATIBU_TEST_RECIPIENT` |
+
+The database is created and seeded on first start. The sample meeting recording (`backend/assets/sample_meeting.wav`, git-ignored) is copied from `reference/nuru-v2/sample-meeting.wav` by `start.sh`.
+
+## Demo accounts
+
+| Username | Person | Role |
 |---|---|---|
-| `OPENAI_API_KEY` | — | Required. |
-| `OPENAI_MODEL` | `gpt-4.1-mini` | Chat model used by the agent. |
-| `OPENAI_TTS_MODEL` | `gpt-4o-mini-tts` | Text-to-speech model (Swahili voice, optional English voice). Falls back to `tts-1`. |
-| `OPENAI_TTS_VOICE` | `coral` | OpenAI voice. |
-| `ESIRI_ENGLISH_TTS` | `browser` | `browser` = Chrome voice for English; `openai` = OpenAI voice for English too. |
+| `jolama` | Jolama, Afisa TEHAMA (ICT Officer) | staff (supervisor: Dkt. Halima) |
+| `halima` | Dkt. Halima Said, Msimamizi wa Idara (Head of Section) | supervisor |
+| `baraka` | Baraka Mollel, Afisa Mifumo (Systems Officer) | staff |
 
----
+Password for all three: **`Demo@2026`** — demo only. Other people in the directory (Neema Mwakalinga, Juma Hassan, Zawadi Kimaro, the ICT team, the helpdesk) have no accounts. All people and addresses are fictional.
 
-## How to use
+## Phones and other laptops
 
-- **The orb.** The iridescent orb at the bottom right is on every page. Click it, or press **Alt+S**, and NURU opens its side panel and starts listening. Speak your request. The larger orb in the middle shows what NURU is doing: it breathes when idle, follows your voice when listening, swirls faster when thinking, shows a rotating ring when acting, pulses when speaking, and turns briefly red on an error.
-- **Stop at any time.** Press **Esc**, click the red Stop button in the panel, click the orb while NURU is working, or say "stop", "cancel", "simama", "acha" or "sitisha". The task stops at once and is logged as *Cancelled*.
-- **The side panel** shows the conversation, the live transcript, every action step (✓/✗), and confirmation cards. It pushes the page aside, so the panel never covers what NURU clicks. Close it with `»`; a small "NURU" tab brings it back.
-- **Typing works as a fallback.** Type into the panel and press Enter. Suggestion chips show example requests.
-- **Confirmations.** Before creating a room, starting or joining a meeting, starting or stopping a recording, leaving a meeting, removing access or deleting something, NURU asks. Answer by voice ("yes", "go ahead", "ndiyo", "sawa" / "no", "hapana", "acha") or with the Yes/No buttons. The app enforces this in code, not just in the prompt: a sensitive click without an approval is refused.
-- **Language.** Switch between English and Swahili with the EN/SW chip in the panel, the Swahili/English toggle on the landing page, or by saying "speak Swahili" / "ongea Kiingereza". The whole UI, speech recognition, NURU's voice and its replies switch together. Swahili speech uses OpenAI TTS when Chrome has no Swahili voice.
-- **Wake mode (optional).** Turn on *"Always listening — say 'NURU'"* in the panel. NURU then listens in the background; say "Nuru" or "Nuru, create a room called Finance". A green indicator shows when wake mode is running.
-- **Rehearsals.** Use *Reset demo data* in the user menu (top right, "Jolama") to restore the seeded data and clear the audit log.
-- **Audit Log.** Open it from the user menu or ask NURU. Expand rows to see every step and confirmation, filter by outcome, and export CSV. Every task is also appended to `backend/audit_log.jsonl`.
+One laptop is the server: it runs NURU (frontend and backend) and KatibuAI.
 
-Every screen also works with a normal mouse and keyboard, without NURU.
-
----
-
-## 3-minute demo script
-
-Start on the landing page and click **Reserve a meeting** (or ask NURU to do it). Then click the orb or press Alt+S and say:
-
-1. **"Create a room called Board Meeting."** NURU opens *+ New Room*, types the name, and asks for confirmation. Say **"Yes."**
-2. **"Open the settings, turn on mute users on join, and give me a viewer access code."** NURU reads the new code aloud digit by digit.
-3. **"Share access with Neema Mwakalinga."**
-4. **"Add the meeting agenda to the presentation."**
-5. **"Start the meeting and tell everyone good morning in the chat."** Say **"Yes"** to confirm. The mic starts muted because of step 2, and the slide shows *Meeting_Agenda.pdf*.
-6. **"Start recording."** Say **"Yes."** Wait a few seconds, then say **"Stop recording and leave the meeting."** and **"Yes."** The recording appears in the room's Recordings tab.
-7. **"Speak Swahili."** Then say: **"Tengeneza chumba kiitwacho Kikao cha Bodi."** and **"Ndiyo."**
-8. **"Fungua kumbukumbu za ukaguzi."** ("Open the audit log.") Show the recorded tasks, expand one, and click *Export CSV*.
-
-Optional extras: "What is the viewer code?", "Actually, turn it off again." (NURU remembers the context), and pressing **Esc** in the middle of a task.
-
----
-
-## Troubleshooting
-
-| Problem | Fix |
-|---|---|
-| **Microphone not working / "Microphone access was blocked"** | Click the padlock in Chrome's address bar → allow the microphone → reload. Check the system input device. You can always type instead. |
-| **"Voice recognition needs Google Chrome (not Chromium) and internet"** | This is the `network` error of the Web Speech API. Chromium builds (including snap Chromium on Ubuntu) have no Google speech service. Use Google Chrome with internet access. |
-| **No voice output** | Check the system volume and output device. English uses Chrome's voices (the first speech can take a moment while voices load). Swahili uses OpenAI TTS, which needs a valid key. Set `ESIRI_ENGLISH_TTS=openai` to use OpenAI for English too. If speech fails, NURU still shows the text. Remove `?mute=1` from the URL if present. |
-| **"The model … is not available"** | Your key cannot use the configured model. Change `OPENAI_MODEL` in `.env` (for example `gpt-4.1-mini`, `gpt-4.1` or `gpt-4o-mini`) and restart `./start.sh`. |
-| **Banner "The OpenAI API key is missing"** | Add `OPENAI_API_KEY=...` to `.env` in the project root and restart. |
-| **Ports in use** (`Address already in use` / Vite "Port 5173 is in use") | Stop the other process: `lsof -i :8000` / `lsof -i :5173`, then `kill <pid>`. Or close the other terminal running `start.sh`. |
-
----
-
-## Screenshots
-
-| Landing page (EN, panel open) | Room settings (Swahili) |
-|---|---|
-| ![Landing page](frontend/e2e/screenshots/en-1920-02-landing-panel.png) | ![Room settings in Swahili](frontend/e2e/screenshots/sw-1366-09-room-settings.png) |
-| **Audit log with a conversation in the panel** | **Rooms dashboard** |
-| ![Audit log](frontend/e2e/screenshots/en-1366-12-audit.png) | ![Rooms dashboard](frontend/e2e/screenshots/en-1366-03-rooms-panel.png) |
-
-All 48 screenshots (every page, English and Swahili, 1366×768 and 1920×1080) are in [`frontend/e2e/screenshots/`](frontend/e2e/screenshots/).
-
----
-
-## Architecture
-
-![NURU system architecture](Documentation/02_architecture.png)
-
-![What the AI receives at every step](Documentation/03_four_inputs.png)
-
-```
- Chrome (frontend, Vite + React + TS)                         FastAPI backend (Python)
- ┌──────────────────────────────────────────────┐            ┌────────────────────────────┐
- │ e-Mikutano mockup (every actionable element  │            │ /api/agent/step            │
- │ tagged data-esiri-id / -label / -sensitive)  │  snapshot  │  system prompt + app_map   │
- │                                              │ ─────────▶ │  + session memory          │
- │ NURU: orb · voice (Web Speech) · panel      │            │  → OpenAI Chat Completions │
- │ controller: loop, confirmation gate, audit   │ ◀───────── │    with tool calling       │
- │ driver ("hands"): ghost cursor click / type  │ tool calls │ /api/tts  (OpenAI TTS)     │
- └──────────────────────────────────────────────┘            │ /api/audit → audit_log.jsonl│
-                                                             └────────────────────────────┘
+```bash
+./start.sh --share
 ```
 
-1. **Snapshot.** Before every step, the frontend builds a compact JSON snapshot: current page, language, open modal, toasts, a summary of the app state (rooms, current room settings, access codes, shared users, meeting state), and every visible element with a `data-esiri-id` (role, label in the current language, state, disabled, sensitive).
-2. **LLM.** The backend sends the system prompt (rules plus the app map in `backend/app/app_map.md`), the conversation memory (last ~12 user turns, with older snapshots pruned), and the newest snapshot to OpenAI with seven tools: `click`, `type_text`, `navigate`, `ask_confirmation`, `ask_user`, `set_language`, `finish`.
-3. **Visible actions.** The frontend executes the returned tool calls in order with a ghost cursor that glides to each element, highlights it, shows a click ripple and clicks, or types character by character. After each batch it sends the results and a fresh snapshot back, and the loop continues until `finish`.
-4. **Confirmation gate.** Sensitive elements carry `data-esiri-sensitive="true"`. The driver refuses to click them unless the user approved an `ask_confirmation` in the current task that still has unused credits (`covers`). This is enforced in code, so the model cannot skip it.
-5. **Audit trail.** Every task produces one record (request, input mode, language, each step, each confirmation, outcome: Completed / Declined / Cancelled / Failed, final message, duration). It is stored in the browser and appended to `backend/audit_log.jsonl`.
+This also starts a **Cloudflare quick tunnel** and prints an `https://…trycloudflare.com/hub` URL with a **QR code**. On each phone or laptop:
 
-Guards: at most 30 tool executions per task; stop after the same action fails 3 times; any network or model error ends the task with a spoken, localized message; every speech call resolves on a timeout, so audio can never block the loop.
+1. Scan the QR code (or type the URL) in **Chrome**.
+2. Sign in as a demo user (several devices may share one account: reminders arrive on all of them).
+3. Tap **Gusa ili kuanza** (Tap to start). It unlocks audio, asks for the microphone and notifications, and NURU greets you. Without this tap, phones stay silent.
+4. Optional: **Mipangilio → Sakinisha programu** (Install app) or the browser's "Add to Home screen".
 
-**Towards production** (not built in this PoC): the same agent loop could drive real legacy government systems. The "hands" would become Playwright browser automation (the same snapshot → tool-call → action pattern, run server-side against the real web UI) or direct REST API calls where they exist, with the same confirmation gate and audit trail. A real system will not have the `data-esiri-*` tags this mockup was built with; see the extension guide in `docs/CODEMAP.md`.
+HTTPS through the tunnel is what lets phones use the microphone, notifications and the installable app. The tunnel URL changes every time `--share` starts. If `cloudflared` is missing, the script prints the install commands and carries on without sharing.
 
----
+## Demo controls (for the presenter)
 
-### Performance (measured)
+Open with **Ctrl+Shift+D** on a laptop, or **tap the NURU logo 5 times** on a phone. Never shown otherwise.
 
-![One real run, second by second](Documentation/04_real_run_timeline.png)
+- **Mkutano baada ya dakika 2** — a meeting starting in 2 minutes (its reminder fires at once).
+- **Toa kikumbusho kinachofuata sasa** — fire the next reminder now.
+- **Anzisha mpango wa asubuhi** — start the morning briefing.
+- **Rejesha data ya onyesho** — reset all demo data (server and this device), after a confirmation.
+- Meeting audio for Katibu: **live microphone** or **sample recording**.
+- KatibuAI connection status and last error.
 
-"Create a room called Board Meeting" took **15 seconds** from Send to done: 4 AI calls of about 4,200–4,500 prompt tokens each, the cursor animations, and the user's confirmation.
+## Using NURU
 
----
-
-## Project layout
-
-```
-frontend/             Vite + React 18 + TypeScript app (mockup + NURU)
-  src/pages/          Landing, Rooms, Recordings, Room page, Meeting, Audit
-  src/esiri/          controller (agent loop), driver + cursor (actions), snapshot, speech (stt/tts), panel, orb
-  src/store/          zustand stores (persisted in localStorage)
-  src/i18n/           en.ts / sw.ts (identical keys, enforced by TypeScript)
-  e2e/                Playwright tests and screenshots
-backend/              FastAPI app
-  app/main.py         endpoints, session memory, OpenAI calls
-  app/agent.py        system prompt, tool definitions, memory helpers
-  app/app_map.md      the agent's knowledge of the e-Mikutano mockup (injected into the prompt)
-  app/tts.py          OpenAI text-to-speech with cache
-Documentation/        Plain Language Guide, Technical Reference, diagrams
-docs/CODEMAP.md       detailed technical source of truth
-start.sh              one command to install and run everything
-```
-
-Not in the repository (kept on the owner's machine, git-ignored): `.env` (the API key), `reference/` (original e-Mikutano screenshots used as design references) and `ESIRI_BUILD_PROMPT.md` (the original build specification). The app does not need them to run.
-
----
+- **Talk:** click the orb (or Alt+S), speak, or type in the panel. Esc, the Stop button or "simama"/"stop" cancels at once.
+- **Consent:** NURU asks before creating rooms, starting/joining/leaving meetings, recording, removing access, deleting, sending e-mail, assigning someone else a task, turning moderator mode on, and sending minutes. The app refuses those actions in code without a "yes". Drafting, saving drafts, opening pages and your own reminders never need confirmation.
+- **Reminders:** answer the card by voice ("ndiyo", "baadaye", "hapana", or a full instruction) or with its buttons.
+- Useful requests: "Nikumbushe kumpigia Mkurugenzi saa nane mchana", "Jibu barua ya Dkt. Halima…", "Mpe Jolama kazi ya…", "Mwambie Dkt. Halima nimemaliza…", "Zitume kumbukumbu kwa washiriki".
 
 ## Tests
 
 ```bash
 cd frontend
-npm run build                 # type-check + production build (zero TypeScript errors)
-npx playwright install chromium
-npx playwright test           # all 27 tests (starts backend + frontend automatically if not running)
-npm run test:e2e:nollm        # 18 tests that do not need the OpenAI key
-npm run test:e2e:llm          # 9 NURU agent tests (need the key)
+npm run build               # tsc -b && vite build, zero errors
+npm run test:e2e:nollm      # everything except @llm and @katibu
+npm run test:e2e:llm        # agent scenarios (original 8 + v2 8 + demo script), needs OPENAI_API_KEY
+npm run test:e2e:katibu     # real KatibuAI with the sample recording; sends ONLY to KATIBU_TEST_RECIPIENT
+npx playwright test --project=mobile   # Hub on a Pixel 7
 ```
 
-| Suite | Tests | What it proves |
-|---|---|---|
-| `e2e/ui.spec.ts` | 14 | The mockup works for humans (create room, settings, access, presentation, meeting features, recordings, audit, CSV export, language toggle, token join); the code-enforced confirmation gate; the snapshot; the TTS and audit endpoints |
-| `e2e/agent.spec.ts` `@llm` | 8 | The required NURU scenarios, driven only through the panel's text input, asserting final app state (create, settings, share, meeting + chat, record/stop/leave, Swahili, decline, Esc cancel) |
-| `e2e/demo.spec.ts` `@llm` | 1 | The full demo script as one continuous conversation |
-| `e2e/screenshots.spec.ts` | 4 | Every page in English and Swahili at 1366×768 and 1920×1080, with overflow checks |
+Playwright starts the backend on 8010 in test mode with its own database (`backend/data/test.db`) if it is not already running. Measured: KatibuAI prepared minutes for the 2-minute sample in **59 seconds**.
 
-Latest full run: **27 of 27 passed**. `demo.spec.ts` is occasionally flaky (about 1 in 6 runs, passes on the automatic retry): in a long conversation the model can mistake the Swahili room name "Kikao cha Bodi" for the existing "Board Meeting" and ask a question instead of acting. Automated tests run with `?mute=1` (no speech, no microphone), so real voice input and output need a manual check in Chrome.
+## Troubleshooting
 
----
+| Problem | Fix |
+|---|---|
+| The tunnel prints no URL | Check the internet connection; run `cloudflared tunnel --url http://localhost:5173` by hand to see its error; restart `./start.sh --share` |
+| Phone microphone does nothing | Use Chrome; open the site through the **https** tunnel URL (not the LAN IP); allow the microphone (lock icon → Permissions); tap **Gusa ili kuanza** again |
+| No sound | Tap **Gusa ili kuanza** (open `/hub?unlock=1` to show it again); check volume and silent mode; check that **Sauti ya Nuru** is on in Settings |
+| "KatibuAI haijaunganishwa" / minutes fail | Start KatibuAI (`make demo`); check `KATIBU_*` in `.env`; the demo panel shows the last error |
+| Minutes used the sample recording | The live recording was under 20 s, silent or missing (the Hub says why); switch the source in Settings |
+| A device stops receiving announcements | Reload: it reconnects to the event stream and restores open reminders |
+| Banner "OpenAI API key is missing" | Add `OPENAI_API_KEY` to `.env` and restart |
+
+## Privacy (what leaves the server)
+
+- **OpenAI:** every agent step sends a compact screen snapshot — including the opened e-mail text (up to 2,000 characters), list rows, form values, the day's items and the signed-in user's name and role. Briefing transcripts. Text that NURU speaks (text-to-speech). Never passwords or tokens.
+- **Google:** speech recognition in Chrome sends the microphone audio while NURU is listening.
+- **KatibuAI:** the meeting audio (live recording or sample), which KatibuAI sends to Google Gemini for transcription and minutes. The live microphone records the room, **including NURU's own voice**.
+- Stored locally on the server: the SQLite database (`backend/data/`) and uploaded recordings (`backend/data/recordings/`), both git-ignored.
+
+## Architecture
+
+```
+Browser (Hub · e-Mikutano · GMS · WERIS, one React app)          FastAPI backend :8010                KatibuAI :8000
+  NURU overlay: orb, panel, ghost cursor, agent loop  ── /api/agent/step ──► OpenAI tool calling
+  proactive: reminders, announcements, briefing        ◄── SSE /api/events ── scheduler (10 s), notifications
+  speech: Web Speech (in), /api/tts (out)               ── /api/* (bearer) ─► SQLite: users, day, meetings,
+  MediaRecorder (meeting audio)                         ── /api/katibu/jobs ─► ffmpeg → upload ─────────────► GraphQL + audio API
+```
+
+Details, traces and decisions: [`docs/CODEMAP.md`](docs/CODEMAP.md). AI-assistant briefing: [`CLAUDE.md`](CLAUDE.md).
 
 ## Known limitations
 
-- The mockup was built with `data-esiri-*` tags for the agent; a real third-party system will not have them.
-- The confirmation gate runs in the browser (strong against the AI, not a server-side security control), and an approval is not tied to one specific button.
-- Single fictional user, no authentication; all app data lives in the browser's localStorage.
-- Needs internet: OpenAI (reasoning and Swahili speech) and Google (Chrome speech recognition). Voice input needs Google Chrome.
-- Each step's screen snapshot is sent to OpenAI, including room names, join tokens, access codes and recent chat messages.
-- About 15 seconds for a four-step task.
-
-Full, honest list with details: [`docs/CODEMAP.md` §19](docs/CODEMAP.md#19-known-limitations-and-weaknesses).
+- The mock systems were built with `data-esiri-*` tags for the agent; real systems will not have them.
+- The confirmation gate runs in the browser: strong against the AI, but not a server-side security control.
+- Moderator mode's waiting room is simulated; the e-Mikutano mock has no real video server.
+- Needs the internet (OpenAI, Google speech, Gemini via KatibuAI). Voice input needs Google Chrome.
+- Each agent step takes about 2–3 seconds (one AI call plus the visible cursor), so a five-step e-mail reply takes 15–25 seconds.
