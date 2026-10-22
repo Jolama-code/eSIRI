@@ -127,4 +127,11 @@ echo "Press Ctrl+C to stop."
 echo ""
 
 cd "$ROOT/frontend"
-npm run dev
+if [ "$SHARE" = "1" ]; then
+  # Phones load a production build much faster through the tunnel than the development server.
+  echo "-- Building the frontend for sharing (npm run build)..."
+  npm run build >/dev/null
+  npx vite preview
+else
+  npm run dev
+fi

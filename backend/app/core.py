@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import secrets
+from collections import deque
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterator, Optional
@@ -210,8 +211,14 @@ def user_by_email(db: DBSession, email: str) -> Optional[User]:
 # Server-Sent Events broker (in memory, one queue per connected device)
 
 class Broker:
+    """Pushes events to SSE streams and keeps a short per-user history for long-polling clients
+    (the fallback when a proxy or tunnel buffers event streams)."""
+
     def __init__(self) -> None:
         self._queues: dict[int, set[asyncio.Queue[str]]] = {}
+        self._seq = 0
+        self._history: dict[int, deque[tuple[int, dict[str, Any]]]] = {}
+        self._waiters: dict[int, asyncio.Event] = {}
 
     def subscribe(self, user_id: int) -> asyncio.Queue[str]:
         q: asyncio.Queue[str] = asyncio.Queue(maxsize=500)
@@ -228,7 +235,30 @@ class Broker:
     def devices(self, user_id: int) -> int:
         return len(self._queues.get(user_id, ()))
 
+    def latest(self) -> int:
+        return self._seq
+
+    def since(self, user_id: int, after: int) -> list[dict[str, Any]]:
+        return [{"seq": n, **ev} for n, ev in self._history.get(user_id, ()) if n > after]
+
+    async def wait(self, user_id: int, after: int, timeout: float) -> list[dict[str, Any]]:
+        evs = self.since(user_id, after)
+        if evs:
+            return evs
+        ev = self._waiters.setdefault(user_id, asyncio.Event())
+        try:
+            await asyncio.wait_for(ev.wait(), timeout=timeout)
+        except asyncio.TimeoutError:
+            pass
+        return self.since(user_id, after)
+
     def publish(self, user_id: int, event_type: str, data: dict[str, Any]) -> None:
+        self._seq += 1
+        hist = self._history.setdefault(user_id, deque(maxlen=200))
+        hist.append((self._seq, json.loads(json.dumps({"type": event_type, **data}, ensure_ascii=False, default=str))))
+        waiter = self._waiters.pop(user_id, None)
+        if waiter:
+            waiter.set()
         payload = json.dumps({"type": event_type, **data}, ensure_ascii=False, default=str)
         msg = f"event: {event_type}\ndata: {payload}\n\n"
         for q in list(self._queues.get(user_id, ())):

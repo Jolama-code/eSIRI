@@ -617,6 +617,8 @@ async def events(request: Request, user: User = Depends(user_from_query)) -> Str
 
     async def stream():
         try:
+            # 2 KB comment first: proxies and tunnels (Cloudflare) flush the stream once it has some bytes.
+            yield ":" + " " * 2048 + "\n\n"
             yield "retry: 3000\n\n"
             yield f"event: hello\ndata: {json.dumps({'type': 'hello', 'user_id': uid, 'now': iso(now_utc())})}\n\n"
             while True:
@@ -632,9 +634,19 @@ async def events(request: Request, user: User = Depends(user_from_query)) -> Str
 
     return StreamingResponse(
         stream(),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no", "Connection": "keep-alive"},
+        # Exactly "text/event-stream" (no charset): cloudflared only streams that type without buffering.
+        headers={"Content-Type": "text/event-stream", "Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"},
     )
+
+
+@router.get("/events/poll")
+async def events_poll(after: int = -1, user: User = Depends(user_from_query)) -> dict[str, Any]:
+    """Long-poll fallback for /events (some tunnels buffer event streams). after=-1 returns the current position."""
+    uid: int = user.id  # type: ignore[assignment]
+    if after < 0 or after > broker.latest():  # first call, or the server restarted
+        return {"seq": broker.latest(), "events": [], "reset": after >= 0}
+    events = await broker.wait(uid, after, timeout=20)
+    return {"seq": max([after, *[e["seq"] for e in events]]), "events": events}
 
 
 # ---------------------------------------------------------------------------
