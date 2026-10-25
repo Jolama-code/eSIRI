@@ -7,7 +7,7 @@ import { useSession } from './session';
 
 export const EVENT_TYPES = [
   'reminder', 'reminder_closed', 'task_assigned', 'task_updated', 'mail_received', 'katibu_progress', 'katibu_ready',
-  'katibu_sent', 'katibu_failed', 'katibu_delivery', 'notification', 'day_updated', 'briefing_prompt', 'demo_reset',
+  'katibu_sent', 'katibu_failed', 'katibu_delivery', 'weris_report', 'notification', 'day_updated', 'briefing_prompt', 'demo_reset',
 ] as const;
 export type EventType = (typeof EVENT_TYPES)[number];
 

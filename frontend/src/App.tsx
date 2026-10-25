@@ -13,7 +13,8 @@ import Meetings from './hub/Meetings';
 import { MinutesDetail, MinutesList } from './hub/Minutes';
 import { Activity, Notifications, Settings, Systems } from './hub/MorePages';
 import { GmsCompose, GmsLogin, GmsMailbox } from './gms/Gms';
-import { WerisDashboard, WerisPdp, WerisProjects, WerisReports, WerisTasks } from './weris/Weris';
+import { WerisDashboard, WerisPdp, WerisProjects, WerisTasks } from './weris/Weris';
+import { WerisIndividualReport, WerisReports } from './weris/Report';
 import { Toasts } from './components/Common';
 import { EsiriRoot } from './esiri/ui/EsiriRoot';
 import { setNavigator, systemFromPath } from './esiri/nav';
@@ -85,6 +86,7 @@ function Shell() {
         <Route path="/weris/pdp" element={<RequireNuru><WerisPdp /></RequireNuru>} />
         <Route path="/weris/tasks" element={<RequireNuru><WerisTasks /></RequireNuru>} />
         <Route path="/weris/reports" element={<RequireNuru><WerisReports /></RequireNuru>} />
+        <Route path="/weris/reports/individual" element={<RequireNuru><WerisIndividualReport /></RequireNuru>} />
         <Route path="/weris/*" element={<Navigate to="/weris" replace />} />
 
         {/* e-Mikutano */}

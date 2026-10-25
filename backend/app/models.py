@@ -133,6 +133,7 @@ class Project(SQLModel, table=True):
     status: str = "On Development"
     maturity: str = "Idea"
     last_report_week: str = ""
+    report_user_ids: list = _json()  # interns who report on this project in their weekly report
 
 
 class PdpEntry(SQLModel, table=True):
@@ -156,6 +157,8 @@ class WeeklyReport(SQLModel, table=True):
     submitted_at: Optional[datetime] = None
     reviewed_by: str = ""
     content: str = ""
+    # Individual report items: [{key, kind, ref_id, name, promise, outcome, progress, plan, blockers, nuru}]
+    items: list = _json()
 
 
 class KatibuJob(SQLModel, table=True):

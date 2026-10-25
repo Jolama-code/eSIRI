@@ -272,6 +272,12 @@ export function initProactive(): void {
         void announce(msg(e));
       }
     }),
+    onEvent('weris_report', (e) => {
+      toastFor(e, 'task');
+      systemNotify(lang() === 'sw' ? e.title_sw ?? '' : e.title_en ?? '', msg(e), e.link);
+      void useHub.getState().loadNotifications();
+      void announce(msg(e));
+    }),
     onEvent('mail_received', (e) => {
       void useHub.getState().loadMailCount();
       window.dispatchEvent(new CustomEvent('nuru:mail'));

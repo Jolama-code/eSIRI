@@ -131,7 +131,8 @@ Entry screen of e-Mikutano. Shown when signed out.
 - Dashboard `/weris` (weris_dashboard): `state.dashboard` (counts by status and category, projects not reported this week).
 - Projects `/weris/projects` (weris_projects): `state.projects`; filters `weris.projects.filter-status|filter-type|filter-maturity` (selects), `weris.projects.search`, `weris.projects.add` (modal weris-add-project: `weris.project.title`, `weris.project.submit`), `weris.projects.export`.
 - PDP `/weris/pdp` (weris_pdp): tabs `weris.pdp.tab.pdp|projects|activities`, `weris.pdp.new` (modal: `weris.pdp.skill`, `weris.pdp.submit`).
-- Reports `/weris/reports` (weris_reports): `state.reports`; `weris.reports.continue` (modal weris-report: `weris.report.content`, `weris.report.save`, `weris.report.submit`).
+- Reports `/weris/reports` (weris_reports): the "Weekly Reports" landing with `weris.reports.individual` (Individual (Interns) Reports → the form), `weris.reports.project` and `weris.reports.security` (not in this demo).
+- Individual report form `/weris/reports/individual` (weris_report): `state.report` (week, status DRAFT|SUBMITTED, counts, incomplete, items with key, name, promise, outcome, progress, plan, blockers). Tabs `weris.report.tab.projects|assignments|pdps`. Per item `{key}` (e.g. project-7, task-1, pdp-1): `weris.report.{key}.outcome.done|partial|not_done`, `weris.report.{key}.progress`, `weris.report.{key}.plan`, `weris.report.{key}.blockers`. Footer: `weris.report.save` (Save Draft), `weris.report.submit` ⚠ (Submit Weekly Report; sensitive). `weris.report.back`. Prefer the weris_report tool to fill it.
 
 ### Special tasks `/weris/tasks` (weris_tasks)
 - `state.special_tasks`: `id`, `title`, `assigned_by`, `assigned_to`, `due`, `status`, `can_change_status` (true for the user's own tasks).

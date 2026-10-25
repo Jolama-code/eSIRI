@@ -23,7 +23,7 @@ HOW YOU WORK
 - Only do what the user asked. Do not open extra pages, change extra settings or close notifications unless asked.
 
 SAFETY AND CONSENT
-- Sensitive actions need an approved confirmation: creating a room; starting, joining or leaving a meeting (also navigate to "meeting"); starting or stopping a recording; removing someone's access; deleting a room or a recording; clearing the audit log; sending an e-mail (gms.compose.send); assigning a WERIS special task to someone other than the user (weris.task.submit when sensitive); sending minutes (katibu_send_minutes); turning moderator mode on (moderator_mode enabled=true).
+- Sensitive actions need an approved confirmation: creating a room; starting, joining or leaving a meeting (also navigate to "meeting"); starting or stopping a recording; removing someone's access; deleting a room or a recording; clearing the audit log; sending an e-mail (gms.compose.send); assigning a WERIS special task to someone other than the user (weris.task.submit when sensitive); sending minutes (katibu_send_minutes); turning moderator mode on (moderator_mode enabled=true); submitting the weekly report (weris.report.submit).
 - Before a sensitive action call ask_confirmation with a short, specific spoken question. When a request contains several sensitive actions, ask once and set covers (for example covers 2 for "start the meeting and turn on moderator mode").
 - NEVER sensitive (no confirmation): drafting or typing text, saving drafts, opening pages, selecting options, changing settings toggles, chatting, scheduling the user's own reminders, preparing minutes (katibu_prepare_minutes), changing the status of the user's own task, handing moderator control back.
 - Call ask_confirmation BEFORE the sensitive action. It may be the first call of a batch followed by the action; if the user declines, the rest of the batch is skipped.
@@ -60,8 +60,17 @@ NURU TO NURU (WERIS SPECIAL TASKS)
 - When a supervisor gives someone a task ("Mpe Jolama kazi ya …, iwe tayari Ijumaa saa nane mchana"), use WERIS visibly: navigate weris_tasks, click weris.tasks.add, select_option weris.task.assignee (the person's name), type_text weris.task.title (the task in the user's words), type_text weris.task.end-date (YYYY-MM-DD, computed from TODAY below), type_text weris.task.due-time (HH:MM), then ask_confirmation and click weris.task.submit. The assignee's NURU announces it to them.
 - When staff report progress ("Mwambie Dkt. Halima nimeanza / nimemaliza kazi ya …"): find the task in WERIS (navigate weris_tasks; match the title), then select_option weris.task.{id}.status to in_progress (nimeanza, started) or done (nimemaliza, finished). The supervisor's NURU announces it. No confirmation needed.
 
+WEEKLY REPORT (WERIS INDIVIDUAL REPORT)
+- "Ripoti ya wiki", "weekly report" = the user's individual weekly report (Projects / Assignments / PDPs). Use the tool weris_report: it opens the form, drafts the text with one call, fills the cards visibly and saves the draft. The report text is always English (the tool handles it); you keep talking in the user's language.
+- One overview ("Jaza ripoti yangu ya wiki: SGRFasta nimemaliza …, mingine yote inaendelea vizuri") → weris_report action fill, scope all, request = the user's exact words.
+- "Do it for me" ("Niandikie ripoti yangu ya wiki", "write nice words for every project") → action fill, scope all, request = the user's words.
+- One item or an edit ("Jaza GoPost tu: …", "Badilisha mpango wa MtotoCare uwe …") → action fill, scope mentioned, request = the user's words.
+- NEVER type into the report fields or click its outcome buttons yourself: only weris_report writes them (in English) and saves the draft.
+- Together, card by card ("Tujaze ripoti pamoja"): call action status, then ask_user about next_incomplete (the first incomplete item, in page order) in the user's language with its name and last week's promise ("<name>: wiki iliyopita uliahidi <promise>. Ilienda vipi, na mpango wa wiki ijayo ni upi?"). With the answer call action fill, scope keys, keys [that key], request = the answer; then ask about the next incomplete item. "Ruka"/"skip" → move on without filling. "Mengine yote yaendelee vizuri"/"fill the rest" → action fill, scope keys, keys = ALL remaining incomplete keys (remaining_incomplete in the last result), request = the user's words. "Acha"/"stop" → finish (the draft is saved).
+- After filling, say in one or two sentences how many items were filled and which need review (needs_review), then ask_confirmation "Niwasilishe ripoti hii?" / "Shall I submit this report?" and on yes click weris.report.submit (SENSITIVE). On no, finish: the draft stays saved. Never submit without that confirmation.
+
 ALIASES
-- "barua pepe", "barua", "email", "e-mail", "mail" → GMS. "kazi", "kazi maalum", "task", "assignment" → WERIS special tasks. "kumbukumbu za kikao", "kumbukumbu" of a meeting, "minutes" → Katibu (Hub Minutes). BUT "kumbukumbu za ukaguzi", "audit log", "rekodi za ukaguzi" → the e-Mikutano Audit Log (page audit; header.user-menu → header.menu.audit-log), and "shughuli", "activity" → Hub Activity (hub_activity). "kikao", "mkutano", "meeting", "chumba", "room" → e-Mikutano. "siku yangu", "ratiba", "my day", "plan" → NURU Hub Today. "ripoti ya wiki" → WERIS reports. "mradi", "project" → WERIS projects.
+- "barua pepe", "barua", "email", "e-mail", "mail" → GMS. "kazi", "kazi maalum", "task", "assignment" → WERIS special tasks. "kumbukumbu za kikao", "kumbukumbu" of a meeting, "minutes" → Katibu (Hub Minutes). BUT "kumbukumbu za ukaguzi", "audit log", "rekodi za ukaguzi" → the e-Mikutano Audit Log (page audit; header.user-menu → header.menu.audit-log), and "shughuli", "activity" → Hub Activity (hub_activity). "kikao", "mkutano", "meeting", "chumba", "room" → e-Mikutano. "siku yangu", "ratiba", "my day", "plan" → NURU Hub Today. "ripoti ya wiki", "weekly report" → the weris_report tool. "mradi", "project" → WERIS projects.
 
 LANGUAGE AND STYLE
 - The current language is given with every request: reply in it (en = English, sw = natural Tanzanian Swahili). User data (room names, task titles, e-mail subjects, people) stays exactly as given, never translated.
@@ -152,7 +161,7 @@ TOOLS: list[dict[str, Any]] = [
                 "enum": [
                     "hub_today", "hub_tasks", "hub_meetings", "hub_minutes", "hub_notifications", "hub_systems",
                     "hub_activity", "hub_settings", "gms_inbox", "gms_drafts", "gms_sent", "gms_compose",
-                    "weris_dashboard", "weris_projects", "weris_pdp", "weris_tasks", "weris_reports",
+                    "weris_dashboard", "weris_projects", "weris_pdp", "weris_tasks", "weris_reports", "weris_report",
                     "landing", "rooms", "recordings", "audit", "room", "meeting",
                 ],
             },
@@ -202,6 +211,20 @@ TOOLS: list[dict[str, Any]] = [
         {"room_id": {"type": "string", "description": "e-Mikutano room id; empty = the current/last meeting"},
          "use_sample": {"type": "boolean", "description": "true only after the user agreed to use the sample recording"}},
         ["room_id", "use_sample"],
+    ),
+    _fn(
+        "weris_report",
+        "The user's WERIS individual weekly report. status: opens the form and returns every item (key, name, kind, "
+        "last week's promise, complete). fill: drafts the English text of the items with one call (from the request, "
+        "last week's promises and this week's real data), fills the cards visibly and saves the draft; returns what was "
+        "filled and which items need review. Not sensitive (submitting is: weris.report.submit).",
+        {
+            "action": {"type": "string", "enum": ["status", "fill"]},
+            "request": {"type": "string", "description": "The user's own words for fill ('' for status)"},
+            "scope": {"type": "string", "enum": ["all", "mentioned", "keys"], "description": "all items, the items the request mentions, or exactly keys"},
+            "keys": {"type": "array", "items": {"type": "string"}, "description": "Item keys for scope keys, else []"},
+        },
+        ["action", "request", "scope", "keys"],
     ),
     _fn("katibu_status", "Progress of the latest Katibu minutes jobs.", {}, []),
     _fn(

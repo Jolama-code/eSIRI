@@ -19,7 +19,7 @@ export type PageName =
   | 'hub_login' | 'hub_today' | 'hub_tasks' | 'hub_meetings' | 'hub_minutes' | 'hub_minutes_detail'
   | 'hub_notifications' | 'hub_systems' | 'hub_activity' | 'hub_settings'
   | 'gms_login' | 'gms_inbox' | 'gms_drafts' | 'gms_sent' | 'gms_trash' | 'gms_junk' | 'gms_read' | 'gms_compose'
-  | 'weris_dashboard' | 'weris_projects' | 'weris_pdp' | 'weris_tasks' | 'weris_reports';
+  | 'weris_dashboard' | 'weris_projects' | 'weris_pdp' | 'weris_tasks' | 'weris_reports' | 'weris_report';
 
 /** Pages the agent may navigate to directly, with their paths. */
 export const NAV_PAGES: Record<string, string> = {
@@ -40,6 +40,7 @@ export const NAV_PAGES: Record<string, string> = {
   weris_pdp: '/weris/pdp',
   weris_tasks: '/weris/tasks',
   weris_reports: '/weris/reports',
+  weris_report: '/weris/reports/individual',
   landing: '/',
   rooms: '/rooms',
   recordings: '/recordings',
@@ -73,6 +74,7 @@ export function pageFromPath(pathname: string): PageName {
     return map[folder] ?? 'gms_inbox';
   }
   if (pathname.startsWith('/weris')) {
+    if (pathname.startsWith('/weris/reports/individual')) return 'weris_report';
     const sub = pathname.split('/')[2] ?? '';
     const map: Record<string, PageName> = { projects: 'weris_projects', pdp: 'weris_pdp', tasks: 'weris_tasks', reports: 'weris_reports' };
     return map[sub] ?? 'weris_dashboard';

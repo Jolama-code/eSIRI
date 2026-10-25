@@ -90,7 +90,7 @@ export const useWeris = create<WerisState>()((set) => ({
 // ---------------------------------------------------------------------------
 // Frame
 
-function WerisFrame({ crumbs, children }: { crumbs: string[]; children: ReactNode }) {
+export function WerisFrame({ crumbs, children }: { crumbs: string[]; children: ReactNode }) {
   const t = useT();
   const user = useSession((s) => s.user);
   const nav: { to: string; id: string; icon: IconDefinition; label: I18nKey }[] = [
@@ -128,13 +128,15 @@ function WerisFrame({ crumbs, children }: { crumbs: string[]; children: ReactNod
           </button>
         </nav>
         <main className="w-main">
-          <div className="w-crumbs">
-            {crumbs.map((c, i) => (
-              <span key={c} className={i === crumbs.length - 1 ? 'last' : ''}>
-                {c}
-              </span>
-            ))}
-          </div>
+          {crumbs.length > 0 && (
+            <div className="w-crumbs">
+              {crumbs.map((c, i) => (
+                <span key={c} className={i === crumbs.length - 1 ? 'last' : ''}>
+                  {c}
+                </span>
+              ))}
+            </div>
+          )}
           {children}
         </main>
       </div>
@@ -618,80 +620,6 @@ export function WerisTasks() {
             </div>
             {assigningOther && <div className="w-note"><Fa icon={faHourglassHalf} /> {t('weris.notifyNote')}</div>}
             {error && <div className="w-error" role="alert" data-testid="weris-task-error">{error}</div>}
-          </div>
-        </Modal>
-      )}
-    </WerisFrame>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Weekly reports
-
-export function WerisReports() {
-  const t = useT();
-  const r = useWeris((s) => s.reports);
-  const [editing, setEditing] = useState(false);
-  const [text, setText] = useState('');
-  const [filter, setFilter] = useState('');
-  useEffect(() => {
-    void useWeris.getState().loadReports();
-  }, []);
-  const save = async (submit: boolean) => {
-    await api('/api/weris/reports', { body: { content: text, submit } }).catch(() => undefined);
-    setEditing(false);
-    void useWeris.getState().loadReports();
-  };
-  const cur = r?.current;
-  const rows = (r?.reports ?? []).filter((x) => !filter || x.status === filter);
-  return (
-    <WerisFrame crumbs={[t('weris.reports')]}>
-      <div className="w-rep-head">
-        <h2>{t('weris.weeklyReports')}</h2>
-        {cur?.status === 'DRAFT' && (
-          <button className="w-btn" onClick={() => { setText(cur.content); setEditing(true); }} {...ez('weris.reports.continue', t('weris.continueEditing'))}>
-            {t('weris.continueEditing')}
-          </button>
-        )}
-      </div>
-      <div className="w-rep-cards">
-        <div className="w-card"><div className="w-small">{t('weris.currentWeek')}</div><div className="w-big">{cur ? `${cur.week} (${cur.start_date} → ${cur.end_date})` : r?.current_week}</div></div>
-        <div className="w-card"><div className="w-small">{t('weris.currentStatus')}</div><span className={`w-chip ${cur?.status === 'SUBMITTED' ? 'sub' : 'draft'}`}>{cur?.status ?? 'DRAFT'}</span></div>
-        <div className="w-card"><div className="w-small">{t('weris.totalSubmitted')}</div><div className="w-big"><CountUp value={r?.total_submitted ?? 0} /></div></div>
-        <div className="w-card"><div className="w-small">{t('weris.pendingRevisions')}</div><div className="w-big">{r?.pending_revisions ?? 0}</div></div>
-      </div>
-      <div className="w-card w-panel" style={{ padding: 0 }}>
-        <div className="w-panel-head" style={{ padding: '14px 16px' }}>
-          <span className="w-hist">{t('weris.history')}</span>
-          <select value={filter} onChange={(e) => setFilter(e.target.value)} className="w-mini-select">
-            <option value="">{t('weris.allStatuses')}</option>
-            <option value="DRAFT">DRAFT</option>
-            <option value="SUBMITTED">SUBMITTED</option>
-          </select>
-        </div>
-        <div className="w-tablewrap">
-          <table className="w-table" data-testid="weris-reports">
-            <thead><tr><th>{t('weris.week')}</th><th>{t('weris.dateRange')}</th><th>{t('weris.col.status')}</th><th>{t('weris.submitted')}</th><th>{t('weris.reviewedBy')}</th><th style={{ textAlign: 'right' }}>{t('weris.col.actions')}</th></tr></thead>
-            <tbody>
-              {rows.map((x) => (
-                <tr key={x.id}>
-                  <td>{x.week}</td>
-                  <td>{x.start_date} → {x.end_date}</td>
-                  <td><span className={`w-chip ${x.status === 'SUBMITTED' ? 'sub' : 'draft'}`}>{x.status}</span></td>
-                  <td>{x.submitted_at ? new Date(x.submitted_at).toLocaleString('en-US', { timeZone: 'Africa/Dar_es_Salaam' }) : '—'}</td>
-                  <td>{x.reviewed_by || '—'}</td>
-                  <td style={{ textAlign: 'right' }}><span className="w-link">{t('weris.view')}</span></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      {editing && (
-        <Modal name="weris-report" title={`${t('weris.weeklyReports')} · ${cur?.week ?? ''}`} onClose={() => setEditing(false)} width={620}
-          footer={<><button className="w-btn ghost" onClick={() => void save(false)} {...ez('weris.report.save', t('weris.saveDraft'))}>{t('weris.saveDraft')}</button><button className="w-btn" onClick={() => void save(true)} {...ez('weris.report.submit', t('weris.submitReport'))}>{t('weris.submitReport')}</button></>}>
-          <div className="w-form">
-            <textarea rows={10} value={text} onChange={(e) => setText(e.target.value)} {...ez('weris.report.content', t('weris.reportContent'))} />
           </div>
         </Modal>
       )}

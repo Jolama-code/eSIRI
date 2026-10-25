@@ -5,6 +5,7 @@ import { useSession } from './session';
 import { useHub } from '../hub/hubStore';
 import { useGms } from '../gms/gmsStore';
 import { useWeris, useTaskForm } from '../weris/Weris';
+import { useReport, isComplete } from '../weris/Report';
 import { useNuru } from './nuruStore';
 import { hm } from '../hub/ui';
 
@@ -228,6 +229,20 @@ function werisState(page: string): Record<string, unknown> {
   if (page === 'weris_dashboard' && w.dashboard) state.dashboard = w.dashboard;
   if (page === 'weris_projects') state.projects = w.projects.map((p) => ({ id: p.id, title: p.title, types: p.types.join(', '), status: p.status }));
   if (page === 'weris_reports' && w.reports) state.reports = { current_week: w.reports.current_week, current_status: w.reports.current?.status, total_submitted: w.reports.total_submitted };
+  const r = useReport.getState().report;
+  if (page === 'weris_report' && r) {
+    const cut = (x: string) => (x.length > 140 ? `${x.slice(0, 140)}…` : x);
+    state.report = {
+      week: r.week, status: r.status, open_tab: useReport.getState().tab,
+      incomplete: r.items.filter((i) => !isComplete(i)).length,
+      items: r.items.map((i) => ({
+        key: i.key, kind: i.kind, name: i.name, last_week_promise: i.promise || null, outcome: i.outcome || null,
+        progress: cut(i.progress), plan: cut(i.plan), blockers: cut(i.blockers), complete: isComplete(i),
+        needs_review: Object.values(i.nuru).includes('review'),
+      })),
+      note: 'Fill it with the weris_report tool. Submitting (weris.report.submit) is sensitive.',
+    };
+  }
   return state;
 }
 

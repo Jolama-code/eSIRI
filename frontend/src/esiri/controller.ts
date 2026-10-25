@@ -12,6 +12,7 @@ import { click, elementPresent, navigate, selectOption, typeText, type ActionRes
 import { api, HttpError } from './session';
 import { enableModerator, disableModerator } from './moderator';
 import { LiveUnusable, prepareMinutes } from './meetingFlow';
+import { runWerisReport } from './werisReport';
 import { sendMinutes } from './katibuActions';
 import { useHub } from '../hub/hubStore';
 import { goTo, pageFromPath } from './nav';
@@ -405,6 +406,11 @@ async function execute(task: Task, call: ToolCall, appearWaitMs: number): Promis
       const value = str('text');
       const el = document.querySelector<HTMLElement>(`[data-esiri-id="${CSS.escape(id)}"]`);
       const label = el ? describeElement(el).label || id : id;
+      if (/^weris\.report\.(project|task|pdp)-\d+\./.test(id)) {
+        const res = { ok: false, code: 'invalid' as const, error: 'Do not type into the weekly report yourself: call weris_report (action fill; scope keys with the item key) so the text is written in English and the draft is saved.' };
+        record(task, 'type_text', id, res, value);
+        return { result: res, failed: true };
+      }
       const msgId = stepLine(t('esiri.step.type', { text: value }), 'type');
       let res = await typeText(id, value, ctx);
       if (res.ok && id === 'create-room.name-input') {
@@ -615,6 +621,25 @@ async function execute(task: Task, call: ToolCall, appearWaitMs: number): Promis
       }
       es().patchMsg(msgId, { status: res.ok ? 'ok' : 'fail' });
       record(task, 'katibu_open_minutes', String(id ?? ''), res);
+      return { result: res, failed: !res.ok };
+    }
+    case 'weris_report': {
+      setStatus('acting');
+      const action = str('action') === 'fill' ? 'fill' : 'status';
+      const msgId = stepLine(t(action === 'fill' ? 'esiri.step.reportDrafting' : 'esiri.step.reportOpen'), 'type');
+      const res = await runWerisReport(
+        { action, request: str('request'), scope: str('scope') || 'all', keys: Array.isArray(a.keys) ? (a.keys as unknown[]).map(String) : [] },
+        ctx,
+        (stage, n) => {
+          if (stage === 'drafting') setStatus('thinking');
+          else {
+            setStatus('acting');
+            es().patchMsg(msgId, { text: t('esiri.step.reportFilling', { n: n ?? 0 }) });
+          }
+        },
+      );
+      es().patchMsg(msgId, { status: res.ok ? 'ok' : 'fail', ...(action === 'fill' && res.ok ? { text: t('esiri.step.reportDrafting') } : {}) });
+      record(task, 'weris_report', `${action}${str('request') ? `: ${str('request').slice(0, 120)}` : ''}`, res);
       return { result: res, failed: !res.ok };
     }
     case 'katibu_send_minutes': {

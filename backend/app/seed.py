@@ -181,6 +181,12 @@ def _seed_weris(db: DBSession) -> None:
     for i, (title, types, leaders, s, e, status, mat) in enumerate(projects):
         db.add(Project(title=title, types=types, leaders=leaders, start_date=s, end_date=e, status=status, maturity=mat,
                        last_report_week=cw if i % 2 == 0 else ""))
+    # Jolama's internship projects: the "Projects" tab of his individual weekly report.
+    for title, types, leaders, s, e, status, mat, _promise in INTERN_PROJECTS:
+        db.add(Project(title=title, types=types, leaders=leaders, start_date=s, end_date=e, status=status, maturity=mat,
+                       report_user_ids=[1]))
+    db.flush()
+    intern = {p.title: p.id for p in db.exec(select(Project)) if p.report_user_ids}
     pdp = [
         ("pdp", "Uhandisi wa maelekezo ya AI (Prompt engineering)", "Technical", "2026-07-01", "2026-12-31", "In Progress"),
         ("pdp", "Usimamizi wa miradi (PRINCE2 Foundation)", "Management", "2026-03-01", "2026-06-30", "Completed"),
@@ -199,15 +205,37 @@ def _seed_weris(db: DBSession) -> None:
             end = start + timedelta(days=6)
             wk = _iso_week(start)
             if k == 0:
-                db.add(WeeklyReport(user_id=uid, week=wk, start_date=start.isoformat(), end_date=end.isoformat(), status="DRAFT",
-                                    content="1. Maandalizi ya onyesho la NURU v2.\n2. "))
+                # This week's report starts as an empty DRAFT (the items are built when the form opens).
+                db.add(WeeklyReport(user_id=uid, week=wk, start_date=start.isoformat(), end_date=end.isoformat(), status="DRAFT"))
             elif k == 3:
                 db.add(WeeklyReport(user_id=uid, week=wk, start_date=start.isoformat(), end_date=end.isoformat(), status="DRAFT"))
             else:
                 sub = from_local(datetime.combine(end - timedelta(days=2), time(19, 32)).replace(tzinfo=tz()))
+                items = []
+                if uid == 1 and k == 1:
+                    # Last week's plans become this week's "LAST WEEK'S PROMISE".
+                    items = [{"key": f"project-{intern[t]}", "kind": "project", "ref_id": intern[t], "name": t, "promise": "",
+                              "outcome": "partial", "progress": "Work continued as planned.", "plan": promise, "blockers": "", "nuru": {}}
+                             for t, *_rest, promise in INTERN_PROJECTS]
                 db.add(WeeklyReport(user_id=uid, week=wk, start_date=start.isoformat(), end_date=end.isoformat(), status="SUBMITTED",
                                     submitted_at=sub, reviewed_by="Dkt. Halima Said" if k > 2 else "",
-                                    content="Kazi za wiki zimekamilika kama ilivyopangwa."))
+                                    content="Kazi za wiki zimekamilika kama ilivyopangwa.", items=items))
+
+
+INTERN_PROJECTS = [
+    ("SGRFasta", ["AI/ML", "WEB"], ["Jolama", "Zawadi Kimaro"], "2026-07-01", "2026-12-31", "On Development", "Development",
+     "improving the AI engine"),
+    ("FAKE PRODUCT DETECTOR", ["AI/ML", "MOBILE"], ["Jolama"], "2026-08-15", "2027-01-31", "On Proof Of Concept", "Prototype",
+     "testing the image-matching model on more product photos"),
+    ("GoPost", ["WEB"], ["Jolama", "Baraka Mollel"], "2026-06-01", "2026-11-30", "On Development", "Development",
+     "understanding why it has been hard to integrate the TikTok APIs"),
+    ("MuhtasariAI", ["AI/ML"], ["Jolama", "Neema Mwakalinga"], "2026-05-10", "2026-12-15", "On Pilot", "Pilot",
+     "improving the AI services of the project"),
+    ("MtotoCare", ["MOBILE", "SYSTEMS"], ["Jolama", "Juma Hassan"], "2026-09-01", "2027-03-31", "On Development", "Development",
+     "continuing with the backend implementation of the project"),
+    ("Swahili sentiment Analysis Tool", ["AI/ML"], ["Jolama"], "2026-04-01", "2026-12-31", "On Development", "Development",
+     "improving the AI engine"),
+]
 
 
 def _iso_week(d: date) -> str:

@@ -128,7 +128,7 @@ function setNativeValue(el: HTMLInputElement | HTMLTextAreaElement, value: strin
   el.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
-export async function typeText(id: string, text: string, ctx: DriverContext): Promise<ActionResult> {
+export async function typeText(id: string, text: string, ctx: DriverContext, opts: { fast?: boolean } = {}): Promise<ActionResult> {
   const el = await find(id, ctx.signal, ctx.appearWaitMs);
   if (!el) return notFound(id);
   if (!isReachable(el)) return { ok: false, code: 'not_found', error: `Element "${id}" is behind an open modal.` };
@@ -152,8 +152,9 @@ export async function typeText(id: string, text: string, ctx: DriverContext): Pr
   } else {
     // Long texts (e-mail bodies) are typed in small chunks so it stays visible but quick.
     const chars = Array.from(text);
-    const step = chars.length > 240 ? 4 : chars.length > 120 ? 2 : 1;
-    const delay = chars.length > 240 ? 18 : 35;
+    // fast: about 20 visible steps whatever the length (report cards are filled one after another).
+    const step = opts.fast ? Math.max(1, Math.ceil(chars.length / 20)) : chars.length > 240 ? 4 : chars.length > 120 ? 2 : 1;
+    const delay = opts.fast ? 22 : chars.length > 240 ? 18 : 35;
     let cur = '';
     for (let i = 0; i < chars.length; i += step) {
       cur += chars.slice(i, i + step).join('');
