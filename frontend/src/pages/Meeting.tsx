@@ -12,6 +12,8 @@ import { Wordmark } from '../components/Header';
 import { Orb } from '../esiri/ui/Orb';
 import { admit, deny, disableModerator, handBack } from '../esiri/moderator';
 import { offerMinutes, onMeetingOpened, scheduledMeetingFor, startMeetingRecording, stopMeetingRecording, useRecorder } from '../esiri/meetingFlow';
+import { startCaptions, stopCaptions } from '../esiri/captions';
+import { CaptionsPanel, KatibuRecBadge, SamplePlayer } from './MeetingKatibu';
 import { api } from '../esiri/session';
 import { useHub } from '../hub/hubStore';
 import './Meeting.css';
@@ -58,13 +60,13 @@ export default function Meeting() {
   }, [roomExists, roomId, startMeeting]);
 
   // Live recording for KatibuAI while the meeting is open; link to the scheduled meeting.
-  const recActive = useRecorder((s) => s.active);
-  const recUnavailable = useRecorder((s) => s.unavailable);
   useEffect(() => {
     if (!roomExists) return;
     void startMeetingRecording(roomId);
     void onMeetingOpened(roomId);
+    startCaptions();
     return () => {
+      stopCaptions();
       // Navigated away without "Leave": stop the microphone, keep the recording for later.
       if (useRecorder.getState().active) void stopMeetingRecording();
     };
@@ -251,11 +253,7 @@ export default function Meeting() {
         <header className="mt-topbar">
           <div className="mt-top-left">
             <Users size={18} />
-            {recActive && (
-              <span className={`mt-katibu-rec ${recUnavailable ? 'off' : ''}`} data-testid="katibu-recording" title={recUnavailable ? t('meeting.katibuRecOff') : t('meeting.katibuRec')}>
-                <span className="dot" /> <span className="mt-katibu-text">{recUnavailable ? t('meeting.katibuRecOff') : t('meeting.katibuRec')}</span>
-              </span>
-            )}
+            <KatibuRecBadge />
           </div>
           <div className="mt-top-center">
             <span className="mt-room-name">
@@ -294,6 +292,10 @@ export default function Meeting() {
         </header>
 
         <div className="mt-stage">
+          <div className="mt-katibu-dock">
+            <SamplePlayer />
+            <CaptionsPanel />
+          </div>
           {L?.screenShare && (
             <div className="mt-share-banner" data-testid="share-banner">
               <MonitorUp size={16} /> {t('meeting.sharing')}

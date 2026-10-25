@@ -54,7 +54,7 @@ interface NuruState {
   unlockNeeded: boolean;
   demoOpen: boolean;
   /** Pending "Shall I ask Katibu to prepare the minutes?" after a meeting ended. */
-  minutesOffer: { roomId: string; title: string; meetingId: number | null } | null;
+  minutesOffer: { roomId: string; title: string; meetingId: number | null; question?: string; yesLabel?: string } | null;
 
   addReminder: (r: ReminderCard) => void;
   patchReminder: (id: number, patch: Partial<ReminderCard>) => void;

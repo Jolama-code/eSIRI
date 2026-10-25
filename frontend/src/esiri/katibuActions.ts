@@ -17,13 +17,13 @@ export async function sendMinutes(jobId: number, opts: { confirmedSummary: strin
       system: 'katibu',
       request: tr(lang(), 'minutes.auditSend', { title: job.title }),
       outcome: 'Completed',
-      finalMessage: tr(lang(), 'minutes.sentTo', { n: job.recipients.length }),
+      finalMessage: tr(lang(), job.recipients.length === 1 ? 'minutes.sentToOne' : 'minutes.sentTo', { n: job.recipients.length }),
       confirmations: [{ summary: opts.confirmedSummary, result: 'approved' }],
       steps: [{ time: new Date().toISOString(), tool: 'katibu_send_minutes', target: job.recipients.join(', '), ok: true }],
       startedAt: started,
     });
     const { announce } = await import('./proactive');
-    void announce(tr(lang(), 'minutes.sentTo', { n: job.recipients.length }));
+    void announce(tr(lang(), job.recipients.length === 1 ? 'minutes.sentToOne' : 'minutes.sentTo', { n: job.recipients.length }));
     return { ok: true, job };
   } catch (e) {
     const msg = e instanceof HttpError ? (lang() === 'sw' ? e.messageSw : e.message) : String(e);

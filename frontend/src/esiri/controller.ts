@@ -11,7 +11,7 @@ import { buildSnapshot, describeElement } from './snapshot';
 import { click, elementPresent, navigate, selectOption, typeText, type ActionResult, type DriverContext } from './driver';
 import { api, HttpError } from './session';
 import { enableModerator, disableModerator } from './moderator';
-import { prepareMinutes } from './meetingFlow';
+import { LiveUnusable, prepareMinutes } from './meetingFlow';
 import { sendMinutes } from './katibuActions';
 import { useHub } from '../hub/hubStore';
 import { goTo, pageFromPath } from './nav';
@@ -580,8 +580,13 @@ async function execute(task: Task, call: ToolCall, appearWaitMs: number): Promis
       let res: ActionResult;
       if (!roomId) res = { ok: false, code: 'invalid', error: 'Which meeting? Give room_id (from state.rooms).' };
       else {
-        const job = await prepareMinutes(roomId, { confirmed: false });
-        res = job ? { ok: true, job_id: job.id, status: job.status, audio_source: job.audio_source, note: 'Katibu is preparing the minutes; NURU will announce when they are ready.' } : { ok: false, error: 'Katibu could not start.' };
+        const job = await prepareMinutes(roomId, { confirmed: false, allowSample: a.use_sample === true });
+        res =
+          job instanceof LiveUnusable
+            ? { ok: false, code: 'invalid', error: 'live_unusable', live_unusable: true, reason: job.reason, seconds: job.seconds, note: 'The live recording cannot be used. Tell the user why and ask_user whether to use the sample recording; on yes call katibu_prepare_minutes with use_sample true.' }
+            : job
+              ? { ok: true, job_id: job.id, title: job.title, status: job.status, audio_source: job.audio_source, audio_note: job.audio_note, note: 'Katibu is preparing the minutes of this meeting from its own recording; NURU will announce when they are ready.' }
+              : { ok: false, error: 'Katibu could not start.' };
       }
       es().patchMsg(msgId, { status: res.ok ? 'ok' : 'fail' });
       record(task, 'katibu_prepare_minutes', roomId, res);

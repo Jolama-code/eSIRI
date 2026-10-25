@@ -37,6 +37,20 @@ SESSION_DAYS = 7
 
 def init_db() -> None:
     SQLModel.metadata.create_all(engine)
+    _add_missing_columns()
+
+
+def _add_missing_columns() -> None:
+    """create_all never alters existing tables: add columns introduced after a database was created."""
+    with engine.begin() as conn:
+        for table in SQLModel.metadata.sorted_tables:
+            have = {r[1] for r in conn.exec_driver_sql(f'PRAGMA table_info("{table.name}")')}
+            for col in table.columns:
+                if col.name in have:
+                    continue
+                ddl = col.type.compile(dialect=engine.dialect)
+                default = "'{}'" if ddl == "JSON" else ("''" if "CHAR" in ddl else ("0" if ddl in ("INTEGER", "BOOLEAN", "FLOAT") else "NULL"))
+                conn.exec_driver_sql(f'ALTER TABLE "{table.name}" ADD COLUMN "{col.name}" {ddl} DEFAULT {default}')
 
 
 def get_db() -> Iterator[DBSession]:

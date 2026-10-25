@@ -68,7 +68,7 @@ export function stopListening(): void {
 }
 
 /** Listen for one utterance. Always resolves. */
-export function listenOnce(lang: Language, onInterim: (text: string) => void): Promise<ListenResult> {
+function listenOnceRaw(lang: Language, onInterim: (text: string) => void): Promise<ListenResult> {
   stopListening();
   stopWake(); // only one recognizer at a time; wake mode resumes when eSiri is idle again
   const Ctor = recognitionCtor();
@@ -162,6 +162,7 @@ export function startWake(lang: Language, onWake: (command: string) => void, onF
   const Ctor = recognitionCtor();
   if (!Ctor) return false;
   stopWake();
+  captionsPauser?.();
   wakeWanted = true;
   wakeFailures = 0;
 
@@ -248,7 +249,7 @@ export function isWakeActive(): boolean {
 // ---------------------------------------------------------------------------
 // Long listening (morning briefing): keep recognising until `silenceMs` of silence after speech.
 
-export function listenLong(
+function listenLongRaw(
   lang: Language,
   onInterim: (text: string) => void,
   opts: { silenceMs?: number; noSpeechMs?: number; maxMs?: number } = {},
@@ -344,4 +345,41 @@ export function listenLong(
     }, 250);
     launch();
   });
+}
+
+// ---------------------------------------------------------------------------
+// Sharing the recogniser with the meeting's live captions (one SpeechRecognition at a time)
+
+let captionsPauser: (() => void) | null = null;
+let nuruListens = 0;
+
+/** captions.ts registers a function that stops captions at once when NURU starts listening. */
+export function setCaptionsPauser(fn: (() => void) | null): void {
+  captionsPauser = fn;
+}
+
+/** True while NURU itself listens (push-to-talk, an answer, the briefing, the wake word). */
+export function nuruIsListening(): boolean {
+  return nuruListens > 0 || wakeWanted;
+}
+
+function claim(p: Promise<ListenResult>): Promise<ListenResult> {
+  captionsPauser?.();
+  nuruListens++;
+  return p.finally(() => {
+    nuruListens--;
+  });
+}
+
+/** Listen for one utterance. Always resolves. */
+export function listenOnce(lang: Language, onInterim: (text: string) => void): Promise<ListenResult> {
+  return claim(listenOnceRaw(lang, onInterim));
+}
+
+export function listenLong(
+  lang: Language,
+  onInterim: (text: string) => void,
+  opts: { silenceMs?: number; noSpeechMs?: number; maxMs?: number } = {},
+): Promise<ListenResult> {
+  return claim(listenLongRaw(lang, onInterim, opts));
 }

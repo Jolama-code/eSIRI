@@ -96,10 +96,10 @@ function MinutesOffer() {
         <div className="rem-kicker">
           <Fa icon={faFileLines} /> KatibuAI · {offer.title}
         </div>
-        <div className="rem-msg">{t('minutes.offer')}</div>
+        <div className="rem-msg">{offer.question ?? t('minutes.offer')}</div>
         <div className="rem-actions">
           <button className="hbtn" onClick={() => answerYesNo(true)} data-testid="minutes-offer-yes">
-            <Fa icon={faCheck} /> {t('minutes.offerYes')}
+            <Fa icon={faCheck} /> {offer.yesLabel ?? t('minutes.offerYes')}
           </button>
           <button className="hbtn ghost" onClick={() => answerYesNo(false)} data-testid="minutes-offer-no">
             <Fa icon={faXmark} /> {t('esiri.no')}

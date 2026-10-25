@@ -349,3 +349,27 @@
 .mt-topbar .mt-top-left { flex: 1 1 0; }
 .mt-topbar .mt-top-center { flex: none; }
 .mt-topbar .mt-top-right { flex: none; justify-content: flex-end; }
+
+/* KatibuAI: level meter + timer in the badge, the sample player, live captions */
+.mt-katibu-meter { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; margin-left: 2px; }
+.mt-katibu-meter i { width: 3px; border-radius: 1px; background: rgba(255, 180, 180, 0.35); }
+.mt-katibu-meter i:nth-child(1) { height: 4px; } .mt-katibu-meter i:nth-child(2) { height: 6px; } .mt-katibu-meter i:nth-child(3) { height: 8px; }
+.mt-katibu-meter i:nth-child(4) { height: 10px; } .mt-katibu-meter i:nth-child(5) { height: 12px; }
+.mt-katibu-meter i.on { background: #ff6b6b; }
+.mt-katibu-timer { color: #ffd2d2; font-variant-numeric: tabular-nums; }
+.mt-katibu-dock { position: absolute; left: 14px; bottom: 14px; z-index: 6; display: flex; flex-direction: column; gap: 8px; width: min(380px, calc(100% - 28px)); pointer-events: none; }
+.mt-katibu-dock > * { pointer-events: auto; }
+.mt-sample { display: flex; align-items: center; gap: 10px; background: rgba(30, 39, 97, 0.92); color: #fff; border-radius: 12px; padding: 10px 12px; box-shadow: 0 6px 18px rgba(16, 24, 40, 0.25); }
+.mt-sample-btn { width: 32px; height: 32px; border-radius: 50%; border: 0; background: #fff; color: #1e2761; display: grid; place-items: center; flex: none; }
+.mt-sample-main { flex: 1; min-width: 0; }
+.mt-sample-title { font-size: 13px; font-weight: 700; }
+.mt-sample-bar { height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.25); margin-top: 6px; overflow: hidden; }
+.mt-sample-bar span { display: block; height: 100%; background: #23b8ee; }
+.mt-sample-time { font-size: 12px; opacity: 0.85; white-space: nowrap; }
+.mt-captions { background: rgba(17, 24, 39, 0.82); color: #fff; border-radius: 12px; padding: 8px 12px 10px; max-height: 150px; display: flex; flex-direction: column; }
+.mt-captions-head { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.85; }
+.mt-captions-paused { text-transform: none; font-weight: 600; color: #fcd34d; letter-spacing: 0; }
+.mt-captions-body { overflow-y: auto; font-size: 14px; line-height: 1.4; margin-top: 4px; }
+.mt-captions-body p { margin: 2px 0; }
+.mt-captions-body p.interim { opacity: 0.65; font-style: italic; }
+.mt-captions-body p.hint { opacity: 0.6; font-size: 13px; }

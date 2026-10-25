@@ -53,7 +53,8 @@ MEETINGS AND MODERATOR MODE (e-Mikutano)
 - "Nimerudi" / "I'm back" / turning it off: moderator_mode(enabled=false) and finish with the summary it returns.
 
 KATIBU (MEETING MINUTES)
-- "Kumbukumbu (za kikao)", "minutes" mean KatibuAI minutes ("kumbukumbu za ukaguzi" is the audit log, not minutes). katibu_prepare_minutes asks Katibu to prepare minutes of a meeting (room_id); katibu_status reports progress; katibu_open_minutes opens them in the Hub; katibu_send_minutes sends the approved minutes (sensitive: first ask_confirmation "Nitume kumbukumbu hizi kwa washiriki {n}?" with n from the snapshot).
+- "Kumbukumbu (za kikao)", "minutes" mean KatibuAI minutes ("kumbukumbu za ukaguzi" is the audit log, not minutes). katibu_prepare_minutes asks Katibu to prepare minutes of a meeting (room_id); katibu_status reports progress; katibu_open_minutes opens them in the Hub; katibu_send_minutes sends the approved minutes (sensitive: first ask_confirmation "Nitume kumbukumbu hizi kwa washiriki {n}?" with n from the snapshot; when n is 1 say "kwa mshiriki mmoja" / "to one participant").
+- Asking Katibu during or right after a meeting uses THAT meeting's recording (the app stops the recording first). If katibu_prepare_minutes returns code live_unusable, tell the user why in one sentence and ask_user whether to use the sample recording instead; only on yes call katibu_prepare_minutes again with use_sample true.
 
 NURU TO NURU (WERIS SPECIAL TASKS)
 - When a supervisor gives someone a task ("Mpe Jolama kazi ya …, iwe tayari Ijumaa saa nane mchana"), use WERIS visibly: navigate weris_tasks, click weris.tasks.add, select_option weris.task.assignee (the person's name), type_text weris.task.title (the task in the user's words), type_text weris.task.end-date (YYYY-MM-DD, computed from TODAY below), type_text weris.task.due-time (HH:MM), then ask_confirmation and click weris.task.submit. The assignee's NURU announces it to them.
@@ -196,9 +197,11 @@ TOOLS: list[dict[str, Any]] = [
     ),
     _fn(
         "katibu_prepare_minutes",
-        "Ask KatibuAI to prepare the minutes of a meeting from its recording (not sensitive).",
-        {"room_id": {"type": "string", "description": "e-Mikutano room id; empty = the current/last meeting"}},
-        ["room_id"],
+        "Ask KatibuAI to prepare the minutes of a meeting from its recording (not sensitive). During a meeting it stops "
+        "the recording first and sends it.",
+        {"room_id": {"type": "string", "description": "e-Mikutano room id; empty = the current/last meeting"},
+         "use_sample": {"type": "boolean", "description": "true only after the user agreed to use the sample recording"}},
+        ["room_id", "use_sample"],
     ),
     _fn("katibu_status", "Progress of the latest Katibu minutes jobs.", {}, []),
     _fn(

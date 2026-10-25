@@ -9,6 +9,7 @@ import { ez } from '../components/esiriProps';
 import { Modal } from '../components/Common';
 import { authFetch } from '../esiri/session';
 import { sendMinutes } from '../esiri/katibuActions';
+import { JourneyPanel } from './Journey';
 import { useHub, type KatibuJobRow, type MinutesContent } from './hubStore';
 import { HubLayout } from './HubLayout';
 import { Card, Empty, Fa, IconShape, Skeleton, dateTime } from './ui';
@@ -241,7 +242,7 @@ export function MinutesDetail() {
     setConfirming(false);
     setSending(true);
     setSendError('');
-    const res = await sendMinutes(job.id, { confirmedSummary: t('minutes.sendConfirm', { n }) });
+    const res = await sendMinutes(job.id, { confirmedSummary: t(n === 1 ? 'minutes.sendConfirmOne' : 'minutes.sendConfirm', { n }) });
     if (!res.ok) setSendError(String(res.error ?? ''));
     setSending(false);
   };
@@ -273,6 +274,10 @@ export function MinutesDetail() {
             )}
             {ready && <MinutesBody m={m} />}
           </Card>
+          <Card i={2} testid="journey-card">
+            <h2 className="t-section" style={{ marginBottom: 12 }}>{t('minutes.journey')}</h2>
+            <JourneyPanel job={job} />
+          </Card>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20, minWidth: 0 }}>
           <Card i={2}>
@@ -302,7 +307,7 @@ export function MinutesDetail() {
               <h2 className="t-section" style={{ marginBottom: 12 }}>{t('minutes.send')}</h2>
               {job.status === 'ready' ? (
                 <>
-                  <p className="t-small" style={{ marginTop: 0 }}>{t('minutes.sendHint', { n })}</p>
+                  <p className="t-small" style={{ marginTop: 0 }}>{t(n === 1 ? 'minutes.sendHintOne' : 'minutes.sendHint', { n })}</p>
                   <button className="hbtn" onClick={() => setConfirming(true)} disabled={sending} data-testid="minutes-send" {...ez('hub.minutes.send', t('minutes.sendButton'))}>
                     <Fa icon={faPaperPlane} /> {sending ? t('minutes.sending') : t('minutes.sendButton')}
                   </button>
@@ -342,7 +347,7 @@ export function MinutesDetail() {
             </>
           }
         >
-          <p>{t('minutes.sendConfirm', { n })}</p>
+          <p>{t(n === 1 ? 'minutes.sendConfirmOne' : 'minutes.sendConfirm', { n })}</p>
         </Modal>
       )}
     </HubLayout>

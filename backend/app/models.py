@@ -179,6 +179,8 @@ class KatibuJob(SQLModel, table=True):
     ready_at: Optional[datetime] = None
     sent_at: Optional[datetime] = None
     recipients: list = _json()
+    # "Safari ya kumbukumbu": what was recorded and sent, upload progress, step timestamps, transcript excerpt.
+    journey: dict = _json({})
 
 
 class AuditRecord(SQLModel, table=True):

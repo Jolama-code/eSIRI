@@ -20,12 +20,15 @@ import re
 import shutil
 import subprocess
 import time
+import uuid
+import wave
+from array import array
 from pathlib import Path
 from typing import Any, Optional
 
 import httpx
 from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, UploadFile
-from fastapi.responses import Response
+from fastapi.responses import FileResponse, JSONResponse, Response
 from pydantic import BaseModel
 from sqlmodel import Session as DBSession
 from sqlmodel import select
@@ -82,6 +85,9 @@ Q_SEND = """mutation Send($uid: UUID!, $langs: [MinutesLanguageChoices], $format
   approveAndSendMinutes(meetingUid: $uid, languages: $langs, formats: $formats, recipientEmails: $rcpt, extraEmails: $extra) {
     status code message dataList { uid email displayName status sentAt error attempts }
   }
+}"""
+Q_TRANSCRIPT = """query Transcript($uid: UUID!) {
+  exportMeetingTranscript(meetingUid: $uid) { status code message data { fileName text } }
 }"""
 Q_DELIVERIES = """query Deliveries($uid: UUID!) {
   getMeetingDeliveries(meetingUid: $uid) {
@@ -186,7 +192,7 @@ class KatibuClient:
         return op
 
     # -- upload flow ---------------------------------------------------------
-    async def upload(self, meeting_uid: str, wav: Path) -> None:
+    async def upload(self, meeting_uid: str, wav: Path, on_chunk: Optional[Any] = None) -> None:
         raw = wav.read_bytes()
         sha = hashlib.sha256(raw).hexdigest()
         r = await self.request("POST", "/api/audio/uploads/", json={
@@ -198,6 +204,8 @@ class KatibuClient:
         upload_uid, size = j["upload_uid"], int(j["chunk_size"])
         count = int(j.get("chunk_count") or math.ceil(len(raw) / size))
         done = set(j.get("received_chunks") or [])
+        if on_chunk:
+            on_chunk(len(done), count)
         for i in range(count):
             if i in done:
                 continue
@@ -206,6 +214,9 @@ class KatibuClient:
                                     headers={"Content-Type": "application/octet-stream"})
             if rc.status_code not in (200, 201) or not _json(rc).get("success"):
                 raise KatibuError(f"Chunk {i} upload failed: {_json(rc).get('message') or rc.status_code}", "Kupakia rekodi kumeshindikana.")
+            done.add(i)
+            if on_chunk:
+                on_chunk(len(done), count)
         rc = await self.request("POST", f"/api/audio/uploads/{upload_uid}/complete", timeout=300)
         jc = _json(rc)
         if rc.status_code not in (200, 201) or not jc.get("success"):
@@ -269,23 +280,59 @@ def sample_wav16k() -> Path:
     return out
 
 
-def prepare_audio(job_id: int, upload: Optional[Path], prefer_sample: bool) -> tuple[Path, str, str]:
-    """Returns (wav path, source 'live'|'sample', note)."""
-    if prefer_sample:
-        return sample_wav16k(), "sample", "setting"
+def check_live(upload: Optional[Path], wav: Path) -> tuple[str, float, float]:
+    """Converts the live recording to 16 kHz WAV. Returns (problem or '', seconds, mean dB)."""
     if upload is None or not upload.exists() or upload.stat().st_size == 0:
-        return sample_wav16k(), "sample", "no_recording"
-    wav = REC_DIR / f"job-{job_id}.wav"
+        return "no_recording", 0.0, -120.0
     try:
         to_wav16k(upload, wav)
     except KatibuError:
-        return sample_wav16k(), "sample", "unreadable"
+        return "unreadable", 0.0, -120.0
     secs = duration_s(wav)
     if secs < MIN_LIVE_SECONDS:
-        return sample_wav16k(), "sample", "too_short"
-    if mean_volume_db(wav) < SILENCE_DB:
-        return sample_wav16k(), "sample", "silent"
-    return wav, "live", ""
+        return "too_short", secs, -120.0
+    db = mean_volume_db(wav)
+    if db < SILENCE_DB:
+        return "silent", secs, db
+    return "", secs, db
+
+
+def prepare_audio(stem: str, upload: Optional[Path], prefer_sample: bool, allow_sample: bool) -> tuple[Optional[Path], str, str, float]:
+    """Returns (wav path or None, source 'live'|'sample', note, live seconds).
+
+    Live mode never falls back to the sample silently: a missing, short, silent or unreadable recording
+    returns (None, 'live', problem, secs) unless the user already agreed to the sample (allow_sample)."""
+    if prefer_sample:
+        return sample_wav16k(), "sample", "setting", 0.0
+    wav = REC_DIR / f"{stem}.wav"
+    problem, secs, _db = check_live(upload, wav)
+    if not problem:
+        return wav, "live", "", secs
+    if allow_sample:
+        return sample_wav16k(), "sample", problem, secs
+    return None, "live", problem, secs
+
+
+def waveform(wav: Path, bars: int = 120) -> list[float]:
+    """Peak level per bar (0..1) of a 16-bit mono WAV, for the journey panel."""
+    try:
+        with wave.open(str(wav), "rb") as w:
+            if w.getsampwidth() != 2:
+                return []
+            data = array("h", w.readframes(w.getnframes()))
+    except (OSError, wave.Error, EOFError):
+        return []
+    if not data:
+        return []
+    step = max(1, len(data) // bars)
+    peaks = [max(max(data[i:i + step]), -min(data[i:i + step])) for i in range(0, step * bars, step) if i < len(data)]
+    top = max(peaks) or 1
+    return [round(p / top, 3) for p in peaks]
+
+
+def recording_info(wav: Path, source: str, note: str) -> dict[str, Any]:
+    return {"source": source, "note": note, "seconds": round(duration_s(wav), 1), "bytes": wav.stat().st_size,
+            "peaks": waveform(wav), "file": wav.name, "at": iso(now_utc())}
 
 
 # ---------------------------------------------------------------------------
@@ -303,7 +350,16 @@ def job_view(j: KatibuJob) -> dict[str, Any]:
         "created_at": iso(j.created_at), "ready_at": iso(j.ready_at), "sent_at": iso(j.sent_at),
         "processing_seconds": int((j.ready_at - j.created_at).total_seconds()) if j.ready_at else None,
         "default_recipients": default_recipients(),
+        "journey": {k: ({kk: vv for kk, vv in v.items() if kk != "file"} if k == "recording" and isinstance(v, dict) else v)
+                    for k, v in (j.journey or {}).items()},
     }
+
+
+def _journey(job: KatibuJob, section: str, **values: Any) -> None:
+    """Merges values into one section of the job's journey (reassigned so SQLAlchemy sees the change)."""
+    jr = dict(job.journey or {})
+    jr[section] = {**(jr.get(section) or {}), **values}
+    job.journey = jr
 
 
 def default_recipients() -> list[str]:
@@ -377,9 +433,20 @@ async def run_job(job_id: int, wav: Path) -> None:
             "scheduledAt": iso(job.created_at), "chairName": owner.display_name if owner else "", "attendeeNames": names,
         }})
         job.katibu_meeting_uid = op["data"]["uid"]
+        _journey(job, "upload", katibu_uid=job.katibu_meeting_uid, started_at=iso(now_utc()), chunks_sent=0, chunks_total=0)
         _save(job)
-        await katibu.upload(job.katibu_meeting_uid, wav)
+        _progress(job)
+
+        def on_chunk(sent: int, total: int) -> None:
+            j = _load(job_id)
+            _journey(j, "upload", chunks_sent=sent, chunks_total=total)
+            _save(j)
+            _progress(j)
+
+        await katibu.upload(job.katibu_meeting_uid, wav, on_chunk)
+        job = _load(job_id)
         job.status, job.progress, job.stage = "processing", 5, "ASSEMBLE_AUDIO"
+        _journey(job, "upload", done_at=iso(now_utc()))
         _save(job)
         _progress(job)
         await poll_job(job.id)  # type: ignore[arg-type]
@@ -412,9 +479,12 @@ async def poll_job(job_id: int) -> None:
         d = op.get("data") or {}
         status, stage, progress = d.get("status"), d.get("stage") or job.stage, int(d.get("progress") or 0)
         if (stage, progress) != last:
-            last = (stage, progress)
             job = _load(job_id)
+            if stage != last[0] and stage not in (job.journey.get("stages_at") or {}):
+                _journey(job, "stages_at", **{stage: iso(now_utc())})
+            last = (stage, progress)
             job.stage, job.progress = stage, max(5, progress)
+            _journey(job, "katibu", stages=d.get("stages") or [], attempts=d.get("attempts"), job_status=d.get("jobStatus"))
             _save(job)
             _progress(job)
         if status in ("READY", "APPROVED"):
@@ -440,6 +510,13 @@ async def _on_ready(job_id: int) -> None:
     job.minutes_sw = (sw.get("data") or {}).get("content") or {}
     job.minutes_en = (en.get("data") or {}).get("content") or {}
     job.documents = await _fetch_docs(job.katibu_meeting_uid)
+    try:
+        tr = await katibu.gql(Q_TRANSCRIPT, {"uid": job.katibu_meeting_uid})
+        text = ((tr.get("data") or {}).get("text") or "").strip()
+        _journey(job, "transcript", excerpt=text[:1500], chars=len(text))
+    except KatibuError as exc:
+        _journey(job, "transcript", error=exc.en)
+    _journey(job, "stages_at", DONE=iso(now_utc()))
     job.status, job.stage, job.progress, job.ready_at = "ready", "DONE", 100, now_utc()
     _save(job)
     with DBSession(engine) as db:
@@ -490,9 +567,27 @@ async def create_job(
     title: str = Form(""),
     scheduled_meeting_id: Optional[int] = Form(None),
     use_sample: bool = Form(False),
+    allow_sample: bool = Form(False),
     audio: Optional[UploadFile] = File(None),
     user: User = Depends(current_user),
-) -> dict[str, Any]:
+) -> Any:
+    prefer_sample = use_sample or user.meeting_audio_source == "sample"
+    stem = f"rec-{uuid.uuid4().hex[:12]}"
+    upload_path: Optional[Path] = None
+    if audio is not None:
+        upload_path = REC_DIR / f"{stem}.upload"
+        with upload_path.open("wb") as fh:
+            while chunk := await audio.read(1024 * 1024):
+                fh.write(chunk)
+    try:
+        wav, source, note, live_secs = await asyncio.to_thread(prepare_audio, stem, upload_path, prefer_sample, allow_sample)
+    except KatibuError as exc:
+        return JSONResponse({"code": "audio_error", "error": exc.en, "error_sw": exc.sw}, status_code=422)
+    if wav is None:
+        # The live recording can't be used: the client asks the user whether to use the sample instead.
+        return JSONResponse({"code": "live_unusable", "reason": note, "seconds": round(live_secs, 1),
+                             "error": f"The live recording can't be used ({note}).", "error_sw": "Rekodi halisi haiwezi kutumika."},
+                            status_code=422)
     with DBSession(engine) as db:
         sm = db.get(ScheduledMeeting, scheduled_meeting_id) if scheduled_meeting_id else None
         if sm is None and room_id:
@@ -503,25 +598,37 @@ async def create_job(
             sm = cands[0] if cands else None
         job = KatibuJob(user_id=user.id, room_id=room_id, title=title or (sm.title if sm else "Kikao cha e-Mikutano"),  # type: ignore[arg-type]
                         scheduled_meeting_id=sm.id if sm else None, created_at=now_utc(), status="uploading")
+        job.audio_source, job.audio_note = source, note
         db.add(job)
         db.commit()
         db.refresh(job)
-        prefer_sample = use_sample or user.meeting_audio_source == "sample"
-    upload_path: Optional[Path] = None
-    if audio is not None:
-        upload_path = REC_DIR / f"job-{job.id}.upload"
-        with upload_path.open("wb") as fh:
-            while chunk := await audio.read(1024 * 1024):
-                fh.write(chunk)
-    try:
-        wav, source, note = await asyncio.to_thread(prepare_audio, job.id, upload_path, prefer_sample)  # type: ignore[arg-type]
-    except KatibuError as exc:
-        _fail(job, exc.en, exc.sw)
-        return job_view(_load(job.id))  # type: ignore[arg-type]
-    job.audio_source, job.audio_note = source, note
+    info = await asyncio.to_thread(recording_info, wav, source, note)
+    if source == "live" and live_secs:
+        info["seconds"] = round(live_secs, 1)
+    _journey(job, "recording", **info)
     _save(job)
     _spawn(run_job(job.id, wav))  # type: ignore[arg-type]
     return job_view(job)
+
+
+@router.get("/sample")
+def sample_audio(user: User = Depends(current_user)) -> FileResponse:
+    """The sample meeting, played aloud in the room in sample mode (the same recording goes to KatibuAI)."""
+    try:
+        return FileResponse(sample_wav16k(), media_type="audio/wav")
+    except KatibuError as exc:
+        raise HTTPException(404, {"code": "not_found", "error": exc.en, "error_sw": exc.sw})
+
+
+@router.get("/jobs/{job_id}/audio")
+def job_audio(job_id: int, db: DBSession = Depends(get_db), user: User = Depends(current_user)) -> FileResponse:
+    """The exact audio file that was sent to KatibuAI (16 kHz mono WAV)."""
+    j = _own_job(db, job_id, user)
+    rec = (j.journey or {}).get("recording") or {}
+    path = sample_wav16k() if rec.get("source") == "sample" else REC_DIR / str(rec.get("file") or "")
+    if not rec or not path.is_file():
+        raise HTTPException(404, {"code": "not_found", "error": "The recording is no longer available.", "error_sw": "Rekodi haipatikani tena."})
+    return FileResponse(path, media_type="audio/wav")
 
 
 @router.get("/jobs")
