@@ -206,8 +206,13 @@ def current_user(token: str = Depends(bearer), db: DBSession = Depends(get_db)) 
     return u
 
 
-def user_from_query(token: str = Query(default=""), db: DBSession = Depends(get_db)) -> User:
-    u = user_for_token(db, token)
+def user_from_query(token: str = Query(default="")) -> User:
+    # Used by the event stream and the 20 s long-poll: a short session of its own, so a long-lived request does
+    # not hold a pooled connection (Depends(get_db) would keep it open until the response ends).
+    with DBSession(engine) as db:
+        u = user_for_token(db, token)
+        if u:
+            db.expunge(u)
     if not u:
         raise HTTPException(status_code=401, detail={"code": "unauthenticated", "error": "Please sign in to NURU."})
     return u
