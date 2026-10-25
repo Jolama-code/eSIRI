@@ -66,3 +66,25 @@ test('no horizontal overflow on any Hub page; screenshots in Swahili and English
     }
   }
 });
+
+test('typing to NURU on a phone: the box grows to about 6 lines, Enter sends, long text wraps', async ({ page }) => {
+  await page.route('**/api/agent/step', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{"code":"test_stub","error":"stub"}' }));
+  await signIn(page, 'jolama', '/hub', 'sw');
+  await page.getByTestId('hub-nav-orb').click();
+  await expect(page.locator('.esiri-panel.open')).toBeVisible();
+  const box = page.getByTestId('esiri-input');
+  const h1 = (await box.boundingBox())!.height;
+  const long = 'Niandikie ripoti yangu ya wiki kwa maneno mazuri kwa kila mradi, '.repeat(6);
+  await box.fill(long);
+  const h = (await box.boundingBox())!.height;
+  expect(h).toBeGreaterThan(h1 + 60);
+  expect(h).toBeLessThanOrEqual(142);
+  await box.press('Enter');
+  await expect(box).toHaveValue('');
+  const bubble = page.locator('.esiri-panel .bubble-user').last();
+  await expect(bubble).toContainText('Niandikie ripoti');
+  const r = (await bubble.boundingBox())!;
+  expect(r.x + r.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+  const over = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(over).toBeLessThanOrEqual(0);
+});

@@ -161,7 +161,7 @@
 
 .pm { display: flex; gap: 8px; align-items: flex-end; }
 .pm-user { justify-content: flex-end; }
-.bubble { max-width: 85%; padding: 9px 12px; border-radius: 14px; font-size: 14px; line-height: 1.45; word-break: break-word; }
+.bubble { max-width: 85%; min-width: 0; padding: 9px 12px; border-radius: 14px; font-size: 14px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; }
 .bubble-user { background: var(--navy); color: #fff; border-bottom-right-radius: 4px; }
 .bubble-user.interim { background: #dfe7f3; color: #3a4a6b; }
 .bubble-mode { display: inline-flex; margin-right: 6px; opacity: 0.75; vertical-align: -1px; }
@@ -215,6 +215,7 @@
 
 .ep-foot {
   display: flex;
+  align-items: flex-end;
   gap: 6px;
   padding: 10px;
   border-top: 1px solid var(--border);
@@ -223,10 +224,19 @@
 .ep-input {
   flex: 1;
   min-width: 0;
+  display: block;
+  box-sizing: border-box;
+  min-height: 38px;
+  max-height: 140px; /* about 6 lines, then it scrolls inside */
   border: 1px solid #d6dbe1;
-  border-radius: 999px;
+  border-radius: 19px;
   padding: 9px 14px;
+  font: inherit;
   font-size: 14px;
+  line-height: 20px;
+  resize: none;
+  overflow-y: hidden;
+  overflow-wrap: anywhere;
 }
 .ep-input:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0, 174, 239, 0.15); }
 .ep-round {

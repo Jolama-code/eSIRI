@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import {
   AlarmClock, AlertTriangle, ArrowRightLeft, FileText, ListChecks, UserCheck, Check, CheckCircle2, ChevronsRight, Globe, Keyboard, Loader2, Mic, MicOff, MousePointerClick,
   Navigation, Radio, RotateCcw, Send, ShieldAlert, Square, ToggleRight, Type, X, XCircle,
@@ -110,13 +110,23 @@ export function Panel() {
   const setWakeMode = useApp((s) => s.setWakeMode);
   const [text, setText] = useState('');
   const listRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
     const el = listRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, interim]);
+
+  // The typing box grows upwards with the text, up to about 6 lines, then scrolls inside.
+  useLayoutEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    const max = parseFloat(getComputedStyle(el).maxHeight) || 140;
+    el.style.height = `${Math.min(el.scrollHeight + 2, max)}px`;
+    el.style.overflowY = el.scrollHeight + 2 > max ? 'auto' : 'hidden';
+  }, [text, open]);
 
   useEffect(() => {
     if (!errorFlash) return;
@@ -135,6 +145,14 @@ export function Panel() {
     if (!v || busy) return;
     setText('');
     void submit(v, 'text');
+  };
+
+  // Enter sends, Shift+Enter makes a new line (not while an IME is composing).
+  const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+      e.preventDefault();
+      send();
+    }
   };
 
   const system = systemFromPath(useLocation().pathname);
@@ -223,12 +241,15 @@ export function Panel() {
       </div>
 
       <form className="ep-foot" onSubmit={send}>
-        <input
+        <textarea
           ref={inputRef}
           className="ep-input"
+          rows={1}
           placeholder={t('esiri.inputPlaceholder')}
           value={text}
           onChange={(e) => setText(e.target.value)}
+          onKeyDown={onKeyDown}
+          enterKeyHint="send"
           data-testid="esiri-input"
           aria-label={t('esiri.inputPlaceholder')}
         />

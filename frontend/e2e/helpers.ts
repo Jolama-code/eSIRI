@@ -81,8 +81,9 @@ export async function store(page: Page): Promise<StoreState> {
 
 export const esiriId = (id: string) => `[data-esiri-id="${id}"]`;
 
-/** Fresh storage (Playwright gives each test a new context), mute mode, signed in on /rooms (English UI). */
+/** Fresh storage (Playwright gives each test a new context), fresh demo data, mute mode, signed in on /rooms (English UI). */
 export async function startSignedIn(page: Page): Promise<void> {
+  await resetDemo(page.request); // no stale reminders from an old test database
   await signIn(page, 'jolama', '/rooms', 'en');
   await expect(page).toHaveURL(/\/rooms(\?|$)/);
   await expect(page.getByTestId('room-card').first()).toBeVisible();
