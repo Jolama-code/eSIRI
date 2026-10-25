@@ -16,7 +16,7 @@ About 15 minutes. Each scene gives the exact sentence to say in Swahili (with th
 
    Password for all demo accounts: `Demo@2026` (demo only).
 4. **Reset the data** on device A: **Ctrl+Shift+D → Rejesha data ya onyesho** → confirm. This re-seeds everything for all users: the meeting "Kikao cha Kamati ya Bajeti" now starts **12 minutes** later (its reminder fires after 7 minutes).
-5. In the demo panel, check **KatibuAI: Imeunganishwa** (connected). For a noisy or quiet hall, set the meeting audio to **Rekodi ya mfano** (sample recording) in the same panel.
+5. In the demo panel, check **KatibuAI: Imeunganishwa** (connected). Then check that KatibuAI is actually *processing*: on 25 October its jobs sat at TRANSCRIBE for hours. Run `npm run test:e2e:katibu` (or prepare minutes once from a short rehearsal meeting) and make sure they come back in about a minute. For a noisy or quiet hall, or if KatibuAI is slow, set the meeting audio to **Rekodi ya mfano** (sample recording) in the same panel: the sample is then **played aloud** in the meeting and the same file goes to KatibuAI.
 6. Turn the volume up on A and B. Language: Swahili (default). Speak close to the laptop microphone.
 
 **The demo panel** opens with **Ctrl+Shift+D** on a laptop, or by **tapping the NURU logo 5 times** on a phone. It is never visible unless opened.
@@ -57,14 +57,22 @@ About 15 minutes. Each scene gives the exact sentence to say in Swahili (with th
 
 ## Scene 4 — Leave the meeting, Katibu prepares and sends the minutes (A)
 
-- Talk for at least 20 seconds about the agenda (or use the sample recording setting from step 5 above).
+- In the meeting, point at the badge **Inarekodiwa kwa KatibuAI**: the level meter moves when you speak and the timer counts. Talk for **at least 30 seconds** about the agenda, close to the laptop microphone. Mute, moderator mode and NURU's own listening do not stop the recording. The **Manukuu ya moja kwa moja** panel shows what is said (it pauses while NURU listens).
+- **Sample mode** (setting from step 5): the player **Inacheza rekodi ya mfano** appears and the hall hears the sample meeting; let it play for a while.
 - Say **"Ondoka kwenye kikao"** (*"Leave the meeting"*) → NURU asks for confirmation → **"Ndiyo"**. Or click the leave button.
 - NURU: *"Mkutano umeisha. Ningependa kumwomba Katibu aandae kumbukumbu. Nianze?"* → **"Ndiyo."**
-- NURU: *"Katibu anaandaa kumbukumbu. Nitakujulisha zikiwa tayari."* Open **Kumbukumbu** in the Hub: the stages and the percentage move live.
-- After about **one minute** (measured: 59 s for the 2-minute sample), NURU announces *"Kumbukumbu za Kikao cha Kamati ya Bajeti ziko tayari. Ungependa kuziona?"* and opens them: badge **Imeandaliwa na KatibuAI**, Swahili/English switch, summary, decisions, action items, PDF/DOCX.
-- Say **"Zitume kwa washiriki"** (*"Send them to the participants"*) → NURU: *"Nitume kumbukumbu hizi kwa washiriki 1?"* → **"Ndiyo."** Or tap **Tuma kwa washiriki** and confirm.
+  - Alternative **during** the meeting: **"Mwombe Katibu aandae kumbukumbu."** NURU stops the recording and sends this meeting's audio (no second offer when you leave).
+  - If the live recording is missing, too short or silent, NURU says so: *"Rekodi halisi ya kikao hiki haiwezi kutumika: … Nitumie rekodi ya mfano badala yake?"* → **"Ndiyo"** (sample) or **"Hapana"** (nothing is sent).
+- NURU: *"Katibu anaandaa kumbukumbu. Nitakujulisha zikiwa tayari."* Open **Kumbukumbu** in the Hub and the meeting: the **Safari ya kumbukumbu** panel shows each step with its time:
+  1. **Rekodi halisi** (or **Rekodi ya mfano** with the reason), duration and size. Press **▶** to let the audience hear exactly what was sent.
+  2. Upload to KatibuAI: chunks sent and the **KatibuAI meeting ID**.
+  3. Transcribing.
+  4. Writing the minutes.
+  5. Done, with an excerpt of **KatibuAI's own transcript** next to the minutes.
+- After about **one minute** (when KatibuAI is healthy), NURU announces *"Kumbukumbu za Kikao cha Kamati ya Bajeti ziko tayari. Ungependa kuziona?"* and opens them: badge **Imeandaliwa na KatibuAI**, Swahili/English switch, summary, decisions, action items, PDF/DOCX.
+- Say **"Zitume kwa washiriki"** (*"Send them to the participants"*) → NURU: *"Nitume kumbukumbu hizi kwa mshiriki mmoja?"* (one recipient) → **"Ndiyo."** Or tap **Tuma kwa washiriki** and confirm.
 - The delivery status per recipient appears; the minutes go by e-mail to `MINUTES_RECIPIENTS` (jolama0001@gmail.com) and land in the GMS inbox of each demo participant (Halima's device announces it).
-- **Fallbacks:** if the recording was short or silent, the Hub honestly shows **Rekodi ya mfano imetumika**. If KatibuAI is down, show minutes from the rehearsal (they stay in the Hub) and explain the flow.
+- **Fallbacks:** if KatibuAI is slow, keep talking about the journey panel (steps 1–2 are real and immediate) and show minutes from the rehearsal (they stay in the Hub).
 
 ## Scene 5 — Reply to Dkt. Halima's e-mail in GMS (A)
 
@@ -94,6 +102,15 @@ About 15 minutes. Each scene gives the exact sentence to say in Swahili (with th
 - Halima's device announces *"Dkt. Halima, Jolama ameanza kazi: …"*
 - **Fallback:** do it by hand in WERIS (Ongeza Kazi Maalum; the status select on the row). The announcements are the same.
 
+## Scene 6b — The weekly report, written by NURU (A, then C)
+
+- On A (jolama), open WERIS → **Reports** → **Individual (Interns) Reports**: "Weekly Report — 2026-W44 (2026-10-26 → 2026-11-01)", six projects with **last week's promise**, the footer "10 items need progress before you can submit."
+- Say (or type) **exactly**: **"Jaza ripoti yangu ya wiki: SGRFasta nimemaliza kuboresha injini ya AI, GoPost bado nahangaika na API ya TikTok, mingine yote inaendelea vizuri."**
+- NURU writes the report **in English** with one call, then the cursor fills card after card (Projects, then Assignments and PDPs), clicks **Done** for SGRFasta and saves the draft. Point at the chips **✦ Imeandaliwa na NURU** (and **· Hakiki** on generic wording).
+- NURU summarises in Swahili and asks **"Niwasilishe ripoti hii?"** → **"Ndiyo."** Status becomes **SUBMITTED**; on C, Dkt. Halima's NURU says **"Jolama amewasilisha ripoti ya wiki 2026-W44."**
+- Alternatives: **"Tujaze ripoti pamoja."** (card by card; answer each question, then **"Mengine yote yaendelee vizuri."**) or **"Niandikie ripoti yangu ya wiki."** (NURU writes everything; generic items are marked **Hakiki**).
+- **Fallback:** say "Hapana" to the submit question (the draft stays), or fill one card by hand and click **Save Draft**.
+
 ## Scene 7 — The activity log (A)
 
 - Open **Shughuli** in the Hub. Every task is listed with its system, the steps NURU took, the confirmations asked and the answers, the outcome and the duration. Expand one row. **Pakua CSV** exports it.
@@ -110,3 +127,5 @@ About 15 minutes. Each scene gives the exact sentence to say in Swahili (with th
 | Phone stopped announcing | Pull to refresh; it reconnects and shows open reminders |
 | Katibu not connected | Start KatibuAI; demo panel shows the connection state |
 | Data in a strange state | Demo panel → **Rejesha data ya onyesho** |
+| KatibuAI slow (stuck at a stage) | Switch to **Rekodi ya mfano** for the next meeting; show the rehearsal minutes and the journey panel |
+| The new version misbehaves | Stop it (Ctrl+C) and run the stable copy: `cd ../eSIRI-demo && ./start.sh` (see `docs/DEMO_FALLBACK.md`) |

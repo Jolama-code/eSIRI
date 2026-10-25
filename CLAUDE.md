@@ -11,7 +11,7 @@ It operates every system visibly with a ghost cursor, asks before consequential 
 
 **Naming:** the user-visible name is **NURU** ("Nuru" when spoken). Internal identifiers keep `esiri` (folder, `data-esiri-*`, CSS classes, `data-testid`s, localStorage keys) — do not rename them. Demo accounts: `jolama` (staff), `halima` (Dkt. Halima Said, supervisor), `baraka` (staff); password `Demo@2026` (demo only). Seed rooms: `jolamas-room-r7k2` ("{display_name}'s Room", token `JLM-7K2Q`) and `kamati-ya-bajeti-k7b2`.
 
-**Full details: `docs/CODEMAP.md` (v2 sections first). Demo: `docs/DEMO_SCRIPT.md`.** Keep both in sync when you change behaviour.
+**Full details: `docs/CODEMAP.md` (v2.1 and v2 sections first). Demo: `docs/DEMO_SCRIPT.md`; rehearsal checklist `docs/FEATURE_CHECKLIST.md`.** Keep them in sync when you change behaviour. The presented v2 is tag `demo-v2-stable` / branch `demo/v2-stable` (never merge into it); a runnable copy lives in `../eSIRI-demo` (`docs/DEMO_FALLBACK.md`). Only one copy can run at a time (same ports).
 
 ## Run and test
 
@@ -25,7 +25,7 @@ cd frontend
 npm run build                   # tsc -b && vite build — must have zero TS errors
 npm run test:e2e:nollm          # everything except @llm and @katibu
 npm run test:e2e:llm            # agent scenarios: agent.spec (8), v2-agent.spec (8), demo.spec
-npm run test:e2e:katibu         # real KatibuAI with the sample recording (sends ONLY to KATIBU_TEST_RECIPIENT)
+npm run test:e2e:katibu         # real KatibuAI: sample recording (sends ONLY to KATIBU_TEST_RECIPIENT) + live fake-microphone meeting
 npx playwright test --project=mobile   # Hub on Pixel 7 (mobile.spec.ts)
 ```
 
@@ -49,7 +49,7 @@ One React app: /hub/* (Hub) · / and /rooms/* (e-Mikutano) · /gms/* · /weris/*
 FastAPI :8010: core.py (DB, auth, broker) · services.py (reminders, scheduler, day) · api_hub/api_mail/api_weris · katibu.py → KatibuAI :8000
 ```
 
-Agent loop: snapshot → tool calls (`click`, `type_text`, `select_option`, `navigate`, `ask_confirmation`, `ask_user`, `set_language`, `moderator_mode`, `schedule_reminder`, `update_task_status`, `katibu_prepare_minutes`, `katibu_status`, `katibu_open_minutes`, `katibu_send_minutes`, `finish`) → frontend executes them → `{tool_results}` + fresh snapshot → until `finish`. Memory is per user + session in RAM (last 12 user turns; only the newest snapshot is sent in full). Swahili clock phrases in a request are converted in code (`llm.time_notes`) and appended to the user message.
+Agent loop: snapshot → tool calls (`click`, `type_text`, `select_option`, `navigate`, `ask_confirmation`, `ask_user`, `set_language`, `moderator_mode`, `schedule_reminder`, `update_task_status`, `weris_report`, `katibu_prepare_minutes`, `katibu_status`, `katibu_open_minutes`, `katibu_send_minutes`, `finish`) → frontend executes them → `{tool_results}` + fresh snapshot → until `finish`. Memory is per user + session in RAM (last 12 user turns; only the newest snapshot is sent in full). Swahili clock phrases in a request are converted in code (`llm.time_notes`) and appended to the user message.
 
 ## Key files
 
@@ -69,16 +69,18 @@ Agent loop: snapshot → tool calls (`click`, `type_text`, `select_option`, `nav
 | `frontend/src/esiri/driver.ts` | `click`, `typeText`, `selectOption`, `navigate`; **the sensitive-click gate** |
 | `frontend/src/esiri/snapshot.ts` | Per-system state (hub/mikutano/gms/weris) + visible elements |
 | `frontend/src/esiri/{session,events,proactive,briefing,moderator,meetingFlow,katibuActions,nuruStore}.ts` | v2 runtime |
+| `frontend/src/esiri/{captions,werisReport}.ts`, `pages/MeetingKatibu.tsx`, `hub/Journey.tsx`, `weris/Report.tsx` | v2.1: live captions, the weekly-report tool, the recording badge/sample player/captions panel, the minutes journey, the WERIS report pages |
 | `frontend/src/esiri/ui/{EsiriRoot,NuruOverlays,Orb,Panel}.tsx` | Floating stack, overlays (reminders, toasts, unlock, briefing, demo panel), the orb |
 | `frontend/src/hub/*`, `gms/*`, `weris/*` | Hub pages, GMS mock, WERIS mock |
 | `frontend/src/i18n/{en,sw,v2en,v2sw}.ts` | All strings; `sw` typed as `Dict` |
 | `frontend/public/{sw.js,manifest.webmanifest,brand,fonts,icons}` | PWA and brand assets |
-| `frontend/e2e/*.spec.ts` | `ui`, `agent` (v1), `v2`, `v2-agent`, `katibu`, `mobile`, `screenshots`, `screenshots-v2`, `demo` |
+| `frontend/e2e/*.spec.ts` | `ui`, `agent` (v1), `v2`, `v2-agent`, `katibu`, `katibu-live`, `katibu-audio`, `typing`, `weris-report`, `weris-report-agent`, `mobile`, `screenshots`, `screenshots-v2`, `demo` |
 
 ## Conventions
 
 - **Every actionable element** gets `{...ez('area.thing[.action]', t('label.key'), opts)}`; ids lower-case, hyphenated, language-independent, embedding real ids (`gms.message.{id}.open`, `weris.task.{id}.status`, `hub.item.{key}.done`). Stateful controls pass `state`. Dialogs use `Modal`; selects are driven with `select_option`.
-- **Sensitive = consequential:** create room; start/join/leave meeting (and `navigate` to `meeting`, `hub.item.*.start`, `hub.meeting.*.open`); start/stop recording; remove access; delete room/recording; clear audit; `gms.compose.send`; `weris.task.submit` **when the assignee is not the user** (attribute set dynamically); `send-minutes.confirm`; tools `katibu_send_minutes` and `moderator_mode(enabled)` (checked in their executors). List new ones in `SYSTEM_PROMPT` and mark ⚠ in `app_map.md`. Never sensitive: drafting, saving drafts, opening pages, own reminders, own task status, preparing minutes, the briefing save (it has its own yes).
+- **Sensitive = consequential:** create room; start/join/leave meeting (and `navigate` to `meeting`, `hub.item.*.start`, `hub.meeting.*.open`); start/stop recording; remove access; delete room/recording; clear audit; `gms.compose.send`; `weris.task.submit` **when the assignee is not the user** (attribute set dynamically); `weris.report.submit` (the weekly report); `send-minutes.confirm`; tools `katibu_send_minutes` and `moderator_mode(enabled)` (checked in their executors). List new ones in `SYSTEM_PROMPT` and mark ⚠ in `app_map.md`. Never sensitive: drafting, saving drafts (including NURU filling the weekly report), opening pages, own reminders, own task status, preparing minutes, the briefing save (it has its own yes).
+- **KatibuAI audio is honest:** live mode never falls back to the sample silently (`live_unusable` → NURU asks); sample mode plays the sample aloud. The weekly report text is always English.
 - **No hard-coded UI text.** v2 strings go in `v2en.ts` + `v2sw.ts` (natural Tanzanian Swahili). User data is never translated.
 - A new page or element must be documented in `app_map.md`; expose data the model needs in `buildSnapshot()` state. Never put passwords or tokens in snapshots.
 - Server events carry `message_sw` and `message_en`; announcements go through `proactive.announce` (a queue that waits for the agent to be idle).

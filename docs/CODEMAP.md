@@ -11,6 +11,34 @@
 > - the snapshot gains `system`, `user` and per-system state;
 > - the agent has 15 tools.
 
+## 0.0 NURU v2.1 (2026-10-25, branch `feature/v2.1`)
+
+The presented v2 is tagged `demo-v2-stable` (branch `demo/v2-stable`, runnable copy in `../eSIRI-demo`, see `docs/DEMO_FALLBACK.md`). v2.1 adds:
+
+- **Typing box** (`esiri/ui/Panel.tsx`, `esiri.css`): a textarea that grows to about 6 lines (max-height 140 px) and then scrolls; Enter sends, Shift+Enter is a new line; bubbles use `white-space: pre-wrap` and `overflow-wrap: anywhere`. Test: `e2e/typing.spec.ts`, plus a phone test in `mobile.spec.ts`.
+- **KatibuAI recording** (`esiri/meetingFlow.ts`):
+  - Live mode: a MediaRecorder on its own microphone stream for the whole meeting (meeting mute, moderator mode and NURU's listening never touch it), with a level meter and a timer (`pages/MeetingKatibu.tsx` `KatibuRecBadge`).
+  - Sample mode (`user.meeting_audio_source === 'sample'`): plays `GET /api/katibu/sample` aloud with a visible player (`SamplePlayer`); the job is created with `use_sample`.
+  - `prepareMinutes` stops a running recorder first (an in-meeting request sends that meeting's audio) and suppresses the second offer on Leave.
+  - `POST /api/katibu/jobs` returns **422 `live_unusable`** (`reason`: no_recording | too_short | silent | unreadable, `seconds`) instead of silently using the sample. The client then asks (offer card with `question`/`yesLabel`) and retries with `allow_sample=true`. The agent tool `katibu_prepare_minutes` gets `use_sample` and the error code.
+- **Live captions** (`esiri/captions.ts`, `CaptionsPanel`): a continuous Web Speech recogniser in the meeting. `stt.ts` `setCaptionsPauser` and `nuruIsListening()` pause it whenever NURU listens (`listenOnce`, `listenLong`, the wake word), because the browser runs one recogniser at a time.
+- **Minutes journey** (`KatibuJob.journey` JSON, `katibu.py`; UI `hub/Journey.tsx` in the minutes detail):
+  - `recording`: {source, note, seconds, bytes, peaks[120], file, at}.
+  - `upload`: {katibu_uid, chunks_sent, chunks_total, started_at, done_at}, via the `on_chunk` callback of `KatibuClient.upload`.
+  - `stages_at`: {STAGE: iso}, `katibu`: {stages, attempts, job_status}.
+  - `transcript`: {excerpt, chars} from `exportMeetingTranscript`.
+  - `GET /api/katibu/jobs/{id}/audio` serves the exact WAV sent. KatibuAI has no web screen for meetings (only the Django admin and the mobile app), so there is no link to it.
+- **Schema:** `core.init_db()` now adds columns that are missing from an existing SQLite database (`_add_missing_columns`).
+- **WERIS individual weekly report**:
+  - `api_weris.py`: `GET/PUT /api/weris/reports/current` (items built from `Project.report_user_ids`, the user's special tasks and PDP entries; promises from the latest submitted report's `items[].plan`; submit validates progress+plan and notifies the supervisor, event `weris_report`).
+  - `POST /api/weris/reports/current/fill`: ONE structured OpenAI call (`FILL_PROMPT`, `FILL_SCHEMA`): English text, `source` user|data|generic, `needs_review`; inputs are the request, the promises and `week_data()` (tasks, PDP, audit log).
+  - UI `weris/Report.tsx` (`WerisReports` landing, `WerisIndividualReport`, store `useReport`, chips from `item.nuru`).
+  - The tool `weris_report` (status | fill) runs in `esiri/werisReport.ts`: navigate, one fill call, visible typing with `typeText(..., {fast:true})`, Save Draft.
+  - `weris.report.submit` is **sensitive**. `controller.ts` refuses `type_text` into `weris.report.*` fields so only the tool writes the report.
+  - Seed: `INTERN_PROJECTS` in `seed.py`.
+  - Tests: `weris-report.spec.ts` (no LLM) and `weris-report-agent.spec.ts` (@llm).
+- **Tests added:** `katibu-audio.spec.ts` (no KatibuAI) and `katibu-live.spec.ts` (@katibu). The latter uses Chrome's fake microphone with a generated Swahili budget meeting from `backend/scripts/make_test_meeting.py`, cached in `e2e/.cache/`. `helpers.startSignedIn` now resets the demo data.
+
 ## 0. NURU v2
 
 ### 0.1 Pieces

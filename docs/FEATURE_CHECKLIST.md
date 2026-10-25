@@ -1,6 +1,6 @@
 # NURU v2 — feature checklist (from the code as built)
 
-Built from the code at commit `30e3ff8` (no code changed). Use it to rehearse: tick each row once you have tried it.
+Built from the code at commit `30e3ff8`, **updated for v2.1** (branch `feature/v2.1`): the growing typing box, the honest KatibuAI recording with the minutes journey, and the WERIS weekly report (new section E). The presented version stays runnable in `../eSIRI-demo` (see `docs/DEMO_FALLBACK.md`). Use it to rehearse: tick each row once you have tried it.
 
 **Test column legend**
 
@@ -11,14 +11,18 @@ Built from the code at commit `30e3ff8` (no code changed). Use it to rehearse: t
 | 🖐 | Implemented in code, but tested only by hand (or not at all) |
 | ⛔ | **NOT SUPPORTED — do not try it on stage** |
 
-**Test files**
-- `v2.spec`: no LLM. 16 tests; all passed in the last full run.
-- `v2-agent.spec`: `@llm`. All 8 passed in an isolated run. In the last full run several failed on OpenAI 504 time-outs. #1 is flaky, and the prompt fix for it has not been re-run.
-- `agent.spec`: v1, `@llm`. 8 tests; all passed.
-- `demo.spec`: `@llm`. It passed after the alias fix, but it can be flaky (about 1 run in 6).
-- `ui.spec`: v1 UI. Passed.
-- `katibu.spec`: `@katibu`, real KatibuAI. Passed, 56–59 s.
-- `mobile.spec`: 4 tests. Passed.
+**Test files** (full run on `feature/v2.1`, 25 October 2026, evening: 73 passed, 2 flaky, 2 failed)
+- `v2.spec`: no LLM. 16 tests; all passed (1 flaky on a server error that is now fixed: the event stream held database connections).
+- `v2-agent.spec`: `@llm`. All 8 passed (#4 flaky on the same server error).
+- `agent.spec`: v1, `@llm`. 8 tests; all passed (the helper now resets the demo data first).
+- `demo.spec`: `@llm`. Passed. It can still be flaky (about 1 run in 6).
+- `ui.spec`, `screenshots*.spec`: passed.
+- `mobile.spec`: 5 tests (new: typing on a phone). Passed.
+- `typing.spec` (new): 4 tests; the growing typing box in the Hub, GMS, WERIS and e-Mikutano. Passed.
+- `katibu-audio.spec` (new): 3 tests; honest audio, sample player, the question after Leave. Passed.
+- `weris-report.spec` (new): 5 tests; no LLM. Passed.
+- `weris-report-agent.spec` (new): `@llm`, 4 tests (A, B, C, confirm). Passed.
+- `katibu.spec` and `katibu-live.spec` (`@katibu`, real KatibuAI): **failed because KatibuAI did not finish within 10 minutes** (its jobs sit at TRANSCRIBE today). Everything up to KatibuAI passed in `katibu-live`: live fake-microphone audio, the meter, the timer, a live job named after the meeting with more than 60 s of audio. Re-run them once KatibuAI is healthy.
 
 **Accounts**
 - `jolama`: staff, supervisor Dkt. Halima.
@@ -54,7 +58,7 @@ Built from the code at commit `30e3ff8` (no code changed). Use it to rehearse: t
 | ☐ | A17 | Form validation by hand | — | Wasilisha with no assignee or no title | any | "Chagua kazi hii ni ya nani." / "Weka jina la kazi." | 🖐 | |
 | ☐ | A18 | Two devices of the same user stay in sync | — | Change a status on A; watch B | jolama · A + B | B's Hub task list refreshes live. | ✅ (task events reach every session) | Through `--share`, phones use long-polling (about 1 s delay). |
 | ☐ | A19 | Task for a person without an account | "Mpe Neema kazi ya …" | | halima | The task is saved in WERIS, but **no one is notified** (Neema has no account). | 🖐 | Don't use Neema/Juma/Zawadi for the live hand-off; use **jolama** or **baraka**. |
-| ☐ | A20 | Weekly report in WERIS | "Andika ripoti ya wiki: nimekamilisha majaribio ya NURU." / "Wasilisha ripoti ya wiki." | "Write my weekly report…" / "Submit it" | any | Opens Reports → Endelea → types the content → Hifadhi / Wasilisha. | 🖐 | **Submitting is not gated** (no confirmation), and it cannot be undone: a second submit is refused with "already submitted". |
+| ☐ | A20 | Weekly report in WERIS | see **section E** | | jolama | The old single text box is replaced by the individual report (Projects / Assignments / PDPs) that NURU fills. | ✅ weris-report.spec, weris-report-agent.spec | **Submitting is now a sensitive action** (`weris.report.submit`, gated in code): NURU asks "Niwasilishe ripoti hii?" first. Human clicks are not gated. |
 | ☐ | A21 | Other WERIS pages | "Fungua miradi" / "Ongeza mradi uitwao …" / "Ongeza ujuzi kwenye PDP …" | Projects: filter, search, export, add; PDP: add an entry; Dashboard | any | They work visibly, by hand or by voice. | ✅ screenshots only; 🖐 by voice | Mock data. Export is CSV only. |
 | ☐ | A22 | Task notifications in the bell | — | Hub → Taarifa | assignee | Stored notifications; **Weka zote zimesomwa** marks them read. | 🖐 | |
 | ☐ | A23 | ⛔ Edit, re-assign or delete a task | — | — | — | **Not supported** in the UI or by voice. | ⛔ | |
@@ -84,18 +88,18 @@ Built from the code at commit `30e3ff8` (no code changed). Use it to rehearse: t
 | ☐ | B14 | Meeting chat by voice | "Waambie wote habari za asubuhi kwenye gumzo." | "Tell everyone good morning in the chat." | in the meeting | Opens chat → types → sends. | ✅ agent.spec #4 | |
 | ☐ | B15 | e-Mikutano recording (Recordings tab) | "Anza kurekodi" / "Acha kurekodi" | "Start recording" / "Stop recording" | in the meeting | Asks to confirm each time; the recording is saved to the room's Recordings tab. | ✅ agent.spec #5 | This mock recording is separate from the KatibuAI audio (B17). Disabled when the room's "Allow recording" setting is off; NURU then says so. |
 | ☐ | B16 | Leave the meeting | "Ondoka kwenye kikao." | "Leave the meeting." / leave button | jolama | Confirm → back on the room page. Moderation ends (audited as "ended by leaving"). The organizer's scheduled meeting is marked ended. | ✅ agent.spec #5 | NURU cannot *navigate* away from a meeting; it must use Leave. |
-| ☐ | B17 | KatibuAI records the meeting automatically | (automatic) | — | the device in the meeting | A red **Inarekodiwa kwa KatibuAI** label. The live mic records from the moment the meeting page opens. | 🖐 | It records the hall, including NURU's voice. If the mic is unavailable, the label is greyed. |
-| ☐ | B18 | Offer of minutes after Leave | "Ndiyo" (to "Ningependa kumwomba Katibu aandae kumbukumbu. Nianze?") | "Yes" / **Ndiyo** on the card | jolama | NURU: "Katibu anaandaa kumbukumbu…"; a toast with a link. | 🖐 the UI flow; ✅ the job creation (katibu.spec via the API) | Offered **only after the Leave button**, not after navigating away. |
+| ☐ | B17 | KatibuAI records the meeting automatically | (automatic) | — | the device in the meeting | A red **Inarekodiwa kwa KatibuAI** label with a **live level meter** and a **recording timer**. The microphone records from the moment the meeting page opens until Leave, on its own stream: the meeting's mute button, moderator mode and NURU's own listening do not stop it. | ✅ katibu-live.spec (fake microphone, meter and timer) when KatibuAI is fast enough | It records the hall, including NURU's voice. If the mic is unavailable, the label is greyed. |
+| ☐ | B18 | Offer of minutes after Leave | "Ndiyo" (to "Ningependa kumwomba Katibu aandae kumbukumbu. Nianze?") | "Yes" / **Ndiyo, ziandae** on the card | jolama | NURU: "Katibu anaandaa kumbukumbu…"; a toast with a link. The minutes carry the meeting's name. | ✅ katibu-live.spec (UI flow, real KatibuAI); ✅ katibu-audio.spec | Not offered again if you already asked Katibu during the meeting (B27). |
 | ☐ | B19 | Decline the minutes | "Hapana" | **Hapana** | jolama | Nothing is sent to Katibu; the audit says Declined. | 🖐 | |
 | ☐ | B20 | Live progress | — | Hub → **Kumbukumbu** | jolama | Stage text and % move live. | ✅ katibu.spec (stages seen) | About **1 minute** for the 2-minute sample (59 s and 56 s measured). |
 | ☐ | B21 | Minutes ready → announced and opened | (automatic) | — | jolama | "Kumbukumbu za … ziko tayari…" The page opens **only if you are on a Hub page or the room page**. Badge "Imeandaliwa na KatibuAI"; summary, decisions, action items. | 🖐 the UI; ✅ ready status (katibu.spec) | If you are elsewhere (e.g. GMS), only the toast and speech appear. |
 | ☐ | B22 | Swahili/English minutes, PDF/DOCX | "Fungua kumbukumbu" | **SW / EN** switch; **PDF / DOCX** downloads | jolama | Language switch; downloads through NURU's backend. | ✅ SW PDF download (katibu.spec); 🖐 the rest | |
-| ☐ | B23 | Send minutes by voice | "Zitume kwa washiriki." | "Send them to the participants." | jolama | "Nitume kumbukumbu hizi kwa washiriki 1?" → "Ndiyo" → per-recipient delivery status (SENT). | ✅ the gate (refused without a yes); ✅ sending via the API; 🖐 by voice | The wording "washiriki 1" sounds odd. **Recipients are fixed** by `MINUTES_RECIPIENTS` (jolama0001@gmail.com) outside test mode; you cannot name recipients. |
+| ☐ | B23 | Send minutes by voice | "Zitume kwa washiriki." | "Send them to the participants." | jolama | "Nitume kumbukumbu hizi kwa mshiriki mmoja?" (one recipient) or "…kwa washiriki 3?" → "Ndiyo" → per-recipient delivery status (SENT). | ✅ the gate (refused without a yes); ✅ sending via the API; 🖐 by voice | Singular/plural fixed in Swahili and English. **Recipients are fixed** by `MINUTES_RECIPIENTS`. |
 | ☐ | B24 | Send minutes by hand | — | **Tuma kwa washiriki** → confirm in the dialog | jolama | Same as B23. | 🖐 | |
 | ☐ | B25 | Minutes land in GMS for the demo participants | (automatic after the send) | — | halima · C, baraka | An inbox message from **KatibuAI** "Kumbukumbu za kikao: …"; Halima's NURU announces it. | ✅ katibu.spec (GMS inbox) | Only participants with accounts (jolama, halima, baraka). |
 | ☐ | B26 | Ask Katibu's progress | "Katibu amefikia wapi?" | "How are the minutes coming along?" | jolama | NURU reads the stage and %. | 🖐 | |
-| ☐ | B27 | Prepare minutes without a meeting just ended | "Mwombe Katibu aandae kumbukumbu za Kikao cha Kamati ya Bajeti." | "Ask Katibu to prepare the minutes of the Budget Committee meeting." | jolama | Starts a job using the last recording of that room, else the sample. | 🖐 | |
-| ☐ | B28 | Honest audio fallback | (automatic) | Demo panel or Settings → **Rekodi ya mfano** | jolama | Uses the sample when this setting is chosen, or when the recording is missing, **shorter than 20 s**, silent or unreadable. The Hub shows "Rekodi ya mfano imetumika" with the reason. | ✅ use_sample (katibu.spec) | |
+| ☐ | B27 | Ask Katibu during or right after the meeting | "Mwombe Katibu aandae kumbukumbu." | "Ask Katibu to prepare the minutes." | jolama, in or just after the meeting | NURU **stops the recording first** and sends **this meeting's** recording; the meeting continues without recording. Leave then does not offer minutes again. | 🖐 (same code as B18) | After a page reload the recording kept in memory is gone: then NURU says the live recording can't be used and asks about the sample (B28). |
+| ☐ | B28 | Honest audio: never a silent fallback | (automatic) | — | jolama | In live mode, if the recording is missing, **shorter than 20 s**, silent or unreadable, NURU says so ("Rekodi halisi ya kikao hiki haiwezi kutumika: … Nitumie rekodi ya mfano badala yake?") and waits: **Ndiyo, tumia ya mfano** or **Hapana** (nothing is sent). | ✅ katibu-audio.spec | The sample is used without asking only when you chose **Rekodi ya mfano** (B39). |
 | ☐ | B29 | KatibuAI down | — | Demo panel shows **KatibuAI** red | — | The job shows Failed; NURU says the minutes could not be prepared. | 🖐 | Time-out after 10 min. A demo reset during a job stops it cleanly (fixed). |
 | ☐ | B30 | Audit log (not minutes) | "Fungua kumbukumbu za ukaguzi." | "Open the audit log." | any | e-Mikutano Audit Log: filters, CSV export, clear (gated). | ✅ demo.spec, ui.spec | "Kumbukumbu za ukaguzi" = audit log; "kumbukumbu (za kikao)" = minutes. |
 | ☐ | B31 | v1 room work by voice | "Tengeneza chumba kiitwacho Kikao cha Bodi." / "Washa kunyamazisha watumiaji wanapojiunga na unipe namba ya mtazamaji." / "Mpe Neema Mwakalinga ruhusa." / "Ongeza ajenda ya kikao kwenye wasilisho." | "Create a room called Board Meeting." / settings + viewer code / share access / add the agenda | jolama | Visible cursor; confirmation for create; codes are read out digit by digit. | ✅ agent.spec #1–3, #6; demo.spec | Duplicate names make NURU ask (only for exact duplicates). |
@@ -105,6 +109,9 @@ Built from the code at commit `30e3ff8` (no code changed). Use it to rehearse: t
 | ☐ | B35 | ⛔ Real audio or video between people / a second device joining the same meeting | — | — | — | **Not supported.** e-Mikutano is a per-browser mock: Halima's "connect me" opens **her own copy** of the room. Rooms created on A do not appear on B. | ⛔ | Never show two devices "in the same meeting". |
 | ☐ | B36 | ⛔ Schedule a new meeting with invitees by voice | — | — | — | **Not supported** (no tool, no UI). Use the demo panel's "meeting in 2 minutes". | ⛔ | |
 | ☐ | B37 | ⛔ Choose minutes recipients, edit minutes, or send them to a named person | — | — | — | **Not supported.** The recipient list is fixed. | ⛔ | |
+| ☐ | B39 | Sample mode plays the sample aloud | — | Demo panel or Settings → **Rekodi ya mfano**, then start the meeting | jolama · A | The meeting shows a player **Inacheza rekodi ya mfano** (▶/⏸, progress) and the room hears the sample meeting; the badge reads **Rekodi ya mfano kwa KatibuAI**. The same file goes to KatibuAI, so the minutes match what the audience heard. | ✅ katibu-audio.spec (player and badge; muted in tests) | Turn the volume up on A. Pausing the player does not change what is sent (always the whole sample). |
+| ☐ | B40 | Safari ya kumbukumbu (the minutes journey) | "Fungua kumbukumbu" | Hub → **Kumbukumbu** → a meeting | jolama | Five steps with times, from real backend data: (1) **Rekodi halisi** or **Rekodi ya mfano** (+ reason), duration, size, waveform and ▶ to hear **exactly** the WAV that was sent; (2) upload: chunks sent/total and the **KatibuAI meeting ID**; (3) transcribing; (4) writing; (5) done, with an excerpt of **KatibuAI's own transcript**. | ✅ katibu-live.spec when KatibuAI finishes | KatibuAI has **no web screen** for meetings (only its Django admin and the mobile app), so there is no "Ona kwenye KatibuAI" link. |
+| ☐ | B41 | Live captions in the meeting | (speak in the room) | — | the device in the meeting | A small panel **Manukuu ya moja kwa moja** shows what is said (Swahili or English, from the UI language). It pauses ("yamesitishwa NURU inaposikiliza") while NURU listens, then resumes. | 🖐 (Web Speech is not available in automated Chromium) | Browser speech recognition (Chrome sends audio to Google). Captions are for the audience only; KatibuAI uses the recording. |
 | ☐ | B38 | ⛔ NURU uploads a file from the laptop to the presentation | — | — | — | **Not supported** (only the three e-Office sample documents). | ⛔ | A human can drag and drop. |
 
 ---
@@ -231,6 +238,35 @@ The conversion was checked once by hand against 24 phrases from the build prompt
 
 ---
 
+## (E) WERIS weekly report, filled by NURU
+
+How it works:
+- **The page:** WERIS → **Reports** → **Individual (Interns) Reports** (`/weris/reports/individual`). The header is this ISO week, computed from today: on **Monday 26 October** it reads **"Weekly Report — 2026-W44 (2026-10-26 → 2026-11-01)"**. Tabs **Projects 0/6 · Assignments 0/2 · PDPs 0/2**.
+- **Items:** Jolama's six projects (SGRFasta, FAKE PRODUCT DETECTOR, GoPost, MuhtasariAI, MtotoCare, Swahili sentiment Analysis Tool), each with **last week's promise** taken from last week's submitted report; his WERIS special tasks; his PDP entries "In Progress"/"Not Started".
+- **NURU fills it with ONE structured model call** (all items at once, as JSON), then the cursor fills the cards tab by tab and clicks **Save Draft**. The report text is **always English**; NURU talks to you in your language. Inputs: your words, each promise, and this week's real data (special tasks, PDP entries, NURU's activity log). It never invents numbers, dates or results that are not in your words or the data.
+- **Chips:** every field NURU wrote shows **✦ Imeandaliwa na NURU**, plus **· Hakiki** when the wording is generic (please review). Editing a field removes its chip.
+- Use account **jolama**; Dkt. Halima (**halima**) receives the submission.
+
+| ✓ | # | Scenario | Swahili (say or type) | English / clicks | Account · device | What happens on screen · what NURU says | Test | Limits / notes |
+|---|---|---|---|---|---|---|---|---|
+| ☐ | E1 | Open the report | "Fungua ripoti yangu ya wiki." | WERIS → Reports → **Individual (Interns) Reports** | jolama · A | The landing shows **Project Reports**, **Individual (Interns) Reports** and the **Security Reports** link ("Not available in this demo"). | ✅ weris-report.spec | Project Reports is not in this demo either. |
+| ☐ | E2 | The form as on the real WERIS | — | — | jolama | Header with the ISO week, **Status: DRAFT**, **← Back**, tabs with done/total counters, the promise box with **Done / Partially Done / Not Done**, "This week's progress *", "Plan for next week *", "Blockers / Risks (optional)", Attachments, sticky footer "10 items need progress before you can submit." | ✅ weris-report.spec | |
+| ☐ | E3 | Validation and live counters by hand | — | type progress and plan in one card | jolama | The card turns **complete**, the tab counter becomes 1/6, the footer "9 items need progress…". **Submit Weekly Report** stays disabled until every item has progress **and** plan. | ✅ weris-report.spec | |
+| ☐ | E4 | Save Draft | — | **Save Draft** | jolama | "Draft saved." Reload: everything is still there. | ✅ weris-report.spec | NURU saves the draft by itself after filling. |
+| ☐ | E5 | **A — one overview for everything** | "Jaza ripoti yangu ya wiki: SGRFasta nimemaliza kuboresha injini ya AI, GoPost bado nahangaika na API ya TikTok, mingine yote inaendelea vizuri." | "Fill my weekly report: SGRFasta I finished improving the AI engine, GoPost I'm still struggling with the TikTok API, everything else is going well." | jolama · A | Steps "Ninaandaa ripoti (kwa Kiingereza)", then "Ninajaza kipengele 1…10" while the cursor fills each card (SGRFasta → **Done**; GoPost's blockers mention the TikTok API). NURU summarises in Swahili and asks **"Niwasilishe ripoti hii?"** | ✅ weris-report-agent A | About 30–60 s in total (one model call plus visible typing). |
+| ☐ | E6 | **B — together, card by card** | "Tujaze ripoti pamoja." → answer each question → "Ruka" (skip) → "Mengine yote yaendelee vizuri." / "Acha" (stop) | "Let's fill the report together." / "skip" / "fill the rest" / "stop" | jolama · A | NURU reads each promise in Swahili ("SGRFasta: wiki iliyopita uliahidi improving the AI engine. Ilienda vipi, na mpango wa wiki ijayo ni upi?"), fills that card from your answer, and moves on. "Mengine yote…" fills every remaining item; "Acha" stops (the draft is saved). | ✅ weris-report-agent B (two items + "mengine yote"); 🖐 "ruka" and "acha" | Each answer is one model step plus one fill call (5–10 s). |
+| ☐ | E7 | **C — "do it for me"** | "Niandikie ripoti yangu ya wiki." | "Write my weekly report for me" / "just write nice words for every project" | jolama · A | Every item is filled: real data where it exists (special tasks, PDP), otherwise modest wording built on last week's promise, marked **· Hakiki**. | ✅ weris-report-agent C (all filled, review chips, no digits in project text) | Generic wording is deliberately non-specific; review before submitting. |
+| ☐ | E8 | One item only | "Jaza GoPost tu: nimeanza kutumia API mpya ya TikTok, wiki ijayo nitaimaliza." | "Fill only GoPost: …" | jolama | Only the GoPost card changes. | 🖐 | |
+| ☐ | E9 | Edit one field | "Badilisha mpango wa MtotoCare uwe kuanza majaribio ya API." | "Change MtotoCare's plan to start testing the API." | jolama | Only MtotoCare's plan changes (in English); the draft is saved. | 🖐 (the fill call was checked directly) | |
+| ☐ | E10 | Chips disappear when you edit | — | edit a field NURU wrote | jolama | That field's **Imeandaliwa na NURU** chip disappears; the others stay. Chips are saved with the draft. | ✅ weris-report.spec | |
+| ☐ | E11 | **Submit by voice (new sensitive action)** | "Ndiyo" to "Niwasilishe ripoti hii?" | "Yes" | jolama · A; halima · C | Status **SUBMITTED**, the form becomes read-only. Halima's device: toast and speech **"Jolama amewasilisha ripoti ya wiki 2026-W44."** and a notification. | ✅ weris-report-agent (confirm); ✅ the code gate (weris-report.spec) | Cannot be undone (demo reset only). |
+| ☐ | E12 | Decline the submit | "Hapana" | "No" | jolama | Nothing is submitted; the saved draft stays (Status DRAFT). | ✅ weris-report-agent A | |
+| ☐ | E13 | Submit by hand | — | **Submit Weekly Report** | jolama | Same as E11; a human click is not gated. | ✅ weris-report.spec | Enabled only when every item is complete. |
+| ☐ | E14 | Demo reset | — | Demo panel → **Rejesha data ya onyesho** | — | This week's report is an empty DRAFT again; last week's promises are back. | ✅ weris-report.spec | |
+| ☐ | E15 | ⛔ Attachments by NURU, Project Reports, Security Reports, supervisor comments/approval, other weeks | — | — | — | **Not supported.** NURU never uploads files (a human can choose a file, but it is not stored). | ⛔ | |
+
+---
+
 ## Hidden or less obvious capabilities
 
 - **Wake word "Nuru"**: Hub → Settings → wake switch. With it on, saying "Nuru, …" starts a command without clicking the orb. Tested by hand only; avoid it in a noisy hall.
@@ -257,6 +293,7 @@ The conversion was checked once by hand against 24 phrases from the build prompt
 1. **LLM steps take 5–15 s each**, and OpenAI 504 time-outs happened in one test window. For B5, the tap (B6) is the safe fallback; every flow also has a by-hand path.
 2. **C1 can stop at the draft** (seen once before the prompt fix). Say "Ituma" if it happens.
 3. **e-Mikutano is per device** (B35). Halima's device cannot see Jolama's meeting.
-4. **Minutes go to `MINUTES_RECIPIENTS`** (a real Gmail address) outside test mode, and the question says "washiriki 1".
+4. **Minutes go to `MINUTES_RECIPIENTS`** (a real Gmail address) outside test mode.
+7. **KatibuAI was very slow on 25 October**: today's jobs sat at TRANSCRIBE / IDENTIFY_SPEAKERS for hours (its Celery workers idle). Check `katibu.spec` or the demo panel's KatibuAI state before the audience arrives; if it is slow, use the sample mode (B39) and show minutes from the rehearsal.
 5. **Phones through `--share`** use long-polling: about 1 s slower, but working. The microphone, speaker and PWA install on a real phone have not been tested.
 6. The `coral` voice has not been auditioned in Swahili.
