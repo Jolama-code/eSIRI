@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<defs>
+ <radialGradient id="orbm" cx="0.42" cy="0.38" r="0.68">
+  <stop offset="0" stop-color="#23b8ee"/>
+  <stop offset="0.55" stop-color="#254e96"/>
+  <stop offset="1" stop-color="#141b45"/>
+ </radialGradient>
+ <radialGradient id="glowm" cx="0.5" cy="0.5" r="0.5">
+  <stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/>
+  <stop offset="0.35" stop-color="#cef1ff" stop-opacity="0.55"/>
+  <stop offset="1" stop-color="#23b8ee" stop-opacity="0"/>
+ </radialGradient>
+ <linearGradient id="rimm" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0" stop-color="#cef1ff"/>
+  <stop offset="1" stop-color="#23b8ee" stop-opacity="0.2"/>
+ </linearGradient>
+</defs>
+<circle cx="256" cy="256" r="240" fill="url(#orbm)"/>
+<circle cx="256" cy="256" r="232.80" fill="none" stroke="url(#rimm)" stroke-width="8.40"/>
+<path d="M112.00,73.60 A230.40,230.40 0 0 1 342.40,44.80" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="12.00" stroke-linecap="round"/>
+<circle cx="256" cy="256" r="148.80" fill="url(#glowm)"/>
+<path d="M256.00,112.00 C275.20,217.60 294.40,236.80 400.00,256.00 C294.40,275.20 275.20,294.40 256.00,400.00 C236.80,294.40 217.60,275.20 112.00,256.00 C217.60,236.80 236.80,217.60 256.00,112.00 Z" fill="#ffffff"/>
+<path d="M361.60,112.00 C366.40,136.00 371.20,140.80 395.20,145.60 C371.20,150.40 366.40,155.20 361.60,179.20 C356.80,155.20 352.00,150.40 328.00,145.60 C352.00,140.80 356.80,136.00 361.60,112.00 Z" fill="#ff6b35"/>
+<path d="M400.00,198.40 A67.20,67.20 0 0 1 400.00,313.60" fill="none" stroke="#cef1ff" stroke-opacity="0.85" stroke-width="12.00" stroke-linecap="round"/>
+<path d="M424.00,160.00 A105.60,105.60 0 0 1 424.00,352.00" fill="none" stroke="#cef1ff" stroke-opacity="0.45" stroke-width="12.00" stroke-linecap="round"/>
+</svg>

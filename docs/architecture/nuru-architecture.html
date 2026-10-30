@@ -1,0 +1,811 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NURU Architecture Map</title>
+<!-- NURU v2 architecture diagram. Every label comes from docs/ARCHITECTURE_FACTS.md. Works offline:
+     fonts and logos are in ./assets, icons are Font Awesome Free solid paths inlined below. -->
+<style>
+@font-face { font-family: Montserrat; font-weight: 600; src: url(assets/fonts/Montserrat-600.woff2) format("woff2"); }
+@font-face { font-family: Montserrat; font-weight: 700; src: url(assets/fonts/Montserrat-700.woff2) format("woff2"); }
+@font-face { font-family: Montserrat; font-weight: 800; src: url(assets/fonts/Montserrat-800.woff2) format("woff2"); }
+@font-face { font-family: Inter; font-weight: 400; src: url(assets/fonts/Inter-400.woff2) format("woff2"); }
+@font-face { font-family: Inter; font-weight: 500; src: url(assets/fonts/Inter-500.woff2) format("woff2"); }
+@font-face { font-family: Inter; font-weight: 600; src: url(assets/fonts/Inter-600.woff2) format("woff2"); }
+@font-face { font-family: Inter; font-weight: 700; src: url(assets/fonts/Inter-700.woff2) format("woff2"); }
+
+:root {
+  /* design-system tokens (reference/nuru-v2/nuru-v2-design/design-system/tokens.json) */
+  --ocean: #0b5b8c; --azure: #3a84b1; --sky: #4aa8c3; --ice: #cef1ff; --mist: #ecf9ff;
+  --navy: #1e2761; --navy-deep: #141b45; --royal: #254e96; --cyan: #23b8ee;
+  --orange: #ff6b35; --orange-ink: #c2410c; --sand: #e8ded6;
+  --frost: #eef3fc; --periwinkle: #cadcfc; --slate: #5b6b8c;
+  --surface: #ffffff; --ink: #000000; --ink-muted: #3b4650;
+  --shadow-card: 0 8px 24px rgba(30,39,97,0.12);
+  --gradient-header: linear-gradient(90deg, #1e2761 0%, #254e96 38%, #1f8fd6 72%, #23b8ee 100%);
+  --gradient-flag: linear-gradient(90deg, #1eb53a 0 25.5%, #fcd116 25.5% 42.5%, #000000 42.5% 59.5%, #fcd116 59.5% 76.5%, #00a3dd 76.5% 100%);
+  --display: Montserrat, "Segoe UI", system-ui, sans-serif;
+  --sans: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: var(--sans); color: var(--navy);
+  background: linear-gradient(180deg, #ffffff 0%, #ecf9ff 100%);
+  display: grid; grid-template-rows: auto auto auto 1fr auto; height: 100vh; overflow: hidden;
+}
+button { font: inherit; cursor: pointer; }
+
+/* header */
+.top { display: flex; align-items: center; gap: 20px; padding: 14px 32px 10px; }
+.top .mark { width: 56px; height: 56px; flex: none; }
+.top .titles { flex: 1; min-width: 0; }
+.eyebrow { font-family: var(--display); font-weight: 700; font-size: 14px; letter-spacing: .14em; color: var(--orange-ink); text-transform: uppercase; }
+h1 { font-family: var(--display); font-weight: 800; font-size: 34px; line-height: 1.05; margin: 2px 0 4px; color: var(--navy); letter-spacing: .01em; }
+.sub { font-size: 17px; color: var(--ink-muted); margin: 0; }
+.top .ega { height: 54px; flex: none; }
+.stripe { height: 6px; background: var(--gradient-flag); }
+
+/* toolbar */
+.bar { display: flex; align-items: center; gap: 16px; padding: 10px 32px; flex-wrap: wrap; }
+.tabs { display: inline-flex; background: var(--frost); border: 1px solid var(--periwinkle); border-radius: 28px; padding: 4px; }
+.tabs button { border: 0; background: none; padding: 8px 22px; border-radius: 24px; font-family: var(--display); font-weight: 700; font-size: 15px; color: var(--navy); }
+.tabs button[aria-selected="true"] { background: var(--navy); color: #fff; }
+.howto { flex: 1; min-width: 300px; font-size: 15px; color: var(--ink-muted); }
+.howto b { color: var(--navy); font-family: var(--display); font-weight: 700; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; margin-right: 8px; }
+.btn { border: 1.5px solid var(--navy); background: #fff; color: var(--navy); border-radius: 22px; padding: 7px 16px; font-weight: 600; font-size: 14px; display: inline-flex; gap: 8px; align-items: center; }
+.btn svg { width: 16px; height: 16px; fill: currentColor; }
+.btn[aria-pressed="true"] { background: var(--navy); color: #fff; }
+.btn:focus-visible, .tabs button:focus-visible, .steps button:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
+
+/* map */
+.stage { position: relative; min-height: 0; padding: 0 16px; }
+#map { width: 100%; height: 100%; display: block; }
+.zone-label { font-family: var(--display); font-weight: 700; font-size: 16px; letter-spacing: .1em; }
+.zone-sub { font-family: var(--sans); font-size: 14px; fill: var(--ink-muted); }
+.node { cursor: pointer; transition: opacity .25s; }
+.node .card { fill: #fff; stroke: var(--periwinkle); stroke-width: 1.5; filter: url(#shadow); }
+.node .name { font-family: var(--display); font-weight: 700; font-size: 17px; fill: var(--navy); }
+.node .desc { font-family: var(--sans); font-size: 14.5px; fill: var(--ink-muted); }
+.node .tbl { font-family: var(--sans); font-size: 14px; fill: var(--navy); }
+.node:hover .card, .node.lit .card { stroke: var(--royal); stroke-width: 2.5; }
+.node.active .card { stroke: var(--cyan); stroke-width: 4; }
+.group .frame { fill: rgba(255,255,255,.45); stroke: var(--azure); stroke-width: 1.5; stroke-dasharray: 6 5; }
+.group .glabel { font-family: var(--display); font-weight: 700; font-size: 14px; letter-spacing: .1em; fill: var(--ocean); }
+.tag rect { stroke: none; }
+.tag text { font-family: var(--display); font-weight: 700; font-size: 13.5px; letter-spacing: .08em; }
+.edge { cursor: pointer; transition: opacity .25s; }
+.edge .line { fill: none; stroke: var(--navy); stroke-width: 2.2; }
+.edge.dashed .line { stroke-dasharray: 9 6; }
+.edge.dotted .line { stroke: var(--ocean); stroke-dasharray: 2 5; stroke-linecap: round; stroke-width: 3; }
+.edge.local .line { stroke: var(--slate); stroke-width: 1.8; }
+.edge .hit { fill: none; stroke: transparent; stroke-width: 18; }
+.edge:hover .line, .edge.lit .line { stroke-width: 3.4; }
+.edge.active .line { stroke: var(--royal); stroke-width: 3.6; }
+.pill { pointer-events: none; transition: opacity .25s; }
+.pill rect { fill: #fff; stroke: var(--periwinkle); stroke-width: 1.2; }
+.pill text { font-family: var(--sans); font-weight: 600; font-size: 14px; fill: var(--navy); }
+.pill.dotted text { fill: var(--ocean); }
+svg.focus .node:not(.lit), svg.focus .edge:not(.lit), svg.focus .pill:not(.lit), svg.focus .group:not(.lit) .frame { opacity: .16; }
+svg.playing .node:not(.active):not(.group), svg.playing .edge:not(.active), svg.playing .pill:not(.active) { opacity: .2; }
+svg.playing .group:not(.active) .frame { opacity: .3; }
+.band-text { font-family: var(--display); font-weight: 700; font-size: 14px; letter-spacing: .12em; fill: var(--slate); }
+
+/* trust & data overlay */
+.trust-only { display: none; }
+svg.trust .trust-only { display: inline; }
+svg.trust .edge.leaves .line { stroke: var(--orange); stroke-width: 3.6; }
+svg.trust .pill.leaves rect { stroke: var(--orange); stroke-width: 2; }
+svg.trust .pill.leaves text { fill: var(--orange-ink); }
+.note rect { fill: #fff7f2; stroke: var(--orange); stroke-width: 1.5; }
+.note .nt { font-family: var(--display); font-weight: 700; font-size: 14px; fill: var(--orange-ink); }
+.note .nb { font-family: var(--sans); font-size: 14px; fill: var(--ink-muted); }
+.shield circle { fill: #fff; stroke: var(--navy); stroke-width: 2; }
+.shield rect { fill: var(--navy); }
+.shield text { font-family: var(--sans); font-weight: 600; font-size: 13.5px; fill: #fff; }
+.packet { fill: var(--orange); filter: url(#glow); pointer-events: none; }
+.gatepulse { fill: none; stroke: var(--orange); stroke-width: 4; }
+
+/* legend */
+.legend { display: flex; flex-wrap: wrap; gap: 8px 26px; align-items: center; padding: 8px 32px 12px; font-size: 14px; color: var(--ink-muted); }
+.legend .it { display: inline-flex; align-items: center; gap: 8px; }
+.legend .sw { width: 22px; height: 16px; border-radius: 4px; border: 1px solid var(--periwinkle); }
+.legend svg { flex: none; }
+.legend .lt { font-family: var(--display); font-weight: 700; font-size: 13px; letter-spacing: .1em; color: var(--navy); }
+.chip { font-family: var(--display); font-weight: 700; font-size: 12px; letter-spacing: .08em; padding: 3px 8px; border-radius: 10px; }
+.chip.test { background: var(--sand); color: var(--navy); }
+.chip.real { background: var(--navy); color: #fff; }
+
+/* animated: controls + caption */
+.player { display: none; grid-template-columns: auto 1fr auto; gap: 18px; align-items: stretch; padding: 8px 32px 14px; }
+body.anim .player { display: grid; }
+body.anim .legend, body.anim .howto, body.anim #trustBtn { display: none; }
+.flowsel { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; align-content: center; }
+.flowsel button { text-align: left; border: 1.5px solid var(--periwinkle); background: #fff; border-radius: 12px; padding: 6px 12px; font-size: 14px; font-weight: 600; color: var(--navy); }
+.flowsel button[aria-pressed="true"] { border-color: var(--navy); background: var(--navy); color: #fff; }
+.caption { background: #fff; border-radius: 16px; box-shadow: var(--shadow-card); padding: 12px 20px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+.caption .cn { font-family: var(--display); font-weight: 700; font-size: 13px; letter-spacing: .12em; color: var(--orange-ink); }
+.caption .cp { font-size: 20px; font-weight: 500; color: var(--navy); margin: 4px 0; line-height: 1.3; }
+.caption .ct { font-size: 15px; color: var(--slate); }
+.caption .ct code { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 14px; color: var(--ocean); }
+.ctrl { display: flex; flex-direction: column; gap: 8px; justify-content: center; }
+.ctrl .row { display: flex; gap: 6px; align-items: center; }
+.ctrl .btn { padding: 6px 12px; }
+.ctrl select { font: inherit; font-size: 14px; border: 1.5px solid var(--navy); border-radius: 18px; padding: 5px 8px; color: var(--navy); background: #fff; }
+.steps { display: flex; flex-wrap: wrap; gap: 5px; max-width: 360px; }
+.steps button { width: 32px; height: 28px; border-radius: 8px; border: 1.5px solid var(--periwinkle); background: #fff; font-family: var(--display); font-weight: 700; font-size: 13px; color: var(--navy); }
+.steps button.done { background: var(--frost); }
+.steps button[aria-current="step"] { background: var(--orange); border-color: var(--orange); color: var(--navy-deep); }
+
+/* side panel */
+.panel { position: fixed; top: 0; right: 0; height: 100vh; width: min(560px, 92vw); background: #fff; box-shadow: -12px 0 40px rgba(20,27,69,.22);
+  transform: translateX(105%); transition: transform .3s ease; z-index: 10; display: flex; flex-direction: column; }
+.panel.open { transform: none; }
+.panel header { background: var(--gradient-header); color: #fff; padding: 20px 24px; display: flex; gap: 14px; align-items: center; }
+.panel header .pi { width: 46px; height: 46px; border-radius: 12px; background: #fff; display: grid; place-items: center; flex: none; }
+.panel header .pi svg, .panel header .pi img { width: 26px; height: 26px; fill: var(--royal); }
+.panel header h2 { font-family: var(--display); font-weight: 700; font-size: 24px; margin: 0; flex: 1; }
+.panel header .kind { font-size: 13px; letter-spacing: .1em; text-transform: uppercase; opacity: .9; font-family: var(--display); font-weight: 600; }
+.panel .x { border: 0; background: rgba(255,255,255,.18); color: #fff; width: 40px; height: 40px; border-radius: 20px; font-size: 24px; line-height: 1; }
+.panel .body { padding: 18px 24px 28px; overflow: auto; }
+.panel .lead { font-size: 18px; color: var(--navy); line-height: 1.4; margin: 0 0 12px; }
+.panel h3 { font-family: var(--display); font-weight: 700; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--orange-ink); margin: 16px 0 6px; }
+.panel p, .panel li { font-size: 15.5px; line-height: 1.45; color: var(--ink-muted); }
+.panel ul { margin: 0; padding-left: 20px; }
+.panel code { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 13.5px; color: var(--ocean); background: var(--mist); padding: 1px 5px; border-radius: 4px; word-break: break-word; }
+.panel .ex { background: var(--frost); border-radius: 10px; padding: 10px 12px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13.5px; color: var(--navy); white-space: pre-wrap; word-break: break-word; }
+.panel .warn { border-left: 4px solid var(--orange); background: #fff7f2; padding: 8px 12px; border-radius: 6px; }
+
+@media (max-width: 1500px) {
+  h1 { font-size: 28px; } .sub { font-size: 15px; } .top .mark { width: 46px; height: 46px; } .top .ega { height: 42px; }
+  .top { padding: 10px 24px 8px; } .bar { padding: 8px 24px; } .howto { font-size: 14px; }
+  .caption .cp { font-size: 17px; } .caption .ct { font-size: 14px; }
+  .player { padding: 6px 24px 10px; gap: 12px; } .flowsel button { padding: 4px 10px; font-size: 13px; }
+  .legend { gap: 6px 18px; padding: 6px 24px 8px; font-size: 13px; }
+}
+@media (prefers-reduced-motion: reduce) { .panel, .node, .edge, .pill { transition: none; } }
+
+@media print {
+  @page { size: A3 landscape; margin: 10mm; }
+  body { display: block; height: auto; overflow: visible; background: #fff; }
+  .bar .tabs, .bar .btn, .player, .panel { display: none !important; }
+  .howto { display: block !important; }
+  .legend { display: flex !important; }
+  .stage { height: auto; padding: 0; }
+  #map { height: auto; }
+  svg.focus .node, svg.focus .edge, svg.focus .pill, svg.playing .node, svg.playing .edge, svg.playing .pill { opacity: 1 !important; }
+  .packet { display: none; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <img class="mark" src="assets/nuru-mark.svg" alt="NURU">
+  <div class="titles">
+    <div class="eyebrow">Architecture · NURU v2 prototype</div>
+    <h1>How NURU Works</h1>
+    <p class="sub">NURU is a personal AI assistant for Tanzanian government officials: it listens in English or Swahili, operates government systems on screen where you can watch, and asks before anything consequential.</p>
+  </div>
+  <img class="ega" src="assets/ega-logo.png" alt="e-Government Authority">
+</header>
+<div class="stripe"></div>
+<div class="bar">
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tabStatic" aria-selected="true">Static</button>
+    <button role="tab" id="tabAnim" aria-selected="false">Animated</button>
+  </div>
+  <div class="howto"><b>How to read this</b>Left to right: what runs on your device, what runs on the NURU backend, and the outside services it calls. Hover to highlight; click any box or arrow for details.</div>
+  <button class="btn" id="trustBtn" aria-pressed="false"><svg viewBox="0 0 512 512"><path id="trustIco"/></svg>Trust &amp; data</button>
+  <button class="btn" id="printBtn"><svg viewBox="0 0 512 512"><path id="printIco"/></svg>Print / Save as PDF</button>
+</div>
+<main class="stage"><svg id="map" viewBox="0 0 1800 770" preserveAspectRatio="xMidYMid meet" role="img" aria-label="NURU architecture map"></svg></main>
+<div>
+  <div class="legend" id="legend"></div>
+  <div class="player">
+    <div class="flowsel" id="flowSel"></div>
+    <div class="caption" aria-live="polite"><div class="cn" id="capN"></div><div class="cp" id="capP"></div><div class="ct" id="capT"></div></div>
+    <div class="ctrl">
+      <div class="row">
+        <button class="btn" id="bBack" title="Back (←)">◀ Back</button>
+        <button class="btn" id="bPlay" title="Play / Pause (space)">▶ Play</button>
+        <button class="btn" id="bNext" title="Next (→)">Next ▶</button>
+        <button class="btn" id="bRestart" title="Restart">↺</button>
+        <select id="speed" aria-label="Speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select>
+      </div>
+      <div class="steps" id="steps"></div>
+    </div>
+  </div>
+</div>
+<aside class="panel" id="panel" aria-hidden="true">
+  <header><div class="pi" id="pIcon"></div><div style="flex:1"><div class="kind" id="pKind"></div><h2 id="pTitle"></h2></div><button class="x" id="pClose" aria-label="Close">×</button></header>
+  <div class="body" id="pBody"></div>
+</aside>
+
+<script>
+// Font Awesome Free 7 solid icons (CC BY 4.0), from @fortawesome/free-solid-svg-icons
+const ICONS = {"laptop":{"w":640,"h":512,"d":"M128 32C92.7 32 64 60.7 64 96l0 240 64 0 0-240 384 0 0 240 64 0 0-240c0-35.3-28.7-64-64-64L128 32zM19.2 384C8.6 384 0 392.6 0 403.2 0 445.6 34.4 480 76.8 480l486.4 0c42.4 0 76.8-34.4 76.8-76.8 0-10.6-8.6-19.2-19.2-19.2L19.2 384z"},"mobile":{"w":384,"h":512,"d":"M16 64C16 28.7 44.7 0 80 0L304 0c35.3 0 64 28.7 64 64l0 384c0 35.3-28.7 64-64 64L80 512c-35.3 0-64-28.7-64-64L16 64zm64 0l0 304 224 0 0-304-224 0zM192 472c17.7 0 32-14.3 32-32s-14.3-32-32-32-32 14.3-32 32 14.3 32 32 32z"},"window":{"w":512,"h":512,"d":"M64 64C28.7 64 0 92.7 0 128L0 384c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-256c0-35.3-28.7-64-64-64L64 64zm24 64l336 0c13.3 0 24 10.7 24 24s-10.7 24-24 24L88 176c-13.3 0-24-10.7-24-24s10.7-24 24-24z"},"robot":{"w":640,"h":512,"d":"M352 0c0-17.7-14.3-32-32-32S288-17.7 288 0l0 64-96 0c-53 0-96 43-96 96l0 224c0 53 43 96 96 96l256 0c53 0 96-43 96-96l0-224c0-53-43-96-96-96l-96 0 0-64zM160 368c0-13.3 10.7-24 24-24l32 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-32 0c-13.3 0-24-10.7-24-24zm120 0c0-13.3 10.7-24 24-24l32 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-32 0c-13.3 0-24-10.7-24-24zm120 0c0-13.3 10.7-24 24-24l32 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-32 0c-13.3 0-24-10.7-24-24zM224 176a48 48 0 1 1 0 96 48 48 0 1 1 0-96zm144 48a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zM64 224c0-17.7-14.3-32-32-32S0 206.3 0 224l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96zm544-32c-17.7 0-32 14.3-32 32l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32z"},"mic":{"w":384,"h":512,"d":"M192 0C139 0 96 43 96 96l0 128c0 53 43 96 96 96s96-43 96-96l0-128c0-53-43-96-96-96zM48 184c0-13.3-10.7-24-24-24S0 170.7 0 184l0 40c0 97.9 73.3 178.7 168 190.5l0 49.5-48 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l144 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-48 0 0-49.5c94.7-11.8 168-92.6 168-190.5l0-40c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 40c0 79.5-64.5 144-144 144S48 303.5 48 224l0-40z"},"vol":{"w":640,"h":512,"d":"M533.6 32.5c-10.3-8.4-25.4-6.8-33.8 3.5s-6.8 25.4 3.5 33.8C557.5 113.8 592 180.8 592 256s-34.5 142.2-88.7 186.3c-10.3 8.4-11.8 23.5-3.5 33.8s23.5 11.8 33.8 3.5C598.5 426.7 640 346.2 640 256S598.5 85.2 533.6 32.5zM473.1 107c-10.3-8.4-25.4-6.8-33.8 3.5s-6.8 25.4 3.5 33.8C475.3 170.7 496 210.9 496 256s-20.7 85.3-53.2 111.8c-10.3 8.4-11.8 23.5-3.5 33.8s23.5 11.8 33.8 3.5c43.2-35.2 70.9-88.9 70.9-149s-27.7-113.8-70.9-149zm-60.5 74.5c-10.3-8.4-25.4-6.8-33.8 3.5s-6.8 25.4 3.5 33.8C393.1 227.6 400 241 400 256s-6.9 28.4-17.7 37.3c-10.3 8.4-11.8 23.5-3.5 33.8s23.5 11.8 33.8 3.5C434.1 312.9 448 286.1 448 256s-13.9-56.9-35.4-74.5zM80 352l48 0 134.1 119.2c6.4 5.7 14.6 8.8 23.1 8.8 19.2 0 34.8-15.6 34.8-34.8l0-378.4c0-19.2-15.6-34.8-34.8-34.8-8.5 0-16.7 3.1-23.1 8.8L128 160 80 160c-26.5 0-48 21.5-48 48l0 96c0 26.5 21.5 48 48 48z"},"rec":{"w":512,"h":512,"d":"M256 512a256 256 0 1 0 0-512 256 256 0 1 0 0 512zm0-352a96 96 0 1 1 0 192 96 96 0 1 1 0-192z"},"cursor":{"w":448,"h":512,"d":"M77.3 2.5c8.1-4.1 17.9-3.2 25.1 2.3l320 239.9c8.3 6.2 11.6 17 8.4 26.8s-12.4 16.4-22.8 16.4l-152.3 0 88.9 177.7c7.9 15.8 1.5 35-14.3 42.9s-35 1.5-42.9-14.3l-88.9-177.7-91.3 121.8c-6.2 8.3-17 11.6-26.8 8.4S64 434.3 64 424L64 24c0-9.1 5.1-17.4 13.3-21.5z"},"broadcast":{"w":576,"h":512,"d":"M87.9 11.5c-11.3-6.9-26.1-3.2-33 8.1-24.8 41-39 89.1-39 140.4s14.2 99.4 39 140.4c6.9 11.3 21.6 15 33 8.1s15-21.6 8.1-33C75.7 241.9 64 202.3 64 160S75.7 78.1 96.1 44.4c6.9-11.3 3.2-26.1-8.1-33zm400.1 0c-11.3 6.9-15 21.6-8.1 33 20.4 33.7 32.1 73.3 32.1 115.6s-11.7 81.9-32.1 115.6c-6.9 11.3-3.2 26.1 8.1 33s26.1 3.2 33-8.1c24.8-41 39-89.1 39-140.4S545.8 60.6 521 19.6c-6.9-11.3-21.6-15-33-8.1zM320 215.4c19.1-11.1 32-31.7 32-55.4 0-35.3-28.7-64-64-64s-64 28.7-64 64c0 23.7 12.9 44.4 32 55.4L256 480c0 17.7 14.3 32 32 32s32-14.3 32-32l0-264.6zM180.2 91c7.2-11.2 3.9-26-7.2-33.2s-26-3.9-33.2 7.2c-17.6 27.4-27.8 60-27.8 95s10.2 67.6 27.8 95c7.2 11.2 22 14.4 33.2 7.2s14.4-22 7.2-33.2c-12.8-19.9-20.2-43.6-20.2-69s7.4-49.1 20.2-69zM436.2 65c-7.2-11.2-22-14.4-33.2-7.2s-14.4 22-7.2 33.2c12.8 19.9 20.2 43.6 20.2 69s-7.4 49.1-20.2 69c-7.2 11.2-3.9 26 7.2 33.2s26 3.9 33.2-7.2c17.6-27.4 27.8-60 27.8-95s-10.2-67.6-27.8-95z"},"server":{"w":448,"h":512,"d":"M64 32C28.7 32 0 60.7 0 96l0 64c0 35.3 28.7 64 64 64l320 0c35.3 0 64-28.7 64-64l0-64c0-35.3-28.7-64-64-64L64 32zm216 72a24 24 0 1 1 0 48 24 24 0 1 1 0-48zm56 24a24 24 0 1 1 48 0 24 24 0 1 1 -48 0zM64 288c-35.3 0-64 28.7-64 64l0 64c0 35.3 28.7 64 64 64l320 0c35.3 0 64-28.7 64-64l0-64c0-35.3-28.7-64-64-64L64 288zm216 72a24 24 0 1 1 0 48 24 24 0 1 1 0-48zm56 24a24 24 0 1 1 48 0 24 24 0 1 1 -48 0z"},"brain":{"w":512,"h":512,"d":"M120 56c0-30.9 25.1-56 56-56l24 0c17.7 0 32 14.3 32 32l0 448c0 17.7-14.3 32-32 32l-32 0c-29.8 0-54.9-20.4-62-48-.7 0-1.3 0-2 0-44.2 0-80-35.8-80-80 0-18 6-34.6 16-48-19.4-14.6-32-37.8-32-64 0-30.9 17.6-57.8 43.2-71.1-7.1-12-11.2-26-11.2-40.9 0-44.2 35.8-80 80-80l0-24zm272 0l0 24c44.2 0 80 35.8 80 80 0 15-4.1 29-11.2 40.9 25.7 13.3 43.2 40.1 43.2 71.1 0 26.2-12.6 49.4-32 64 10 13.4 16 30 16 48 0 44.2-35.8 80-80 80-.7 0-1.3 0-2 0-7.1 27.6-32.2 48-62 48l-32 0c-17.7 0-32-14.3-32-32l0-448c0-17.7 14.3-32 32-32l24 0c30.9 0 56 25.1 56 56z"},"clock":{"w":512,"h":512,"d":"M256 0a256 256 0 1 1 0 512 256 256 0 1 1 0-512zM232 120l0 136c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2 280 120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"},"db":{"w":448,"h":512,"d":"M448 205.8c-14.8 9.8-31.8 17.7-49.5 24-47 16.8-108.7 26.2-174.5 26.2S96.4 246.5 49.5 229.8c-17.6-6.3-34.7-14.2-49.5-24L0 288c0 44.2 100.3 80 224 80s224-35.8 224-80l0-82.2zm0-77.8l0-48C448 35.8 347.7 0 224 0S0 35.8 0 80l0 48c0 44.2 100.3 80 224 80s224-35.8 224-80zM398.5 389.8C351.6 406.5 289.9 416 224 416S96.4 406.5 49.5 389.8c-17.6-6.3-34.7-14.2-49.5-24L0 432c0 44.2 100.3 80 224 80s224-35.8 224-80l0-66.2c-14.8 9.8-31.8 17.7-49.5 24z"},"fileaudio":{"w":384,"h":512,"d":"M0 64C0 28.7 28.7 0 64 0L213.5 0c17 0 33.3 6.7 45.3 18.7L365.3 125.3c12 12 18.7 28.3 18.7 45.3L384 448c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64L0 64zm208-5.5l0 93.5c0 13.3 10.7 24 24 24L325.5 176 208 58.5zm53.8 185.2c-9.1-6.3-21.5-4.1-27.8 5s-4.1 21.5 5 27.8c23.9 16.7 39.4 44.3 39.4 75.5s-15.6 58.9-39.4 75.5c-9.1 6.3-11.3 18.8-5 27.8s18.8 11.3 27.8 5c34.1-23.8 56.6-63.5 56.6-108.3S296 267.5 261.8 243.7zM80 312c-8.8 0-16 7.2-16 16l0 48c0 8.8 7.2 16 16 16l24 0 27.2 34c3 3.8 7.6 6 12.5 6l.3 0c8.8 0 16-7.2 16-16l0-128c0-8.8-7.2-16-16-16l-.3 0c-4.9 0-9.5 2.2-12.5 6l-27.2 34-24 0zm128 72.2c0 10.7 10.5 18.2 18.9 11.6 12.9-10.3 21.1-26.1 21.1-43.8s-8.2-33.5-21.1-43.8c-8.4-6.7-18.9 .9-18.9 11.6l0 64.5z"},"shield":{"w":512,"h":512,"d":"M256 0c4.6 0 9.2 1 13.4 2.9L457.8 82.8c22 9.3 38.4 31 38.3 57.2-.5 99.2-41.3 280.7-213.6 363.2-16.7 8-36.1 8-52.8 0-172.4-82.5-213.1-264-213.6-363.2-.1-26.2 16.3-47.9 38.3-57.2L242.7 2.9C246.9 1 251.4 0 256 0zm0 66.8l0 378.1c138-66.8 175.1-214.8 176-303.4l-176-74.6 0 0z"},"audit":{"w":384,"h":512,"d":"M311.4 32l8.6 0c35.3 0 64 28.7 64 64l0 352c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64L0 96C0 60.7 28.7 32 64 32l8.6 0C83.6 12.9 104.3 0 128 0L256 0c23.7 0 44.4 12.9 55.4 32zM248 112c13.3 0 24-10.7 24-24s-10.7-24-24-24L136 64c-13.3 0-24 10.7-24 24s10.7 24 24 24l112 0zM128 256a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zm32 0c0 13.3 10.7 24 24 24l112 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-112 0c-13.3 0-24 10.7-24 24zm0 128c0 13.3 10.7 24 24 24l112 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-112 0c-13.3 0-24 10.7-24 24zM96 416a32 32 0 1 0 0-64 32 32 0 1 0 0 64z"},"key":{"w":512,"h":512,"d":"M336 352c97.2 0 176-78.8 176-176S433.2 0 336 0 160 78.8 160 176c0 18.7 2.9 36.8 8.3 53.7L7 391c-4.5 4.5-7 10.6-7 17l0 80c0 13.3 10.7 24 24 24l80 0c13.3 0 24-10.7 24-24l0-40 40 0c13.3 0 24-10.7 24-24l0-40 40 0c6.4 0 12.5-2.5 17-7l33.3-33.3c16.9 5.4 35 8.3 53.7 8.3zM376 96a40 40 0 1 1 0 80 40 40 0 1 1 0-80z"},"cloud":{"w":576,"h":512,"d":"M0 336c0 79.5 64.5 144 144 144l304 0c70.7 0 128-57.3 128-128 0-51.6-30.5-96.1-74.5-116.3 6.7-13.1 10.5-28 10.5-43.7 0-53-43-96-96-96-17.7 0-34.2 4.8-48.4 13.1-24.1-45.8-72.2-77.1-127.6-77.1-79.5 0-144 64.5-144 144 0 8 .7 15.9 1.9 23.5-56.9 19.2-97.9 73.1-97.9 136.5z"},"env":{"w":512,"h":512,"d":"M48 64c-26.5 0-48 21.5-48 48 0 15.1 7.1 29.3 19.2 38.4l208 156c17.1 12.8 40.5 12.8 57.6 0l208-156c12.1-9.1 19.2-23.3 19.2-38.4 0-26.5-21.5-48-48-48L48 64zM0 196L0 384c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-188-198.4 148.8c-34.1 25.6-81.1 25.6-115.2 0L0 196z"},"tasks":{"w":512,"h":512,"d":"M133.8 36.3c10.9 7.6 13.5 22.6 5.9 33.4l-56 80c-4.1 5.8-10.5 9.5-17.6 10.1S52 158 47 153L7 113C-2.3 103.6-2.3 88.4 7 79S31.6 69.7 41 79l19.8 19.8 39.6-56.6c7.6-10.9 22.6-13.5 33.4-5.9zm0 160c10.9 7.6 13.5 22.6 5.9 33.4l-56 80c-4.1 5.8-10.5 9.5-17.6 10.1S52 318 47 313L7 273c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l19.8 19.8 39.6-56.6c7.6-10.9 22.6-13.5 33.4-5.9zM224 96c0-17.7 14.3-32 32-32l224 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-224 0c-17.7 0-32-14.3-32-32zm0 160c0-17.7 14.3-32 32-32l224 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-224 0c-17.7 0-32-14.3-32-32zM160 416c0-17.7 14.3-32 32-32l288 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-288 0c-17.7 0-32-14.3-32-32zM64 376a40 40 0 1 1 0 80 40 40 0 1 1 0-80z"},"video":{"w":576,"h":512,"d":"M96 64c-35.3 0-64 28.7-64 64l0 256c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-256c0-35.3-28.7-64-64-64L96 64zM464 336l73.5 58.8c4.2 3.4 9.4 5.2 14.8 5.2 13.1 0 23.7-10.6 23.7-23.7l0-240.6c0-13.1-10.6-23.7-23.7-23.7-5.4 0-10.6 1.8-14.8 5.2L464 176 464 336z"},"minutes":{"w":384,"h":512,"d":"M0 64C0 28.7 28.7 0 64 0L213.5 0c17 0 33.3 6.7 45.3 18.7L365.3 125.3c12 12 18.7 28.3 18.7 45.3L384 448c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64L0 64zm208-5.5l0 93.5c0 13.3 10.7 24 24 24L325.5 176 208 58.5zM120 256c-13.3 0-24 10.7-24 24s10.7 24 24 24l144 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-144 0zm0 96c-13.3 0-24 10.7-24 24s10.7 24 24 24l144 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-144 0z"},"globe":{"w":512,"h":512,"d":"M351.9 280l-190.9 0c2.9 64.5 17.2 123.9 37.5 167.4 11.4 24.5 23.7 41.8 35.1 52.4 11.2 10.5 18.9 12.2 22.9 12.2s11.7-1.7 22.9-12.2c11.4-10.6 23.7-28 35.1-52.4 20.3-43.5 34.6-102.9 37.5-167.4zM160.9 232l190.9 0C349 167.5 334.7 108.1 314.4 64.6 303 40.2 290.7 22.8 279.3 12.2 268.1 1.7 260.4 0 256.4 0s-11.7 1.7-22.9 12.2c-11.4 10.6-23.7 28-35.1 52.4-20.3 43.5-34.6 102.9-37.5 167.4zm-48 0C116.4 146.4 138.5 66.9 170.8 14.7 78.7 47.3 10.9 131.2 1.5 232l111.4 0zM1.5 280c9.4 100.8 77.2 184.7 169.3 217.3-32.3-52.2-54.4-131.7-57.9-217.3L1.5 280zm398.4 0c-3.5 85.6-25.6 165.1-57.9 217.3 92.1-32.7 159.9-116.5 169.3-217.3l-111.4 0zm111.4-48C501.9 131.2 434.1 47.3 342 14.7 374.3 66.9 396.4 146.4 399.9 232l111.4 0z"},"network":{"w":576,"h":512,"d":"M248 88l80 0 0 48-80 0 0-48zm-8-56c-26.5 0-48 21.5-48 48l0 64c0 26.5 21.5 48 48 48l16 0 0 32-224 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0 0 32-16 0c-26.5 0-48 21.5-48 48l0 64c0 26.5 21.5 48 48 48l96 0c26.5 0 48-21.5 48-48l0-64c0-26.5-21.5-48-48-48l-16 0 0-32 192 0 0 32-16 0c-26.5 0-48 21.5-48 48l0 64c0 26.5 21.5 48 48 48l96 0c26.5 0 48-21.5 48-48l0-64c0-26.5-21.5-48-48-48l-16 0 0-32 96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-224 0 0-32 16 0c26.5 0 48-21.5 48-48l0-64c0-26.5-21.5-48-48-48l-96 0zM448 376l8 0 0 48-80 0 0-48 72 0zm-256 0l8 0 0 48-80 0 0-48 72 0z"},"print":{"w":512,"h":512,"d":"M64 64C64 28.7 92.7 0 128 0L341.5 0c17 0 33.3 6.7 45.3 18.7l42.5 42.5c12 12 18.7 28.3 18.7 45.3l0 37.5-384 0 0-80zM0 256c0-35.3 28.7-64 64-64l384 0c35.3 0 64 28.7 64 64l0 96c0 17.7-14.3 32-32 32l-32 0 0 64c0 35.3-28.7 64-64 64l-256 0c-35.3 0-64-28.7-64-64l0-64-32 0c-17.7 0-32-14.3-32-32l0-96zM128 416l0 32 256 0 0-96-256 0 0 64zM456 272a24 24 0 1 0 -48 0 24 24 0 1 0 48 0z"}};
+const NS = 'http://www.w3.org/2000/svg';
+
+// ---------------------------------------------------------------------------
+// The map. Coordinates are in the 1800 × 770 viewBox.
+
+const ZONES = [
+  { id: 'device', x: 12, w: 576, fill: '#eef3fc', color: '#254e96', icon: ['laptop', 'mobile'], label: 'YOUR DEVICE (BROWSER)', sub: 'laptop or phone · Google Chrome' },
+  { id: 'backend', x: 712, w: 624, fill: '#ecf9ff', color: '#0b5b8c', icon: ['server'], label: 'NURU BACKEND', sub: 'on the laptop · port 8010' },
+  { id: 'external', x: 1344, w: 444, fill: '#f6f2ee', color: '#1e2761', icon: ['cloud'], label: 'EXTERNAL SERVICES', sub: 'over the internet' },
+];
+
+const NODES = {
+  assistant: { x: 32, y: 108, w: 528, h: 192, icon: 'nuru', name: 'NURU assistant',
+    lines: ['Listens and speaks in English or Swahili, reads the screen,', 'clicks and types where you can watch, and asks before', 'anything consequential. Runs in every page of the app.'] },
+  screens: { group: true, x: 28, y: 346, w: 542, h: 262, name: 'SCREENS NURU OPERATES', children: ['hub', 'gms', 'weris', 'mikutano'] },
+  hub: { x: 38, y: 380, w: 251, h: 102, icon: 'window', name: 'NURU Hub', lines: ['Your day, tasks, meetings', 'and minutes'], parent: 'screens' },
+  gms: { x: 309, y: 380, w: 251, h: 102, icon: 'env', name: 'GMS', lines: ['Government e-mail'], tag: 'test', parent: 'screens' },
+  weris: { x: 38, y: 494, w: 251, h: 102, icon: 'tasks', name: 'WERIS', lines: ['Tasks, projects and', 'weekly reports'], tag: 'test', parent: 'screens' },
+  mikutano: { x: 309, y: 494, w: 251, h: 102, icon: 'video', name: 'e-Mikutano', lines: ['Video meeting rooms'], tag: 'test', parent: 'screens' },
+  recorder: { x: 309, y: 628, w: 251, h: 100, icon: 'rec', name: 'Meeting recorder', lines: ['Records the meeting', 'for the minutes'] },
+  agent: { x: 740, y: 108, w: 240, h: 108, icon: 'robot', name: 'Agent service', lines: ['Asks the AI for the next', 'step; makes NURU\'s voice'] },
+  events: { x: 740, y: 232, w: 240, h: 108, icon: 'broadcast', name: 'Event hub', lines: ['Pushes news to every', 'device you are signed in on'] },
+  app: { x: 740, y: 384, w: 240, h: 108, icon: 'server', name: 'App services', lines: ['Sign-in and the data of', 'Hub, GMS and WERIS'] },
+  link: { x: 740, y: 612, w: 240, h: 140, icon: 'fileaudio', name: 'KatibuAI link', lines: ['Converts the recording,', 'sends it to KatibuAI and', 'follows its progress'] },
+  scheduler: { x: 1092, y: 232, w: 226, h: 108, icon: 'clock', name: 'Scheduler', lines: ['Fires due reminders', 'every 10 seconds'] },
+  db: { db: true, x: 1092, y: 430, w: 226, h: 184, icon: 'db', name: 'Database', lines: ['SQLite file on the laptop'],
+    tables: [['User', 'Session'], ['Task', 'Reminder'], ['MailMessage', 'KatibuJob'], ['AuditRecord']] },
+  google: { x: 1368, y: 58, w: 400, h: 104, icon: 'brain', name: 'Google speech', lines: ['Chrome\'s speech recognition turns', 'your voice into text'], tag: 'ai' },
+  openai: { x: 1368, y: 174, w: 400, h: 156, icon: 'brain', name: 'OpenAI', lines: ['AI model: chooses NURU\'s next step,', 'drafts the day plan and the weekly', 'report, and makes the spoken voice'], tag: 'ai' },
+  katibu: { x: 1368, y: 612, w: 400, h: 140, icon: 'minutes', name: 'KatibuAI', lines: ['Transcribes the meeting and writes', 'the minutes in Swahili and English,', 'then e-mails them'], tag: 'real' },
+};
+
+// style: solid = request/response, dashed = server push, dotted = external AI service, local = inside the page
+const EDGES = {
+  step: { from: 'assistant', to: 'agent', d: 'M560 140 H740', style: 'solid', label: 'REST · agent step', lx: 650, ly: 140 },
+  tts: { from: 'agent', to: 'assistant', d: 'M740 180 H560', style: 'solid', label: 'TTS audio · MP3', lx: 650, ly: 180 },
+  sse: { from: 'events', to: 'assistant', d: 'M740 286 H560', style: 'dashed', label: 'SSE push · events', lx: 650, ly: 286 },
+  drive: { from: 'assistant', to: 'screens', d: 'M300 300 V346', style: 'local', label: 'Reads · clicks · types', lx: 300, ly: 323 },
+  rest: { from: 'screens', to: 'app', d: 'M570 440 H740', style: 'solid', label: 'REST\nread & save', lx: 640, ly: 440 },
+  upload: { from: 'recorder', to: 'link', d: 'M560 678 H740', style: 'solid', label: 'Audio upload\nmultipart', lx: 648, ly: 678 },
+  progress: { from: 'link', to: 'events', d: 'M740 636 H724 V318 H740', style: 'solid', label: 'Progress events', lx: 724, ly: 362 },
+  notify: { from: 'app', to: 'events', d: 'M860 384 V340', style: 'solid', label: 'Notify', lx: 860, ly: 362 },
+  minutes: { from: 'app', to: 'link', d: 'M860 492 V612', style: 'solid', label: 'Send · download', lx: 860, ly: 552 },
+  sched: { from: 'scheduler', to: 'events', d: 'M1092 286 H980', style: 'solid', label: 'Due reminders\nevery 10 s', lx: 1036, ly: 286 },
+  sql: { from: 'app', to: 'db', d: 'M980 456 H1092', style: 'solid', label: 'SQL\nread & write', lx: 1036, ly: 456 },
+  jobs: { from: 'link', to: 'db', d: 'M980 630 H1205 V614', style: 'solid', label: 'Jobs · GMS copies', lx: 1080, ly: 630 },
+  google: { from: 'assistant', to: 'google', d: 'M500 108 V84 H1368', style: 'dotted', label: 'Speech audio → text', lx: 1180, ly: 84, leaves: true },
+  ai: { from: 'agent', to: 'openai', d: 'M980 190 H1368', style: 'dotted', label: 'Tool calls · TTS', lx: 1180, ly: 190, leaves: true },
+  aiapp: { from: 'app', to: 'openai', d: 'M980 410 H1520 V330', style: 'dotted', label: 'Briefing · report draft', lx: 1200, ly: 410, leaves: true },
+  kauth: { from: 'link', to: 'katibu', d: 'M980 662 H1368', style: 'dotted', label: 'OAuth2 + GraphQL', lx: 1250, ly: 662, leaves: true },
+  kupload: { from: 'link', to: 'katibu', d: 'M980 696 H1368', style: 'dotted', label: 'Chunked audio upload', lx: 1250, ly: 696, leaves: true },
+  kpoll: { from: 'link', to: 'katibu', d: 'M980 730 H1368', style: 'dotted', label: 'Poll status · 3 s', lx: 1250, ly: 730, leaves: true },
+};
+
+// Trust & data overlay: safeguards (shield badges) and notes on what leaves the machine.
+const SHIELDS = [
+  { x: 548, y: 300, label: 'Confirmation gate', side: 'left' },
+  { x: 44, y: 108, label: 'Audit log', side: 'right' },
+  { x: 1306, y: 440, label: 'Audit log', side: 'left' },
+  { x: 968, y: 108, label: 'Bearer session', side: 'right' },
+  { x: 968, y: 384, label: 'Bearer session', side: 'right' },
+  { x: 968, y: 500, label: 'E-mail domain block', side: 'right' },
+];
+const NOTES = [
+  { x: 1368, y: 428, w: 400, title: 'To Google (via Chrome)', body: ['Microphone audio while NURU listens', 'or captions run (Chrome behaviour).'] },
+  { x: 1368, y: 498, w: 400, title: 'To OpenAI', body: ['Your request, the screen snapshot, your name', 'and e-mail, spoken replies, plan and report text.'] },
+  { x: 38, y: 616, w: 251, title: 'To KatibuAI (by the backend)', body: ['Meeting audio, title,', 'attendee names and', 'recipient e-mails.'] },
+  { x: 38, y: 700, w: 251, title: 'Phones via tunnel', body: ['All traffic goes through', 'Cloudflare (HTTPS).'] },
+];
+
+// ---------------------------------------------------------------------------
+// Detail panels (plain words first, technical second). Facts: docs/ARCHITECTURE_FACTS.md
+
+const NODE_INFO = {
+  assistant: { kind: 'Your device', lead: 'NURU itself, in the browser. It hears your request, looks at the screen, asks the backend what to do, then does it on screen with a visible cursor and speaks the result.',
+    parts: ['Speech in: Web Speech API, <code>sw-TZ</code> or <code>en-US</code>; optional wake word “Nuru”', 'Screen snapshot: page, state and every visible element with a <code>data-esiri-id</code>; excludes password fields, the NURU panel, hidden elements and anything behind an open dialog', 'Agent driver: runs <code>click</code>, <code>type_text</code>, <code>select_option</code>, <code>navigate</code>', 'Ghost cursor: an on-screen pointer with a highlight ring and click ripple', '<b>Confirmation gate</b>: sensitive clicks are refused unless you said yes (credits) — enforced here in the browser only', 'Speech out: plays MP3 from the backend; browser voice as fallback', 'Live-event client and announcement queue', 'Audit: one record per task (browser storage + server)'],
+    tech: 'React + TypeScript, zustand stores, installable PWA. Browser storage: <code>nuru-token</code>, <code>nuru-user</code>, <code>emikutano-store</code> (rooms, recordings, up to 500 audit records).',
+    api: ['<code>POST /api/agent/step</code>', '<code>POST /api/tts</code>', '<code>GET /api/events</code> (SSE)', '<code>POST /api/audit</code>'], tables: ['AuditRecord (via the API)'],
+    files: ['frontend/src/esiri/controller.ts', 'driver.ts', 'snapshot.ts', 'cursor.ts', 'stt.ts', 'tts.ts', 'events.ts', 'proactive.ts'] },
+  screens: { kind: 'Your device', lead: 'The four systems NURU operates. One sign-in covers all of them. NURU Hub is NURU\'s own app; e-Mikutano, GMS and WERIS are test copies with fictional people (@mfano.go.tz).',
+    parts: ['NURU Hub — <code>/hub</code>', 'GMS — <code>/gms</code>', 'WERIS — <code>/weris</code>', 'e-Mikutano — <code>/</code>, <code>/rooms</code>'], tech: 'One React app with routes per system; every actionable element carries a stable id for the agent.',
+    api: ['<code>/api/day</code>, <code>/api/tasks</code>, <code>/api/mail</code>, <code>/api/weris</code>'], tables: [], files: ['frontend/src/App.tsx', 'frontend/src/hub/*', 'gms/*', 'weris/*', 'pages/*'] },
+  hub: { kind: 'Your device · NURU app', lead: 'Your personal dashboard: today\'s plan, tasks, meetings, minutes from KatibuAI, notifications, activity (the audit log) and settings.',
+    parts: ['Today (the day view and the morning briefing)', 'Tasks, Meetings, Minutes (the minutes journey)', 'Notifications, Activity, Systems, Settings'], tech: 'React pages under <code>/hub</code>.',
+    api: ['<code>GET /api/day</code>', '<code>POST /api/briefing/parse</code>', '<code>GET /api/katibu/jobs</code>', '<code>GET /api/audit</code>'], tables: ['ScheduleItem', 'ScheduledMeeting', 'Task', 'KatibuJob', 'Notification'], files: ['frontend/src/hub/*'] },
+  gms: { kind: 'Your device · test copy', lead: 'A test copy of the Government Mailing System. Mail is delivered only between demo users; addresses outside @mfano.go.tz are refused.',
+    parts: ['Inbox, Sent, Drafts, Compose'], tech: 'React pages under <code>/gms</code>.', api: ['<code>GET /api/mail</code>', '<code>POST /api/mail/drafts</code>', '<code>POST /api/mail/send</code>'], tables: ['MailMessage'], files: ['frontend/src/gms/Gms.tsx', 'backend/app/api_mail.py'] },
+  weris: { kind: 'Your device · test copy', lead: 'A test copy of WERIS: projects, personal development plans, special tasks between supervisors and staff, and the individual weekly report.',
+    parts: ['Dashboard, Projects, PDP', 'Special tasks (assigning to someone else is sensitive)', 'Individual weekly report (submit is sensitive)'], tech: 'React pages under <code>/weris</code>.',
+    api: ['<code>POST /api/tasks</code>', '<code>PATCH /api/tasks/{id}</code>', '<code>GET/PUT /api/weris/reports/current</code>'], tables: ['Task', 'Project', 'PdpEntry', 'WeeklyReport'], files: ['frontend/src/weris/*', 'backend/app/api_weris.py'] },
+  mikutano: { kind: 'Your device · test copy', lead: 'A test copy of e-Mikutano video meetings: rooms, the meeting screen, recordings and its own audit page. Rooms and recordings are kept in the browser.',
+    parts: ['Rooms, room page, meeting screen', 'Moderator mode (a simulated waiting room)', 'Live captions (Web Speech)'], tech: 'React pages; rooms in <code>localStorage</code> (<code>emikutano-store</code>); scheduled meetings on the server.',
+    api: ['<code>GET /api/meetings</code>', '<code>PATCH /api/meetings/{id}</code>'], tables: ['ScheduledMeeting'], files: ['frontend/src/pages/*', 'esiri/moderator.ts', 'esiri/captions.ts'] },
+  recorder: { kind: 'Your device', lead: 'Records the meeting from the microphone so KatibuAI can write the minutes. In sample mode it plays a sample meeting aloud instead, and says so.',
+    parts: ['MediaRecorder on its own microphone stream (Opus in WebM)', 'Level meter and timer', 'Upload when the meeting ends'], tech: 'MediaRecorder API; <code>multipart/form-data</code> upload.',
+    api: ['<code>POST /api/katibu/jobs</code>', '<code>GET /api/katibu/sample</code>'], tables: ['KatibuJob'], files: ['frontend/src/esiri/meetingFlow.ts', 'pages/MeetingKatibu.tsx'] },
+  agent: { kind: 'NURU backend', lead: 'Turns your request and the current screen into the next actions, by asking the AI model. It also turns NURU\'s replies into speech.',
+    parts: ['System prompt + the app map (every page and element id; sensitive ones marked)', 'Memory per user and session in RAM: last 12 requests; only the newest snapshot sent in full', 'Swahili clock phrases converted in code (“saa nane mchana” = 14:00)', '17 tools: click, type_text, select_option, navigate, ask_confirmation, ask_user, set_language, moderator_mode, schedule_reminder, update_task_status, weris_report, katibu_prepare_minutes, katibu_status, katibu_open_minutes, katibu_send_minutes, finish', 'Speech: OpenAI TTS with one fixed voice, cached in memory'],
+    tech: 'FastAPI; OpenAI Chat Completions with function tools, model <code>gpt-4.1-mini</code>, temperature 0.2; TTS <code>gpt-4o-mini-tts</code>, voice coral.',
+    api: ['<code>POST /api/agent/step</code>', '<code>POST /api/agent/reset</code>', '<code>POST /api/tts</code>'], tables: ['— (memory is in RAM)'], files: ['backend/app/main.py', 'agent.py', 'app_map.md', 'llm.py', 'tts.py'] },
+  events: { kind: 'NURU backend', lead: 'The backend\'s loudspeaker. When something happens for you — a new task, a reminder, minutes ready — it pushes the news at once to every device where you are signed in.',
+    parts: ['One queue per connected device; an event for a user goes to all of that user\'s devices', 'History of the last 200 events per user for long-polling phones', 'Event types: reminder, task_assigned, task_updated, mail_received, katibu_progress, katibu_ready, katibu_sent, katibu_failed, katibu_delivery, weris_report, day_updated, briefing_prompt, demo_reset', 'Each event carries <code>message_sw</code> and <code>message_en</code>'],
+    tech: 'Server-Sent Events (<code>text/event-stream</code>) with a long-poll fallback (waits up to 20 s) for tunnels that buffer streams. In memory: lost on restart; clients refetch.',
+    api: ['<code>GET /api/events?token=…</code>', '<code>GET /api/events/poll?after=…</code>'], tables: ['Notification'], files: ['backend/app/core.py (Broker)', 'services.py (notify, push)', 'frontend/src/esiri/events.ts'] },
+  app: { kind: 'NURU backend', lead: 'The everyday API: signs you in and stores your day, tasks, mail and reports. It also makes two single AI calls: planning your day from what you said, and drafting the weekly report.',
+    parts: ['Sign-in: bcrypt passwords, Bearer session tokens (7 days)', 'Day, briefing, meetings, tasks, reminders, notifications, audit', 'GMS mail (only @mfano.go.tz addresses)', 'WERIS projects, PDP, weekly report', 'Briefing parser: one AI call with a strict schema; times converted in code', 'Weekly report fill: one AI call returns the whole report (English)'],
+    tech: 'FastAPI REST + JSON, SQLModel on SQLite.',
+    api: ['<code>POST /api/auth/login</code>', '<code>GET /api/day</code>', '<code>POST /api/briefing/parse</code>', '<code>POST /api/tasks</code>', '<code>POST /api/mail/send</code>', '<code>POST /api/weris/reports/current/fill</code>', '<code>POST /api/audit</code>'],
+    tables: ['User', 'Session', 'ScheduleItem', 'Task', 'MailMessage', 'WeeklyReport', 'AuditRecord'], files: ['backend/app/api_hub.py', 'api_mail.py', 'api_weris.py', 'core.py'] },
+  link: { kind: 'NURU backend', lead: 'NURU\'s connection to the real KatibuAI. It prepares the recording, hands it over, watches the progress and brings the minutes back.',
+    parts: ['ffmpeg: converts to 16 kHz mono WAV; checks length (≥ 20 s) and loudness', 'Honest audio: a live recording that is missing, short or silent is refused (<code>live_unusable</code>) and NURU asks before using the sample', 'KatibuAI client: OAuth2 password grant + refresh, GraphQL (success code 9001), chunked upload', 'Polls status every 3 s, up to 10 minutes; resumes after a restart', 'On send: copies the minutes into participants\' GMS inboxes'],
+    tech: 'Python asyncio background tasks, httpx, ffmpeg/ffprobe.',
+    api: ['<code>POST /api/katibu/jobs</code> (multipart)', '<code>GET /api/katibu/jobs/{id}</code>', '<code>POST /api/katibu/jobs/{id}/send</code>', '<code>GET /api/katibu/jobs/{id}/documents/{lang}/{fmt}</code> (proxy download)'], tables: ['KatibuJob', 'MailMessage', 'Notification'], files: ['backend/app/katibu.py'] },
+  scheduler: { kind: 'NURU backend', lead: 'A clock inside the backend. Every 10 seconds it looks for reminders that are due and fires each one exactly once.',
+    parts: ['Meetings: the user\'s lead time before start', 'Tasks: 30 minutes before due', 'Day items: the user\'s lead time'], tech: 'An asyncio loop started with the app.', api: ['— (no route; fires <code>reminder</code> events)', 'demo: <code>POST /api/demo/fire-next-reminder</code>'],
+    tables: ['Reminder', 'ScheduledMeeting', 'Task', 'ScheduleItem'], files: ['backend/app/services.py (scheduler_loop)'] },
+  db: { kind: 'NURU backend', lead: 'One SQLite file on the laptop holds everything the backend keeps: people, sessions, the day, tasks, mail, reports, minutes jobs and the audit log.',
+    parts: ['13 tables: User, Session, ScheduledMeeting, ScheduleItem, Reminder, Task, Notification, MailMessage, Project, PdpEntry, WeeklyReport, KatibuJob, AuditRecord', 'Times stored as UTC, shown in Africa/Dar_es_Salaam'], tech: 'SQLite via SQLModel / SQLAlchemy; file <code>backend/data/nuru.db</code>.',
+    api: ['— (used by the backend only)'], tables: ['all of the above'], files: ['backend/app/models.py', 'core.py', 'seed.py'] },
+  google: { kind: 'External · AI service', lead: 'Speech recognition built into Google Chrome. NURU uses the browser\'s Web Speech API; Chrome sends the audio to Google\'s service and returns text.',
+    parts: ['Languages: Swahili (<code>sw-TZ</code>) and English (<code>en-US</code>)', 'Used for requests, spoken answers, the wake word and live captions'], tech: 'Web Speech API (<code>webkitSpeechRecognition</code>).',
+    api: ['— (a browser API; no NURU endpoint)'], tables: [], files: ['frontend/src/esiri/stt.ts', 'captions.ts'], warn: 'That the audio goes to Google\'s servers is Chrome\'s documented behaviour; it is not visible in NURU\'s code (unverified).' },
+  openai: { kind: 'External · AI service', lead: 'The AI model NURU thinks with. Only the NURU backend talks to it; the API key never reaches the browser.',
+    parts: ['Agent steps: <code>gpt-4.1-mini</code> with function tools', 'Speech: <code>gpt-4o-mini-tts</code> (fallback <code>tts-1</code>)', 'Briefing parse and weekly-report fill: the same chat model with a strict JSON schema'], tech: 'OpenAI API over HTTPS (OpenAI Python SDK).',
+    api: ['<code>chat.completions.create</code>', '<code>audio.speech.create</code>'], tables: [], files: ['backend/app/llm.py', 'main.py', 'tts.py', 'api_hub.py', 'api_weris.py'] },
+  katibu: { kind: 'External · real system', lead: 'The real KatibuAI meeting-minutes system. NURU uses only its public HTTP API: it uploads the recording, waits, then reads and sends the minutes.',
+    parts: ['As described in KatibuAI\'s own docs: Django with GraphQL and REST on port 8000', 'Celery workers run the pipeline: transcribe, identify speakers, write minutes, translate, render', 'PostgreSQL stores the data; Redis is the queue and cache', 'Google Gemini by default (OpenAI, then Groq as fallbacks)', 'Word and PDF documents; e-mail through SMTP'],
+    tech: 'Separate service (<code>KATIBU_BASE_URL</code>, default localhost:8000). Not modified by NURU.',
+    api: ['<code>POST /oauth2/access_token</code>', '<code>POST /graphql</code>', '<code>POST /api/audio/uploads/</code>'], tables: [], files: ['backend/app/katibu.py', '../KATIBU-AI/INTEGRATION_GUIDE.md'] },
+};
+
+const EDGE_INFO = {
+  step: { dir: 'NURU assistant → Agent service, and the answer back', type: 'REST (JSON over HTTP), Bearer session', sends: '{ session_id, language: "sw",\n  user_message: "Jibu barua ya Dkt. Halima",\n  snapshot: { system, page, state, elements } }\n— or { tool_results, snapshot } on the next round', back: '{ tool_calls: [ { name: "click",\n  arguments: { element_id: "gms.message.12.open" } } ],\n  text: "" }', ep: 'POST /api/agent/step' },
+  tts: { dir: 'NURU assistant asks; Agent service returns the audio', type: 'REST, binary response (audio/mpeg)', sends: '{ text: "Barua imetumwa.", lang: "sw" }', back: 'MP3 audio (cached on the server)', ep: 'POST /api/tts' },
+  sse: { dir: 'Event hub → NURU assistant on every signed-in device', type: 'Server push: Server-Sent Events; long-poll fallback', sends: 'Nothing after connecting (token in the query string)', back: 'event: task_assigned\ndata: { message_sw: "Jolama, umepewa kazi mpya…",\n  message_en, link: "/hub/tasks", announce: true }', ep: 'GET /api/events?token=…  ·  GET /api/events/poll?after=…' },
+  drive: { dir: 'NURU assistant → the screens (inside the page)', type: 'In-page actions, no network', sends: 'click "gms.read.reply"\ntype_text "gms.compose.body" "Habari Dkt. Halima, …"', back: '{ ok: true } — or { ok: false,\n  code: "confirmation_required" } for a sensitive click without your yes', ep: 'none — frontend/src/esiri/driver.ts' },
+  rest: { dir: 'The screens → App services, and back', type: 'REST (JSON), Bearer session', sends: '{ to: ["halima@mfano.go.tz"],\n  subject: "Re: Bajeti", body: "Habari Dkt. Halima, …" }', back: '{ ok: true, message: {…}, delivered_to: [2] }', ep: 'POST /api/mail/send' },
+  upload: { dir: 'Meeting recorder → KatibuAI link', type: 'Multipart upload (multipart/form-data), Bearer session', sends: 'audio = meeting.webm (Opus), room_id, title', back: 'the new job { id, status: "uploading", … }\n— or 422 { code: "live_unusable", reason: "too_short" }', ep: 'POST /api/katibu/jobs' },
+  progress: { dir: 'KatibuAI link → Event hub (inside the backend)', type: 'In-process call', sends: 'push(user, "katibu_progress", { job: { stage: "TRANSCRIBE", progress: 40 } })', back: '—', ep: 'katibu.py → services.push / notify' },
+  notify: { dir: 'App services → Event hub (inside the backend)', type: 'In-process call; also stores a Notification row', sends: 'notify(Jolama, "task_assigned",\n  message_sw, message_en, link: "/hub/tasks")', back: '—', ep: 'services.notify' },
+  minutes: { dir: 'Requests about minutes, from the screens, handled by the KatibuAI link\'s routes', type: 'REST in the same backend; downloads are proxied from KatibuAI', sends: 'POST …/send { recipients: null }', back: 'the job with deliveries; or a PDF/DOCX file', ep: 'POST /api/katibu/jobs/{id}/send  ·  GET /api/katibu/jobs/{id}/documents/sw/pdf' },
+  sched: { dir: 'Scheduler → Event hub', type: 'In-process call, every 10 s', sends: 'notify(user, "reminder", message_sw: "Jolama, una Kikao cha Kamati ya Bajeti baada ya dakika 5. Niuanzishe kwa niaba yako?")', back: '—', ep: 'services.scheduler_loop → fire_reminder' },
+  sql: { dir: 'App services ↔ Database', type: 'SQL through SQLModel / SQLAlchemy', sends: 'INSERT Task (title, assigned_to, due_at …)', back: 'rows', ep: 'tables Task, Reminder, MailMessage, WeeklyReport, AuditRecord …' },
+  jobs: { dir: 'KatibuAI link → Database', type: 'SQL', sends: 'KatibuJob status, minutes (SW + EN), deliveries;\nMailMessage copies for participants', back: 'rows', ep: 'tables KatibuJob, MailMessage' },
+  google: { dir: 'NURU assistant → Google (inside Chrome)', type: 'External AI service: Web Speech API', sends: 'Microphone audio while NURU listens', back: 'Text, e.g. "Nuru, jibu barua ya Dkt. Halima"', ep: 'none in NURU code (browser API)', warn: 'Leaves the machine. Destination is Chrome\'s behaviour, unverified in NURU code.' },
+  ai: { dir: 'Agent service → OpenAI', type: 'External AI service over HTTPS', sends: 'System prompt + app map, your name and e-mail,\nthe last 12 requests and the newest snapshot;\nfor speech: the sentence to say', back: 'Tool calls, e.g. type_text("gms.compose.body", …);\nMP3 audio', ep: 'chat.completions.create (gpt-4.1-mini)  ·  audio.speech.create (gpt-4o-mini-tts)', warn: 'Leaves the machine: request text and screen content (visible labels and field values).' },
+  aiapp: { dir: 'App services → OpenAI', type: 'External AI service over HTTPS, strict JSON schema', sends: 'Briefing: what you said about your day.\nWeekly report: the items, last week\'s promises\nand this week\'s tasks, PDP and NURU activity', back: 'Timetable items; report items { outcome, progress, plan, blockers, needs_review }', ep: 'POST /api/briefing/parse  ·  POST /api/weris/reports/current/fill', warn: 'Leaves the machine: your spoken plan and work data.' },
+  kauth: { dir: 'KatibuAI link → KatibuAI', type: 'OAuth2 password grant, then GraphQL with a Bearer token', sends: 'mutation createMeeting(input: { title, meetingType: UNSTRUCTURED,\n  source: UPLOAD, spokenLanguage: MIXED, chairName, attendeeNames })', back: '{ code: 9001, data: { uid, status, title } }', ep: 'POST /oauth2/access_token  ·  POST /graphql', warn: 'Leaves the machine: meeting title, chair and attendee names; later the recipient e-mails.' },
+  kupload: { dir: 'KatibuAI link → KatibuAI', type: 'Chunked REST upload', sends: 'POST /api/audio/uploads/ { meeting_uid, total_bytes, sha256 }\nPUT …/chunks/0, 1, 2 …  then POST …/complete', back: '{ success: true, upload_uid, chunk_size }', ep: 'POST /api/audio/uploads/', warn: 'Leaves the machine: the meeting recording (16 kHz WAV).' },
+  kpoll: { dir: 'KatibuAI link → KatibuAI, every 3 s for up to 10 minutes', type: 'GraphQL query', sends: 'getProcessingStatus(meetingUid)', back: '{ status: "PROCESSING", stage: "WRITE_MINUTES", progress: 70 }\nthen getMeetingMinutes(SW), getMeetingMinutes(EN)', ep: 'POST /graphql', warn: 'Leaves the machine: only the meeting id.' },
+};
+
+// ---------------------------------------------------------------------------
+// Walkthroughs. path = [[edge, +1 forward | -1 back], …]; nodes = boxes lit in this step.
+
+const FLOWS = {
+  B: { name: 'B · One agent step', steps: [
+    { nodes: ['assistant', 'google'], path: [['google', 1], ['google', -1]], p: 'You say “Nuru, jibu barua ya Dkt. Halima”. Chrome\'s speech recognition turns it into text.', t: 'Web Speech API · <code>sw-TZ</code> / <code>en-US</code>' },
+    { nodes: ['assistant', 'screens', 'gms'], path: [['drive', -1]], p: 'NURU reads the screen: which page is open and which buttons and fields are visible.', t: '<code>buildSnapshot()</code> · elements with <code>data-esiri-id</code>, password fields excluded' },
+    { nodes: ['assistant', 'agent'], path: [['step', 1]], p: 'NURU sends your request and the screen to the Agent service.', t: 'REST · <code>POST /api/agent/step</code> {user_message, snapshot}' },
+    { nodes: ['agent', 'openai'], path: [['ai', 1]], p: 'The Agent service asks the AI model what to do next.', t: 'OpenAI Chat Completions · <code>gpt-4.1-mini</code> · 17 tools · last 12 requests' },
+    { nodes: ['openai', 'agent', 'assistant'], path: [['ai', -1], ['step', -1]], p: 'The model answers with actions: open the e-mail, press Reply, type the answer.', t: '<code>{tool_calls: [click, click, type_text]}</code>' },
+    { nodes: ['assistant', 'screens', 'gms'], path: [['drive', 1]], p: 'The ghost cursor clicks and types in GMS, so you can watch every move.', t: '<code>driver.ts</code> · <code>click("gms.read.reply")</code> · <code>type_text("gms.compose.body", …)</code>' },
+    { nodes: ['assistant'], gate: true, p: 'Sending is consequential, so NURU asks: “Nitume barua hii?” Without your yes, the Send click is refused.', t: '<code>ask_confirmation</code> → credits · <code>driver.ts</code> refuses sensitive clicks (enforced in the browser)' },
+    { nodes: ['screens', 'gms', 'app', 'db'], path: [['rest', 1], ['sql', 1]], p: 'You say yes. The e-mail is sent in GMS and stored.', t: 'REST · <code>POST /api/mail/send</code> · only <code>@mfano.go.tz</code> · table <code>MailMessage</code>' },
+    { nodes: ['assistant', 'app', 'db'], path: [['rest', 1], ['sql', 1]], p: 'NURU writes one audit record for the whole task.', t: '<code>POST /api/audit</code> → <code>AuditRecord</code> · copy in browser storage' },
+    { nodes: ['assistant', 'agent', 'openai'], path: [['step', 1], ['ai', 1], ['ai', -1], ['step', -1]], p: 'NURU sends the results and a fresh snapshot; the loop repeats until the AI says the task is finished.', t: '<code>{tool_results}</code> + snapshot → … → <code>finish</code>' },
+    { nodes: ['assistant', 'agent', 'openai'], path: [['ai', 1], ['ai', -1], ['tts', 1]], p: 'NURU speaks the result: “Barua imetumwa kwa Dkt. Halima.”', t: 'REST · <code>POST /api/tts</code> → OpenAI <code>gpt-4o-mini-tts</code> → MP3' },
+  ] },
+  C: { name: 'C · NURU to NURU and reminders', steps: [
+    { nodes: ['screens', 'weris'], p: 'On Dkt. Halima\'s laptop, her NURU fills the WERIS task form for Jolama and, after her yes, submits it.', t: '<code>weris.task.submit</code> · sensitive when the assignee is someone else' },
+    { nodes: ['screens', 'weris', 'app'], path: [['rest', 1]], p: 'The task goes to App services.', t: 'REST · <code>POST /api/tasks</code>' },
+    { nodes: ['app', 'db'], path: [['sql', 1]], p: 'The task is saved, with a reminder 30 minutes before it is due.', t: 'tables <code>Task</code>, <code>Reminder</code>' },
+    { nodes: ['app', 'events'], path: [['notify', 1]], p: 'App services creates a “new task” event for Jolama.', t: '<code>notify()</code> → <code>Notification</code> row + event <code>task_assigned</code>' },
+    { nodes: ['events', 'assistant'], path: [['sse', 1]], p: 'The Event hub pushes it at once to every device where Jolama is signed in: laptop and phone.', t: 'SSE · <code>GET /api/events</code> · phones on the tunnel: <code>/api/events/poll</code>' },
+    { nodes: ['assistant', 'agent'], path: [['tts', 1]], p: 'Each of Jolama\'s devices says it aloud: “Jolama, umepewa kazi mpya na Dkt. Halima…”', t: '<code>proactive.announce</code> → <code>POST /api/tts</code>' },
+    { nodes: ['scheduler', 'events', 'db'], path: [['sched', 1]], p: 'In parallel, the Scheduler checks every 10 seconds for reminders that are due.', t: '<code>scheduler_loop</code> · 10 s · table <code>Reminder</code>' },
+    { nodes: ['events', 'assistant'], path: [['sse', 1]], p: 'A due reminder is pushed the same way and spoken: “…Niuanzishe kwa niaba yako?”', t: 'event <code>reminder</code> · <code>message_sw</code> / <code>message_en</code>' },
+  ] },
+  D: { name: 'D · The KatibuAI pipeline', steps: [
+    { nodes: ['recorder', 'mikutano', 'screens'], p: 'During the meeting, the Meeting recorder records the microphone.', t: 'MediaRecorder · Opus in WebM · its own microphone stream' },
+    { nodes: ['recorder', 'link'], path: [['upload', 1]], p: 'When the meeting ends, the recording is uploaded to the KatibuAI link.', t: 'Multipart · <code>POST /api/katibu/jobs</code>' },
+    { nodes: ['link'], p: 'The audio is converted and checked. A missing, too-short or silent recording is never swapped for the sample without asking you.', t: 'ffmpeg → 16 kHz mono WAV · ≥ 20 s · <code>live_unusable</code>' },
+    { nodes: ['link', 'katibu'], path: [['kauth', 1], ['kauth', -1]], p: 'NURU signs in to KatibuAI and creates the meeting.', t: 'OAuth2 password grant · GraphQL <code>createMeeting</code>' },
+    { nodes: ['link', 'katibu'], path: [['kupload', 1]], p: 'The recording is sent in chunks.', t: 'REST · <code>POST /api/audio/uploads/</code> → <code>PUT …/chunks/{i}</code> → <code>…/complete</code>' },
+    { nodes: ['katibu'], p: 'KatibuAI\'s workers transcribe, identify speakers and write the minutes.', t: 'Celery pipeline · Gemini by default (KatibuAI docs)' },
+    { nodes: ['link', 'katibu'], path: [['kpoll', 1], ['kpoll', -1]], p: 'NURU asks for the status every 3 seconds, for up to 10 minutes.', t: 'GraphQL <code>getProcessingStatus</code>' },
+    { nodes: ['link', 'events', 'assistant'], path: [['progress', 1], ['sse', 1]], p: 'Each change becomes a progress event; the Hub\'s minutes journey moves on.', t: 'event <code>katibu_progress</code> · SSE' },
+    { nodes: ['link', 'katibu', 'db'], path: [['kpoll', 1], ['kpoll', -1], ['jobs', 1]], p: 'When ready, the minutes are fetched in Swahili and English and saved.', t: 'GraphQL <code>getMeetingMinutes(SW, EN)</code>, <code>getMeetingDocuments</code> · table <code>KatibuJob</code>' },
+    { nodes: ['link', 'events', 'assistant'], path: [['progress', 1], ['sse', 1]], p: 'NURU says: “Kumbukumbu ziko tayari. Ungependa kuziona?”', t: 'event <code>katibu_ready</code>' },
+    { nodes: ['assistant'], gate: true, p: 'Sending is consequential: NURU asks “Nitume kumbukumbu hizi kwa washiriki?” and waits for your yes.', t: '<code>katibu_send_minutes</code> · credits checked in its executor' },
+    { nodes: ['screens', 'app', 'link', 'katibu'], path: [['rest', 1], ['minutes', 1], ['kauth', 1]], p: 'KatibuAI approves the minutes and e-mails the PDFs to the recipients.', t: '<code>POST /api/katibu/jobs/{id}/send</code> → GraphQL <code>approveAndSendMinutes</code>(SW, EN, PDF)' },
+    { nodes: ['link', 'db'], path: [['jobs', 1]], p: 'A copy also goes into each participant\'s GMS inbox.', t: '<code>MailMessage</code> from <code>katibu@mfano.go.tz</code>' },
+    { nodes: ['link', 'events', 'assistant'], path: [['progress', 1], ['sse', 1]], p: 'The participants\' NURU announce the new e-mail.', t: 'event <code>mail_received</code> · owner gets <code>katibu_sent</code>' },
+  ] },
+  E: { name: 'E · The weekly report fill', steps: [
+    { nodes: ['assistant', 'agent', 'openai'], path: [['step', 1], ['ai', 1], ['ai', -1], ['step', -1]], p: 'You say “Jaza ripoti yangu ya wiki…”. The AI chooses the weekly-report tool.', t: 'agent step → <code>weris_report(action: fill, scope: all)</code>' },
+    { nodes: ['assistant', 'screens', 'weris'], path: [['drive', 1]], p: 'NURU opens the WERIS report form on screen.', t: '<code>navigate("weris_report")</code>' },
+    { nodes: ['screens', 'weris', 'app', 'openai'], path: [['rest', 1], ['aiapp', 1]], p: 'One request asks the AI to draft every item at once.', t: 'REST · <code>POST /api/weris/reports/current/fill</code>' },
+    { nodes: ['openai', 'app', 'screens', 'weris'], path: [['aiapp', -1], ['rest', -1]], p: 'The AI returns the whole report, in English, as structured data. Nothing is saved yet.', t: 'strict JSON schema <code>weekly_report</code> · outcome, progress, plan, blockers' },
+    { nodes: ['assistant', 'screens', 'weris'], path: [['drive', 1]], p: 'The ghost cursor types each card and saves the draft.', t: '<code>type_text("weris.report.{key}.progress", …)</code> · <code>PUT /api/weris/reports/current</code>' },
+    { nodes: ['assistant'], gate: true, p: 'NURU asks “Niwasilishe ripoti hii?”. Submitting needs your yes.', t: '<code>weris.report.submit</code> is sensitive · gate in <code>driver.ts</code>' },
+    { nodes: ['screens', 'weris', 'app', 'db'], path: [['rest', 1], ['sql', 1]], p: 'The report is submitted and stored.', t: '<code>PUT /api/weris/reports/current</code> (submit) · table <code>WeeklyReport</code>' },
+    { nodes: ['app', 'events', 'assistant'], path: [['notify', 1], ['sse', 1]], p: 'Dkt. Halima\'s NURU is told: “Jolama amewasilisha ripoti ya wiki.”', t: 'event <code>weris_report</code> → every session of the supervisor' },
+  ] },
+};
+
+// ---------------------------------------------------------------------------
+// Rendering
+
+const svg = document.getElementById('map');
+const el = (tag, attrs = {}, parent = svg) => {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (parent) parent.appendChild(e);
+  return e;
+};
+const text = (parent, x, y, str, cls, extra = {}) => { const t = el('text', { x, y, class: cls, ...extra }, parent); t.textContent = str; return t; };
+function icon(parent, key, x, y, size, color) {
+  if (key === 'nuru') return el('image', { href: 'assets/nuru-mark.svg', x, y, width: size, height: size }, parent);
+  const ic = ICONS[key];
+  const g = el('g', { transform: `translate(${x} ${y}) scale(${size / Math.max(ic.w, ic.h)})` }, parent);
+  el('path', { d: ic.d, fill: color, transform: `translate(${(Math.max(ic.w, ic.h) - ic.w) / 2} ${(Math.max(ic.w, ic.h) - ic.h) / 2})` }, g);
+  return g;
+}
+function tile(parent, key, x, y, fill = '#254e96') {
+  if (key === 'nuru') return icon(parent, 'nuru', x, y, 40);
+  el('rect', { x, y, width: 40, height: 40, rx: 10, fill }, parent);
+  icon(parent, key, x + 9, y + 9, 22, '#fff');
+}
+function tag(parent, kind, rx, ty) {
+  const t = { test: ['TEST COPY', '#e8ded6', '#1e2761'], real: ['REAL SYSTEM', '#1e2761', '#fff'], ai: ['EXTERNAL AI', '#cadcfc', '#1e2761'] }[kind];
+  const g = el('g', { class: 'tag' }, parent);
+  const w = t[0].length * 9.4 + 18;
+  el('rect', { x: rx - w, y: ty - 11, width: w, height: 22, rx: 11, fill: t[1] }, g);
+  text(g, rx - w / 2, ty + 4.5, t[0], '', { 'text-anchor': 'middle', fill: t[2] });
+}
+
+const defs = el('defs');
+defs.innerHTML = `
+  <filter id="shadow" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#1e2761" flood-opacity=".12"/></filter>
+  <filter id="glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  ${[['navy', '#1e2761'], ['ocean', '#0b5b8c'], ['slate', '#5b6b8c'], ['orange', '#ff6b35'], ['royal', '#254e96']].map(([n, c]) =>
+    `<marker id="ah-${n}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="${c}"/></marker>`).join('')}`;
+
+// zones + network band
+for (const z of ZONES) {
+  el('rect', { x: z.x, y: 12, width: z.w, height: 746, rx: 18, fill: z.fill, stroke: z.color, 'stroke-opacity': .25 });
+  el('rect', { x: z.x, y: 12, width: z.w, height: 6, rx: 3, fill: z.color });
+  let ix = z.x + 18;
+  for (const k of z.icon) { el('circle', { cx: ix + 14, cy: 42, r: 14, fill: '#fff', stroke: z.color, 'stroke-opacity': .35 }); icon(svg, k, ix + 6, 34, 16, '#1e2761'); ix += 32; }
+  const lt = text(svg, ix + 8, 47, z.label, 'zone-label', { fill: z.color });
+  z.labelEl = lt;
+}
+el('rect', { x: 596, y: 12, width: 108, height: 746, rx: 12, fill: '#ffffff', stroke: '#5b6b8c', 'stroke-opacity': .35, 'stroke-dasharray': '4 4' });
+text(svg, 650, 40, 'NETWORK', 'band-text', { 'text-anchor': 'middle' });
+text(svg, 650, 572, 'local, or', 'zone-sub', { 'text-anchor': 'middle' });
+text(svg, 650, 590, 'HTTPS tunnel', 'zone-sub', { 'text-anchor': 'middle' });
+text(svg, 650, 608, 'for phones', 'zone-sub', { 'text-anchor': 'middle' });
+
+// edges (lines first, labels later so they sit on top)
+const edgeLayer = el('g');
+const nodeLayer = el('g');
+const pillLayer = el('g');
+const trustLayer = el('g', { class: 'trust-only' });
+const fxLayer = el('g');
+
+for (const [id, e] of Object.entries(EDGES)) {
+  const g = el('g', { class: `edge ${e.style}${e.leaves ? ' leaves' : ''}`, 'data-edge': id, tabindex: 0, role: 'button', 'aria-label': `${e.label.replace('\n', ' ')}: ${NODE_NAME(e.from)} to ${NODE_NAME(e.to)}` }, edgeLayer);
+  const marker = e.style === 'dotted' ? 'ocean' : e.style === 'local' ? 'slate' : 'navy';
+  e.line = el('path', { d: e.d, class: 'line', 'marker-end': `url(#ah-${marker})`, 'data-marker': marker }, g);
+  el('path', { d: e.d, class: 'hit' }, g);
+  e.g = g;
+}
+function NODE_NAME(id) { const n = NODES[id]; return n.group ? 'the screens' : n.name; }
+
+for (const [id, n] of Object.entries(NODES)) {
+  const g = el('g', { class: n.group ? 'group' : 'node', 'data-node': id, tabindex: 0, role: 'button', 'aria-label': `${n.name}: details` }, n.group ? edgeLayer : nodeLayer);
+  n.g = g;
+  if (n.group) {
+    el('rect', { x: n.x, y: n.y, width: n.w, height: n.h, rx: 16, class: 'frame' }, g);
+    text(g, n.x + 14, n.y + 24, n.name, 'glabel');
+    g.style.cursor = 'pointer';
+    continue;
+  }
+  if (n.db) {
+    const { x, y, w, h } = n, ry = 14;
+    el('path', { d: `M${x} ${y + ry} A${w / 2} ${ry} 0 0 1 ${x + w} ${y + ry} V${y + h - ry} A${w / 2} ${ry} 0 0 1 ${x} ${y + h - ry} Z`, class: 'card' }, g);
+    el('path', { d: `M${x} ${y + ry} A${w / 2} ${ry} 0 0 0 ${x + w} ${y + ry}`, fill: 'none', stroke: '#cadcfc', 'stroke-width': 1.5 }, g);
+    tile(g, n.icon, x + 14, y + 30);
+    text(g, x + 64, y + 56, n.name, 'name');
+    text(g, x + 16, y + 92, n.lines[0], 'desc');
+    n.tables.forEach((row, i) => row.forEach((t, j) => text(g, x + 16 + j * 116, y + 114 + i * 18.5, `• ${t}`, 'tbl')));
+    continue;
+  }
+  el('rect', { x: n.x, y: n.y, width: n.w, height: n.h, rx: 16, class: 'card' }, g);
+  tile(g, n.icon, n.x + 14, n.y + 14);
+  text(g, n.x + 64, n.y + 41, n.name, 'name');
+  n.lines.forEach((l, i) => text(g, n.x + 16, n.y + 72 + i * 19, l, 'desc'));
+  if (n.tag) tag(g, n.tag, n.x + n.w - 14, n.y);
+}
+
+function pill(parent, x, y, label, cls) {
+  const g = el('g', { class: `pill ${cls}` }, parent);
+  const lines = label.split('\n');
+  const ts = lines.map((l, i) => text(g, x, y + 5 + (i - (lines.length - 1) / 2) * 18, l, '', { 'text-anchor': 'middle' }));
+  const w = Math.max(...ts.map((t) => t.getComputedTextLength())) + 18;
+  const h = lines.length * 18 + 8;
+  const r = el('rect', { x: x - w / 2, y: y - h / 2, width: w, height: h, rx: Math.min(12, h / 2) }, g);
+  g.insertBefore(r, g.firstChild);
+  return g;
+}
+
+function layoutLabels() {
+  pillLayer.innerHTML = '';
+  for (const [id, e] of Object.entries(EDGES)) {
+    e.pill = pill(pillLayer, e.lx, e.ly, e.label, `${e.style}${e.leaves ? ' leaves' : ''}`);
+    e.pill.dataset.edge = id;
+  }
+  trustLayer.innerHTML = '';
+  for (const s of SHIELDS) {
+    const g = el('g', { class: 'shield' }, trustLayer);
+    const lab = text(g, 0, 0, s.label, '');
+    const w = lab.getComputedTextLength() + 16;
+    const lx = s.side === 'right' ? s.x + 14 : s.x - 14 - w;
+    el('rect', { x: lx, y: s.y - 11, width: w, height: 22, rx: 11 }, g);
+    g.appendChild(lab); lab.setAttribute('x', lx + 8); lab.setAttribute('y', s.y + 4.5);
+    el('circle', { cx: s.x, cy: s.y, r: 15 }, g);
+    icon(g, 'shield', s.x - 8, s.y - 8, 16, '#1e2761');
+  }
+  for (const n of NOTES) {
+    const g = el('g', { class: 'note' }, trustLayer);
+    const h = 30 + n.body.length * 18;
+    el('rect', { x: n.x, y: n.y, width: n.w, height: h, rx: 10 }, g);
+    text(g, n.x + 12, n.y + 21, n.title, 'nt');
+    n.body.forEach((b, i) => text(g, n.x + 12, n.y + 41 + i * 18, b, 'nb'));
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Highlight on hover
+
+function neighbours(kind, id) {
+  const nodes = new Set(), edges = new Set();
+  const addNode = (n) => { nodes.add(n); const N = NODES[n]; if (N.group) N.children.forEach((c) => nodes.add(c)); if (N.parent) nodes.add(N.parent); };
+  if (kind === 'node') {
+    addNode(id);
+    for (const [eid, e] of Object.entries(EDGES)) {
+      const ends = [e.from, e.to];
+      const hit = ends.includes(id) || ends.some((x) => NODES[id].parent === x) || (NODES[id].group && false);
+      if (hit) { edges.add(eid); ends.forEach(addNode); }
+    }
+  } else { edges.add(id); addNode(EDGES[id].from); addNode(EDGES[id].to); }
+  return { nodes, edges };
+}
+function focus(kind, id) {
+  if (svg.classList.contains('playing')) return;
+  const { nodes, edges } = neighbours(kind, id);
+  svg.classList.add('focus');
+  for (const [nid, n] of Object.entries(NODES)) n.g.classList.toggle('lit', nodes.has(nid));
+  for (const [eid, e] of Object.entries(EDGES)) { e.g.classList.toggle('lit', edges.has(eid)); e.pill.classList.toggle('lit', edges.has(eid)); }
+}
+function unfocus() {
+  svg.classList.remove('focus');
+  document.querySelectorAll('#map .lit').forEach((x) => x.classList.remove('lit'));
+}
+
+// ---------------------------------------------------------------------------
+// Side panel
+
+const panel = document.getElementById('panel');
+const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const iconSvg = (key) => key === 'nuru' ? '<img src="assets/nuru-mark.svg" alt="">' : `<svg viewBox="0 0 ${ICONS[key].w} ${ICONS[key].h}"><path d="${ICONS[key].d}"/></svg>`;
+let lastFocus = null;
+function openPanel(kind, id) {
+  lastFocus = document.activeElement;
+  const body = document.getElementById('pBody');
+  if (kind === 'node') {
+    const n = NODES[id], i = NODE_INFO[id];
+    document.getElementById('pIcon').innerHTML = iconSvg(n.icon || 'window');
+    document.getElementById('pKind').textContent = i.kind;
+    document.getElementById('pTitle').textContent = n.group ? 'Screens NURU operates' : n.name;
+    body.innerHTML = `<p class="lead">${i.lead}</p>
+      ${i.warn ? `<p class="warn">${i.warn}</p>` : ''}
+      <h3>Inside</h3><ul>${i.parts.map((p) => `<li>${p}</li>`).join('')}</ul>
+      <h3>Technology</h3><p>${i.tech}</p>
+      <h3>API</h3><ul>${i.api.map((p) => `<li>${p}</li>`).join('')}</ul>
+      ${i.tables.length ? `<h3>Tables</h3><p>${i.tables.join(' · ')}</p>` : ''}
+      <h3>Source files</h3><p>${i.files.map((f) => `<code>${f}</code>`).join(' ')}</p>`;
+  } else {
+    const e = EDGES[id], i = EDGE_INFO[id];
+    document.getElementById('pIcon').innerHTML = iconSvg(e.style === 'dashed' ? 'broadcast' : e.style === 'dotted' ? 'cloud' : e.style === 'local' ? 'cursor' : 'network');
+    document.getElementById('pKind').textContent = { solid: 'Request / response', dashed: 'Server push', dotted: 'External AI service', local: 'Inside the page' }[e.style];
+    document.getElementById('pTitle').textContent = e.label.replace('\n', ' · ');
+    body.innerHTML = `<p class="lead">${esc(NODE_NAME(e.from))} → ${esc(NODE_NAME(e.to))}</p>
+      ${i.warn ? `<p class="warn">${esc(i.warn)}</p>` : ''}
+      <h3>Direction</h3><p>${esc(i.dir)}</p>
+      <h3>Type</h3><p>${esc(i.type)}</p>
+      <h3>What is sent</h3><div class="ex">${esc(i.sends)}</div>
+      <h3>What comes back</h3><div class="ex">${esc(i.back)}</div>
+      <h3>Example endpoint</h3><p><code>${esc(i.ep)}</code></p>`;
+  }
+  panel.classList.add('open'); panel.setAttribute('aria-hidden', 'false');
+  document.getElementById('pClose').focus();
+}
+function closePanel() {
+  if (!panel.classList.contains('open')) return;
+  panel.classList.remove('open'); panel.setAttribute('aria-hidden', 'true');
+  lastFocus?.focus?.();
+}
+document.getElementById('pClose').onclick = closePanel;
+
+function wire() {
+  for (const [id, n] of Object.entries(NODES)) {
+    n.g.addEventListener('mouseenter', () => focus('node', id));
+    n.g.addEventListener('mouseleave', unfocus);
+    n.g.addEventListener('click', (ev) => { ev.stopPropagation(); openPanel('node', id); });
+    n.g.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') openPanel('node', id); });
+    n.g.addEventListener('focus', () => focus('node', id)); n.g.addEventListener('blur', unfocus);
+  }
+  for (const [id, e] of Object.entries(EDGES)) {
+    e.g.addEventListener('mouseenter', () => focus('edge', id));
+    e.g.addEventListener('mouseleave', unfocus);
+    e.g.addEventListener('click', (ev) => { ev.stopPropagation(); openPanel('edge', id); });
+    e.g.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') openPanel('edge', id); });
+    e.g.addEventListener('focus', () => focus('edge', id)); e.g.addEventListener('blur', unfocus);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Trust & data
+
+const trustBtn = document.getElementById('trustBtn');
+function setTrust(on) {
+  svg.classList.toggle('trust', on);
+  trustBtn.setAttribute('aria-pressed', String(on));
+  for (const e of Object.values(EDGES)) if (e.leaves) e.line.setAttribute('marker-end', `url(#ah-${on ? 'orange' : e.line.dataset.marker})`);
+}
+trustBtn.onclick = () => setTrust(trustBtn.getAttribute('aria-pressed') !== 'true');
+document.getElementById('printBtn').onclick = () => { setTab('static'); setTimeout(() => window.print(), 50); };
+document.getElementById('trustIco').setAttribute('d', ICONS.shield.d);
+document.getElementById('printIco').setAttribute('d', ICONS.print.d);
+document.querySelector('#trustBtn svg').setAttribute('viewBox', `0 0 ${ICONS.shield.w} ${ICONS.shield.h}`);
+document.querySelector('#printBtn svg').setAttribute('viewBox', `0 0 ${ICONS.print.w} ${ICONS.print.h}`);
+
+// ---------------------------------------------------------------------------
+// Legend
+
+document.getElementById('legend').innerHTML = `
+  <span class="lt">Legend</span>
+  <span class="it"><span class="sw" style="background:#eef3fc;border-color:#254e96"></span>Your device</span>
+  <span class="it"><span class="sw" style="background:#ecf9ff;border-color:#0b5b8c"></span>NURU backend</span>
+  <span class="it"><span class="sw" style="background:#f6f2ee;border-color:#1e2761"></span>External</span>
+  <span class="it"><svg width="44" height="12"><line x1="2" y1="6" x2="36" y2="6" stroke="#1e2761" stroke-width="2.2"/><path d="M34 2 L42 6 L34 10z" fill="#1e2761"/></svg>Request / response</span>
+  <span class="it"><svg width="44" height="12"><line x1="2" y1="6" x2="36" y2="6" stroke="#1e2761" stroke-width="2.2" stroke-dasharray="7 5"/><path d="M34 2 L42 6 L34 10z" fill="#1e2761"/></svg>Server push</span>
+  <span class="it"><svg width="44" height="12"><line x1="3" y1="6" x2="36" y2="6" stroke="#0b5b8c" stroke-width="3" stroke-dasharray="2 5" stroke-linecap="round"/><path d="M34 2 L42 6 L34 10z" fill="#0b5b8c"/></svg>External AI service</span>
+  <span class="it"><svg width="44" height="12"><line x1="2" y1="6" x2="36" y2="6" stroke="#5b6b8c" stroke-width="1.8"/><path d="M34 2 L42 6 L34 10z" fill="#5b6b8c"/></svg>Inside the page</span>
+  <span class="it"><span class="chip test">TEST COPY</span>mock-up with fictional people</span>
+  <span class="it"><span class="chip real">REAL SYSTEM</span></span>
+  <span class="it"><svg width="22" height="26" viewBox="0 0 22 26"><path d="M1 5 A10 4 0 0 1 21 5 V21 A10 4 0 0 1 1 21Z" fill="#fff" stroke="#254e96" stroke-width="1.5"/><path d="M1 5 A10 4 0 0 0 21 5" fill="none" stroke="#254e96" stroke-width="1.5"/></svg>Database (example tables)</span>
+  <span class="it"><svg width="40" height="12"><line x1="2" y1="6" x2="38" y2="6" stroke="#ff6b35" stroke-width="3.6"/></svg>Trust view: data leaving the machine; shields = safeguards</span>`;
+
+// ---------------------------------------------------------------------------
+// Tabs + walkthroughs
+
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let flow = 'B', stepIdx = 0, playing = false, timer = 0, animToken = 0;
+const speed = () => Number(document.getElementById('speed').value);
+
+function setTab(which) {
+  const anim = which === 'anim';
+  document.body.classList.toggle('anim', anim);
+  document.getElementById('tabStatic').setAttribute('aria-selected', String(!anim));
+  document.getElementById('tabAnim').setAttribute('aria-selected', String(anim));
+  if (anim) { setTrust(false); showStep(stepIdx, false); } else { pause(); clearPlay(); }
+}
+document.getElementById('tabStatic').onclick = () => setTab('static');
+document.getElementById('tabAnim').onclick = () => setTab('anim');
+
+const flowSel = document.getElementById('flowSel');
+for (const [k, f] of Object.entries(FLOWS)) {
+  const b = document.createElement('button');
+  b.textContent = f.name; b.dataset.flow = k;
+  b.onclick = () => { flow = k; pause(); showStep(0, false); };
+  flowSel.appendChild(b);
+}
+
+function clearPlay() {
+  animToken++;
+  svg.classList.remove('playing');
+  document.querySelectorAll('#map .active').forEach((x) => x.classList.remove('active'));
+  fxLayer.innerHTML = '';
+  for (const e of Object.values(EDGES)) e.line.setAttribute('marker-end', `url(#ah-${e.line.dataset.marker})`);
+}
+
+function showStep(i, animate = true) {
+  const steps = FLOWS[flow].steps;
+  stepIdx = Math.max(0, Math.min(steps.length - 1, i));
+  const s = steps[stepIdx];
+  clearPlay();
+  svg.classList.add('playing');
+  const lit = new Set();
+  for (const n of s.nodes) { lit.add(n); if (NODES[n].parent) lit.add(NODES[n].parent); }
+  lit.forEach((n) => NODES[n].g.classList.add('active'));
+  for (const [eid] of s.path || []) { EDGES[eid].g.classList.add('active'); EDGES[eid].pill.classList.add('active'); EDGES[eid].line.setAttribute('marker-end', 'url(#ah-royal)'); }
+  document.getElementById('capN').textContent = `STEP ${String(stepIdx + 1).padStart(2, '0')} / ${String(steps.length).padStart(2, '0')} · ${FLOWS[flow].name.slice(4).toUpperCase()}`;
+  document.getElementById('capP').textContent = s.p;
+  document.getElementById('capT').innerHTML = s.t;
+  flowSel.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.flow === flow)));
+  const list = document.getElementById('steps');
+  list.innerHTML = '';
+  steps.forEach((_, k) => {
+    const b = document.createElement('button');
+    b.textContent = String(k + 1).padStart(2, '0');
+    if (k < stepIdx) b.classList.add('done');
+    if (k === stepIdx) b.setAttribute('aria-current', 'step');
+    b.onclick = () => { pause(); showStep(k); };
+    list.appendChild(b);
+  });
+  const token = animToken;
+  const after = () => { if (playing && token === animToken) timer = setTimeout(() => { if (stepIdx < steps.length - 1) showStep(stepIdx + 1); else pause(); }, 3200 / speed()); };
+  if (s.gate) gatePulse(token);
+  if (animate && !reduce && s.path) runPackets(s.path, token).then(after);
+  else after();
+}
+
+function gatePulse(token) {
+  const n = NODES.assistant;
+  const r = el('rect', { x: n.x - 6, y: n.y - 6, width: n.w + 12, height: n.h + 12, rx: 20, class: 'gatepulse' }, fxLayer);
+  const g = el('g', { class: 'shield' }, fxLayer);
+  el('circle', { cx: n.x + n.w - 26, cy: n.y + 30, r: 20 }, g);
+  icon(g, 'shield', n.x + n.w - 37, n.y + 19, 22, '#c2410c');
+  if (!reduce) r.animate([{ opacity: 1 }, { opacity: .25 }, { opacity: 1 }], { duration: 1200, iterations: Infinity });
+}
+
+async function runPackets(path, token) {
+  for (const [eid, dir] of path) {
+    if (token !== animToken) return;
+    const line = EDGES[eid].line;
+    const len = line.getTotalLength();
+    const dot = el('circle', { r: 9, class: 'packet' }, fxLayer);
+    const dur = Math.max(500, len * 2.2) / speed();
+    await new Promise((res) => {
+      const t0 = performance.now();
+      const tick = (now) => {
+        if (token !== animToken) { dot.remove(); return res(); }
+        const k = Math.min(1, (now - t0) / dur);
+        const ease = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+        const p = line.getPointAtLength(dir > 0 ? ease * len : (1 - ease) * len);
+        dot.setAttribute('cx', p.x); dot.setAttribute('cy', p.y);
+        if (k < 1) requestAnimationFrame(tick); else { setTimeout(() => { dot.remove(); res(); }, 120); }
+      };
+      requestAnimationFrame(tick);
+    });
+  }
+}
+
+function play() {
+  playing = true; document.getElementById('bPlay').textContent = '❚❚ Pause';
+  const steps = FLOWS[flow].steps;
+  if (stepIdx >= steps.length - 1) showStep(0); else showStep(stepIdx);
+}
+function pause() { playing = false; clearTimeout(timer); document.getElementById('bPlay').textContent = '▶ Play'; }
+document.getElementById('bPlay').onclick = () => (playing ? pause() : play());
+document.getElementById('bNext').onclick = () => { pause(); showStep(stepIdx + 1); };
+document.getElementById('bBack').onclick = () => { pause(); showStep(stepIdx - 1); };
+document.getElementById('bRestart').onclick = () => { pause(); showStep(0); };
+
+document.addEventListener('keydown', (ev) => {
+  if (ev.key === 'Escape') { closePanel(); return; }
+  if (!document.body.classList.contains('anim') || panel.classList.contains('open')) return;
+  if (ev.target.closest && ev.target.closest('select')) return;
+  if (ev.key === 'ArrowRight') { ev.preventDefault(); pause(); showStep(stepIdx + 1); }
+  else if (ev.key === 'ArrowLeft') { ev.preventDefault(); pause(); showStep(stepIdx - 1); }
+  else if (ev.key === ' ') { ev.preventDefault(); playing ? pause() : play(); }
+});
+
+// Test hooks (used by the screenshot script)
+window.__arch = { setTab, setTrust, openPanel, closePanel, showStep: (f, i, a = false) => { flow = f; pause(); showStep(i, a); }, FLOWS };
+
+document.fonts.ready.then(() => { layoutLabels(); svg.appendChild(trustLayer); svg.appendChild(fxLayer); wire(); document.body.dataset.ready = '1'; });
+</script>
+</body>
+</html>
