@@ -43,7 +43,7 @@ export async function agentStep(body: Record<string, unknown>, signal: AbortSign
     });
   } catch (e) {
     if ((e as Error).name === 'AbortError') throw e;
-    throw new ApiError('network', 'The NURU service could not be reached.');
+    throw new ApiError('network', 'The Zawadi service could not be reached.');
   }
   let j: unknown = null;
   try {

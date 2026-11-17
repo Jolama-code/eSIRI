@@ -64,7 +64,7 @@ export interface LobbyPerson {
 
 export interface LiveMeeting {
   roomId: string;
-  /** NURU moderator mode: NURU admits people from the lobby on the user's behalf. */
+  /** Zawadi moderator mode: Zawadi admits people from the lobby on the user's behalf. */
   moderator: boolean;
   lobby: LobbyPerson[];
   /** People admitted into the meeting (besides the user). */

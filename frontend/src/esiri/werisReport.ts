@@ -1,5 +1,5 @@
 /**
- * The weris_report tool: NURU drafts the individual weekly report with ONE structured LLM call
+ * The weris_report tool: Zawadi drafts the individual weekly report with ONE structured LLM call
  * (POST /api/weris/reports/current/fill), then fills the cards visibly with the ghost cursor and saves the draft.
  * Submitting is not done here: it is the sensitive click weris.report.submit after ask_confirmation.
  */

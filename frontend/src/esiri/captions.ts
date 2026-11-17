@@ -1,7 +1,7 @@
 /**
  * "Manukuu ya moja kwa moja": live captions in the meeting (Web Speech, sw-TZ / en-US).
  *
- * The browser runs one SpeechRecognition at a time, so captions pause whenever NURU itself listens
+ * The browser runs one SpeechRecognition at a time, so captions pause whenever Zawadi itself listens
  * (push-to-talk, a spoken answer, the briefing, the wake word) and resume when it is done. Captions never
  * touch the MediaRecorder: the KatibuAI recording has its own microphone stream.
  */
@@ -104,7 +104,7 @@ export function startCaptions(): void {
     return;
   }
   useCaptions.setState({ on: true, paused: false, supported: true, lines: [], interim: '' });
-  // NURU's own listening stops captions at once, so the two never compete for the recogniser.
+  // Zawadi's own listening stops captions at once, so the two never compete for the recogniser.
   setCaptionsPauser(() => {
     useCaptions.setState({ paused: true, interim: '' });
     stopRec();

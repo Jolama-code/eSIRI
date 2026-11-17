@@ -110,8 +110,8 @@ export async function createRoomByHand(page: Page, name: string): Promise<string
 }
 
 /**
- * Wait until NURU is idle again, answering confirmation cards with `confirm` (default yes).
- * Returns how many confirmations were answered. Throws if NURU asks a clarifying question.
+ * Wait until Zawadi is idle again, answering confirmation cards with `confirm` (default yes).
+ * Returns how many confirmations were answered. Throws if Zawadi asks a clarifying question.
  */
 export async function driveUntilIdle(page: Page, opts: { confirm?: 'yes' | 'no'; timeout?: number; label?: string } = {}): Promise<number> {
   const confirm = opts.confirm ?? 'yes';
@@ -130,15 +130,15 @@ export async function driveUntilIdle(page: Page, opts: { confirm?: 'yes' | 'no';
     if (s === 'idle') return answered;
     if (s === 'awaiting_answer') {
       const q = await page.getByTestId('esiri-reply').last().textContent();
-      throw new Error(`NURU asked a clarifying question instead of acting: "${q}"`);
+      throw new Error(`Zawadi asked a clarifying question instead of acting: "${q}"`);
     }
     await page.waitForTimeout(250);
   }
-  throw new Error(`NURU did not finish "${opts.label ?? ''}" in time (confirmations answered: ${answered})`);
+  throw new Error(`Zawadi did not finish "${opts.label ?? ''}" in time (confirmations answered: ${answered})`);
 }
 
 /**
- * Send a typed request to NURU and wait until it is idle again.
+ * Send a typed request to Zawadi and wait until it is idle again.
  * Confirmation cards are answered with `confirm` (default yes).
  */
 export async function askEsiri(

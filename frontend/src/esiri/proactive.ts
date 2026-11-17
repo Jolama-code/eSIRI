@@ -1,5 +1,5 @@
 /**
- * Proactive NURU: reacts to server events (reminders, NURU-to-NURU announcements, Katibu progress),
+ * Proactive Zawadi: reacts to server events (reminders, Zawadi-to-Zawadi announcements, Katibu progress),
  * speaks without being asked, and lets the user answer by voice or tap.
  */
 import { onEvent, onReconnect, startEvents, stopEvents, type NuruEvent } from './events';
@@ -166,7 +166,7 @@ export async function handleReminderAnswer(id: number, text: string, mode: 'voic
     // A richer answer ("Ndiyo, anza kama msimamizi na uninyamazishe"): the agent handles it, with the reminder as context.
     claimReminder(card);
     const ctx =
-      `[Context: NURU has just reminded the user: "${msg(card)}". Scheduled meeting "${card.data.title ?? ''}" ` +
+      `[Context: Zawadi has just reminded the user: "${msg(card)}". Scheduled meeting "${card.data.title ?? ''}" ` +
       `(meeting id ${card.data.meeting_id ?? '?'}) is in e-Mikutano room id "${card.data.room_id ?? ''}"; the user is ` +
       `${card.data.organizer ? 'its organizer' : 'an invitee'}.` +
       (yn === 'yes'
@@ -222,7 +222,7 @@ export async function startMeetingFromReminder(id: number, opts: { moderator: bo
 }
 
 // ---------------------------------------------------------------------------
-// NURU-to-NURU announcements and refreshes
+// Zawadi-to-Zawadi announcements and refreshes
 
 function toastFor(e: NuruEvent, kind: string): void {
   const title = lang() === 'sw' ? e.title_sw ?? '' : e.title_en ?? '';
@@ -236,7 +236,7 @@ async function onKatibuReady(e: NuruEvent): Promise<void> {
   systemNotify(lang() === 'sw' ? e.title_sw ?? '' : e.title_en ?? '', msg(e), e.link);
   void useHub.getState().loadNotifications();
   await announce(msg(e));
-  // The minutes open in the Hub (unless NURU is in the middle of something).
+  // The minutes open in the Hub (unless Zawadi is in the middle of something).
   // Only from the Hub or the room page the meeting returned to, never in the middle of other work.
   const page = pageFromPath(window.location.pathname);
   if (job && !agentBusy() && (page.startsWith('hub_') || page === 'room')) goTo(`/hub/minutes/${job.id}`);

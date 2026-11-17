@@ -247,7 +247,7 @@ def save_current_report(body: ReportSave, db: DBSession = Depends(get_db), user:
     return full_report_view(db, user, r)
 
 
-# -- NURU fills the report: one structured LLM call ---------------------------
+# -- Zawadi fills the report: one structured LLM call ---------------------------
 
 FILL_PROMPT = """You fill in an intern's WERIS individual weekly report for {name} (week {week}, {start} to {end}).
 The report text is ALWAYS written in clear, professional ENGLISH, whatever language the user speaks (often Swahili).
@@ -299,7 +299,7 @@ FILL_SCHEMA = {
 
 
 def week_data(db: DBSession, user: User, r: WeeklyReport) -> str:
-    """Real activity this week: special tasks, PDP entries and NURU's activity log."""
+    """Real activity this week: special tasks, PDP entries and Zawadi's activity log."""
     start, end = _week_bounds(r.start_date)
     lines = []
     for t in db.exec(select(Task).where(Task.assigned_to_id == user.id)):
@@ -315,7 +315,7 @@ def week_data(db: DBSession, user: User, r: WeeklyReport) -> str:
         except ValueError:
             continue
         if start <= ts < end and a.outcome == "Completed" and a.system != "weris":
-            lines.append(f"- NURU activity ({a.system}): {a.request[:160]}")
+            lines.append(f"- Zawadi activity ({a.system}): {a.request[:160]}")
     return "\n".join(lines[:40]) or "(nothing recorded)"
 
 
@@ -327,7 +327,7 @@ class FillBody(BaseModel):
 
 @router.post("/reports/current/fill")
 async def fill_report(body: FillBody, db: DBSession = Depends(get_db), user: User = Depends(current_user)) -> dict[str, Any]:
-    """Drafts report items with ONE structured LLM call. Nothing is saved: NURU fills the form visibly, then saves the draft."""
+    """Drafts report items with ONE structured LLM call. Nothing is saved: Zawadi fills the form visibly, then saves the draft."""
     if not llm.api_key():
         raise HTTPException(400, {"code": "no_key", "error": "OPENAI_API_KEY is not set.", "error_sw": "Ufunguo wa OpenAI haupo."})
     r = current_report(db, user)

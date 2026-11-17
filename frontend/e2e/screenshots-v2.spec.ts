@@ -1,5 +1,5 @@
 /**
- * NURU v2 visual set (no LLM): every Hub page in Swahili and English at 1366 and 1920 px, GMS inbox,
+ * Zawadi v2 visual set (no LLM): every Hub page in Swahili and English at 1366 and 1920 px, GMS inbox,
  * reading and compose, WERIS dashboard, projects and special tasks, the meeting in moderator mode,
  * the reminder card and the briefing timetable. Saved in e2e/screenshots/v2/.
  */

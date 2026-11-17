@@ -60,7 +60,7 @@ export default function Login() {
       </section>
       <section className="login-panel">
         <form className="login-card" onSubmit={submit} noValidate>
-          <img className="login-logo" src="/brand/nuru-logo-stacked.svg" alt="NURU — Msaidizi wako wa kidijitali" />
+          <img className="login-logo" src="/brand/zawadi-logo-stacked.svg" alt="Zawadi — Msaidizi wako wa kidijitali" />
           <div className="login-lang" role="group" aria-label={t('esiri.language')}>
             <button type="button" className={language === 'sw' ? 'on' : ''} onClick={() => setLanguage('sw')} data-testid="login-lang-sw">
               Kiswahili

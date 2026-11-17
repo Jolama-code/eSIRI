@@ -1,6 +1,6 @@
-/** NURU v2 strings (Hub, proactive NURU, GMS, WERIS, Katibu). Merged into en.ts. */
+/** Zawadi v2 strings (Hub, proactive Zawadi, GMS, WERIS, Katibu). Merged into en.ts. */
 const v2en = {
-  'header.nuruHub': 'NURU Hub',
+  'header.nuruHub': 'Zawadi Hub',
 
   // Hub navigation
   'hub.nav.today': 'Today',
@@ -13,13 +13,13 @@ const v2en = {
   'hub.nav.settings': 'Settings',
   'hub.nav.more': 'More',
   'hub.signOut': 'Sign out',
-  'hub.talkToNuru': 'Talk to Nuru',
+  'hub.talkToNuru': 'Talk to Zawadi',
 
   // Pages the agent can open (navigate step labels)
-  'page.hub_today': 'Today in NURU Hub',
-  'page.hub_tasks': 'Tasks in NURU Hub',
-  'page.hub_meetings': 'Meetings in NURU Hub',
-  'page.hub_minutes': 'Minutes in NURU Hub',
+  'page.hub_today': 'Today in Zawadi Hub',
+  'page.hub_tasks': 'Tasks in Zawadi Hub',
+  'page.hub_meetings': 'Meetings in Zawadi Hub',
+  'page.hub_minutes': 'Minutes in Zawadi Hub',
   'page.hub_notifications': 'Notifications',
   'page.hub_systems': 'Systems',
   'page.hub_activity': 'Activity',
@@ -35,19 +35,19 @@ const v2en = {
   'page.weris_reports': 'WERIS weekly reports',
 
   // Sign in
-  'login.title': 'Sign in to NURU',
+  'login.title': 'Sign in to Zawadi',
   'login.username': 'Username',
   'login.password': 'Password',
   'login.submit': 'Sign in',
   'login.signingIn': 'Signing in…',
   'login.invalid': 'Wrong username or password.',
   'login.missing': 'Enter your username and password.',
-  'login.network': 'The NURU service could not be reached. Please try again.',
+  'login.network': 'The Zawadi service could not be reached. Please try again.',
   'login.demoTitle': 'Demo accounts:',
   'login.demoHint': 'tap a name to fill it in (the password is in the presenter notes).',
   'login.footer': '© 2026 e-Government Authority · demo build',
   'login.artTitle': 'A personal assistant for every official',
-  'login.artText': 'NURU plans your day, reminds you on time, runs your meetings, drafts your e-mails and keeps your tasks moving — and asks before anything important.',
+  'login.artText': 'Zawadi plans your day, reminds you on time, runs your meetings, drafts your e-mails and keeps your tasks moving — and asks before anything important.',
   'login.point1': 'Reminders spoken on every device',
   'login.point2': 'E-mails drafted, sent only with your consent',
   'login.point3': 'Tasks shared between supervisors and staff',
@@ -63,7 +63,7 @@ const v2en = {
   'today.plan': 'Plan my day',
   'today.timeline': "Today's timeline",
   'today.items': '{n} items',
-  'today.empty': 'Nothing on your day yet. Tap “Plan my day” and tell NURU your plans.',
+  'today.empty': 'Nothing on your day yet. Tap “Plan my day” and tell Zawadi your plans.',
   'today.next': 'Next',
   'today.now': 'Now',
   'today.start': 'Start',
@@ -120,7 +120,7 @@ const v2en = {
   // Minutes (KatibuAI)
   'minutes.subtitle': 'Meeting minutes prepared by KatibuAI',
   'minutes.all': 'All minutes',
-  'minutes.empty': 'No minutes yet. When a meeting ends, NURU offers to ask Katibu to prepare them.',
+  'minutes.empty': 'No minutes yet. When a meeting ends, Zawadi offers to ask Katibu to prepare them.',
   'minutes.notFound': 'These minutes were not found.',
   'minutes.title': 'Minutes',
   'minutes.preparedBy': 'Prepared by KatibuAI',
@@ -170,20 +170,20 @@ const v2en = {
   'minutes.auditSend': 'Send the minutes of {title}',
 
   // Notifications
-  'notifications.subtitle': 'Everything NURU announced to you',
+  'notifications.subtitle': 'Everything Zawadi announced to you',
   'notifications.readAll': 'Mark all as read',
   'notifications.empty': 'No notifications yet.',
 
   // Systems
-  'systems.subtitle': 'Government systems NURU can operate for you',
+  'systems.subtitle': 'Government systems Zawadi can operate for you',
   'systems.mikutano': 'Video meetings: rooms, recordings, moderator mode.',
   'systems.gms': 'Government Mailing System: read, draft and send e-mail.',
   'systems.weris': 'Projects, PDP, special tasks and weekly reports.',
   'systems.open': 'Open',
-  'systems.sso': 'You are signed in to every system with your NURU account (single sign-on). NURU’s orb sits on the right edge of each system.',
+  'systems.sso': 'You are signed in to every system with your Zawadi account (single sign-on). Zawadi’s orb sits on the right edge of each system.',
 
   // Activity
-  'activity.subtitle': 'Every task NURU did for you, with its steps and confirmations',
+  'activity.subtitle': 'Every task Zawadi did for you, with its steps and confirmations',
   'activity.export': 'Export CSV',
   'activity.empty': 'No activity yet.',
   'activity.auto': 'Proactive',
@@ -195,46 +195,46 @@ const v2en = {
   'esiri.changed': 'Change requested',
 
   // Settings
-  'settings.subtitle': 'Your profile and how NURU works for you',
+  'settings.subtitle': 'Your profile and how Zawadi works for you',
   'settings.profile': 'Profile',
-  'settings.nuru': 'NURU',
+  'settings.nuru': 'Zawadi',
   'settings.language': 'Language',
-  'settings.voice': 'NURU voice',
-  'settings.voiceDesc': 'NURU speaks reminders and announcements aloud.',
+  'settings.voice': 'Zawadi voice',
+  'settings.voiceDesc': 'Zawadi speaks reminders and announcements aloud.',
   'settings.lead': 'Reminder lead time',
-  'settings.leadDesc': 'How long before a meeting or plan item NURU reminds you.',
+  'settings.leadDesc': 'How long before a meeting or plan item Zawadi reminds you.',
   'settings.min': 'min',
   'settings.audioSource': 'Meeting audio for Katibu',
   'settings.audioSourceDesc': 'Live microphone, or the sample recording (for demonstrations).',
   'settings.audioLive': 'Live microphone',
   'settings.audioSample': 'Sample recording',
-  'settings.wake': 'Wake word “Nuru”',
-  'settings.wakeDesc': 'Listen in the background for “Nuru” (Chrome only).',
+  'settings.wake': 'Wake word “Zawadi”',
+  'settings.wakeDesc': 'Listen in the background for “Zawadi” (Chrome only).',
   'settings.notifications': 'Enable notifications',
   'settings.perm.default': 'Not enabled yet',
   'settings.perm.granted': 'Enabled on this device',
   'settings.perm.denied': 'Blocked in the browser settings',
   'settings.perm.unsupported': 'Not supported by this browser',
   'settings.install': 'Install app',
-  'settings.installDesc': 'Add NURU to your home screen or desktop.',
+  'settings.installDesc': 'Add Zawadi to your home screen or desktop.',
   'settings.installIos': 'On iPhone: tap Share, then “Add to Home Screen”.',
   'settings.installManual': 'Use the browser menu: “Install app” or “Add to Home screen”.',
-  'settings.installed': 'NURU is installed.',
+  'settings.installed': 'Zawadi is installed.',
   'role.supervisor': 'Supervisor',
   'role.staff': 'Staff',
 
   // Floating stack
-  'stack.greeting': 'Hello! I’m Nuru. Can I help?',
+  'stack.greeting': 'Hello! I’m Zawadi. Can I help?',
   'stack.accessibility': 'Accessibility',
   'stack.help': 'Help',
   'stack.notInDemo': 'Not available in this demo.',
 
   // Unlock
-  'unlock.title': 'Hello! I’m Nuru.',
+  'unlock.title': 'Hello! I’m Zawadi.',
   'unlock.text': 'Tap to start, so I can speak to you and hear you on this device.',
   'unlock.button': 'Tap to start',
-  'unlock.note': 'NURU will ask for the microphone and notifications.',
-  'unlock.greeting': 'Hello {name}! I am Nuru, your digital assistant. I am ready to help you today.',
+  'unlock.note': 'Zawadi will ask for the microphone and notifications.',
+  'unlock.greeting': 'Hello {name}! I am Zawadi, your digital assistant. I am ready to help you today.',
 
   // Reminders
   'reminder.title': 'Reminder',
@@ -249,7 +249,7 @@ const v2en = {
   'reminder.auditSnooze': 'Remind me later (reminder snoozed for 5 minutes)',
 
   // Moderator mode
-  'moderator.badge': 'Nuru is moderating',
+  'moderator.badge': 'Zawadi is moderating',
   'moderator.handback': "I'm back",
   'moderator.lobby': 'Waiting room · {n}',
   'moderator.admit': 'Admit',
@@ -290,7 +290,7 @@ const v2en = {
   'briefing.greeting': 'Good morning, {name}. What’s on your plan today?',
   'briefing.listeningHint': 'I’m listening… tell me everything you plan to do today.',
   'briefing.typeHint': 'Type your plans for today below.',
-  'briefing.parsing': 'NURU is arranging your timetable…',
+  'briefing.parsing': 'Zawadi is arranging your timetable…',
   'briefing.parseFailed': 'Sorry, I could not prepare the plan. Please try again.',
   'briefing.proposed': 'Proposed timetable',
   'briefing.new': 'new',
@@ -375,7 +375,7 @@ const v2en = {
   'gms.internalOnly': 'In this demo, mail can only be sent inside mfano.go.tz.',
   'gms.loginArt': 'Secure e-mail for the public service of the United Republic of Tanzania.',
   'gms.secured': 'Secured',
-  'gms.ssoHint': 'Signed in to NURU? You are signed in here too.',
+  'gms.ssoHint': 'Signed in to Zawadi? You are signed in here too.',
 
   // WERIS
   'weris.dashboard': 'Dashboard',
@@ -425,7 +425,7 @@ const v2en = {
   'weris.me': 'me',
   'weris.description': 'Description',
   'weris.dueTime': 'Due time',
-  'weris.notifyNote': 'The assignee’s NURU will announce this task to them at once.',
+  'weris.notifyNote': 'The assignee’s Zawadi will announce this task to them at once.',
   'weris.err.assignee': 'Choose who the task is for.',
   'weris.err.title': 'Enter the task title.',
   'weris.taskAdded': 'The special task has been assigned.',
@@ -462,7 +462,7 @@ const v2en = {
   'meeting.samplePlay': 'Play',
   'meeting.samplePause': 'Pause',
   'meeting.captions': 'Live captions',
-  'meeting.captionsPaused': 'paused while NURU listens',
+  'meeting.captionsPaused': 'paused while Zawadi listens',
   'meeting.captionsWaiting': 'Waiting for speech…',
   'journey.recorded': 'Recording captured',
   'journey.live': 'Live recording',
@@ -497,7 +497,7 @@ const v2en = {
   'wr.individualReports': 'Individual (Interns) Reports',
   'wr.individualReportsDesc': 'Each intern\'s weekly self-report across Projects, Assignments and PDPs — reviewed by supervisors (comments) and MRIT (approval).',
   'wr.securityReports': 'Security Reports',
-  'wr.byNuru': 'Prepared by NURU',
+  'wr.byNuru': 'Prepared by Zawadi',
   'wr.review': 'Review',
   'wr.done': 'Done',
   'wr.partial': 'Partially Done',

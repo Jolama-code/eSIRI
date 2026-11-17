@@ -1,20 +1,22 @@
-# NURU v2 — architecture facts (from the code)
+# Zawadi — architecture facts (from the code)
+
+v3 (2026-11-17) renamed the product to **Zawadi** with no change in behaviour; the facts below still hold. Internal identifiers such as `nuru-token` or `NURU_DB` are legacy names in the code and are never shown to users.
 
 Written from the source on branch `feature/v2.1` (commit `2aaedc9`), 30 Oct 2026, for the architecture diagram
-(`docs/architecture/nuru-architecture.html`). Every statement cites the file it comes from. Anything not visible in
-NURU's code is marked **unverified** or **(KatibuAI docs)**; the diagram uses only facts from this file.
+(`docs/architecture/zawadi-architecture.html`). Every statement cites the file it comes from. Anything not visible in
+Zawadi's code is marked **unverified** or **(KatibuAI docs)**; the diagram uses only facts from this file.
 
 ## 1. Components and where they run
 
 | Component | Runs where | Port | Source |
 |---|---|---|---|
-| NURU web app (one React app: Hub, e-Mikutano, GMS, WERIS + the NURU overlay) | The user's browser (Google Chrome), laptop or phone; installable PWA | served on **5173** (Vite dev server, or `vite preview` with `--share`) | `frontend/src/App.tsx`, `start.sh`, `frontend/vite.config.ts` |
+| Zawadi web app (one React app: Hub, e-Mikutano, GMS, WERIS + the Zawadi overlay) | The user's browser (Google Chrome), laptop or phone; installable PWA | served on **5173** (Vite dev server, or `vite preview` with `--share`) | `frontend/src/App.tsx`, `start.sh`, `frontend/vite.config.ts` |
 | Vite server | The presentation laptop | 5173; proxies `/api` → `http://localhost:8010` without buffering event streams | `frontend/vite.config.ts` |
-| NURU backend (FastAPI + uvicorn) | The presentation laptop, bound to `127.0.0.1` | **8010** | `start.sh`, `backend/app/main.py` |
-| NURU database (SQLite file) | Same laptop, `backend/data/nuru.db` (`NURU_DB` overrides; tests use `test.db`) | — | `backend/app/core.py` |
+| Zawadi backend (FastAPI + uvicorn) | The presentation laptop, bound to `127.0.0.1` | **8010** | `start.sh`, `backend/app/main.py` |
+| Zawadi database (SQLite file) | Same laptop, `backend/data/nuru.db` (`NURU_DB` overrides; tests use `test.db`) | — | `backend/app/core.py` |
 | KatibuAI backend (the real system) | Runs separately (`KATIBU_BASE_URL`, default `http://localhost:8000`) | **8000** | `backend/app/katibu.py` |
 | OpenAI API | Internet | HTTPS | `backend/app/llm.py`, `tts.py` |
-| Google speech recognition | Internet, used by Chrome's Web Speech API | — | **unverified in NURU code** (Chrome behaviour; NURU only calls `webkitSpeechRecognition`) |
+| Google speech recognition | Internet, used by Chrome's Web Speech API | — | **unverified in Zawadi code** (Chrome behaviour; Zawadi only calls `webkitSpeechRecognition`) |
 | Cloudflare quick tunnel (optional, `./start.sh --share`) | `cloudflared` on the laptop → Cloudflare edge; gives phones an HTTPS URL to port 5173 | HTTPS | `start.sh` |
 
 Network path: browser → `:5173` (Vite) → `/api/*` proxied to `127.0.0.1:8010`. Phones use the HTTPS tunnel URL
@@ -22,12 +24,12 @@ Network path: browser → `:5173` (Vite) → `/api/*` proxied to `127.0.0.1:8010
 
 ## 2. Frontend (browser)
 
-**Routes / systems** (`frontend/src/App.tsx`): `/hub/*` NURU Hub (Today, Tasks, Meetings, Minutes, Notifications,
+**Routes / systems** (`frontend/src/App.tsx`): `/hub/*` Zawadi Hub (Today, Tasks, Meetings, Minutes, Notifications,
 Systems, Activity, Settings, Login); `/`, `/rooms/*`, `/recordings`, `/audit` e-Mikutano; `/gms/*` GMS (mailbox,
 compose); `/weris/*` WERIS (dashboard, projects, PDP, tasks, reports, individual report). One sign-in for all four.
 e-Mikutano, GMS and WERIS are front-end mock-ups ("test copies") with fictional people at `@mfano.go.tz`.
 
-**NURU overlay** (`esiri/ui/EsiriRoot.tsx`, `NuruOverlays.tsx`, `Orb.tsx`, `Panel.tsx`): the orb, the chat panel,
+**Zawadi overlay** (`esiri/ui/EsiriRoot.tsx`, `NuruOverlays.tsx`, `Orb.tsx`, `Panel.tsx`): the orb, the chat panel,
 reminder cards, toasts, the "tap to start" unlock overlay, the briefing and the demo panel, on every route.
 
 **Agent driver** (`esiri/controller.ts` `runLoop`, `esiri/driver.ts`, `esiri/snapshot.ts`):
@@ -35,18 +37,18 @@ reminder cards, toasts, the "tap to start" unlock overlay, the briefing and the 
   state, elements}`. `state` is per system (rooms, meetings, minutes summaries, mail list and opened e-mail, WERIS
   tasks and report items, open reminders). `elements` = every visible element with a `data-esiri-id`: id, role,
   label (max 80 chars), state, value (inputs 160 chars, textareas 1500), select options (max 30), disabled, sensitive.
-- **Excluded from the snapshot:** elements inside the NURU panel (`.esiri-panel`), the toast close button, hidden
+- **Excluded from the snapshot:** elements inside the Zawadi panel (`.esiri-panel`), the toast close button, hidden
   elements, everything behind an open modal (only the modal is scanned), duplicate ids, and password fields (the login
   password inputs carry no `data-esiri-id`: `hub/Login.tsx`, `gms/Gms.tsx`). No tokens are put in the snapshot.
 - The driver executes `click`, `typeText`, `selectOption`, `navigate`. Driver functions return `{ok:false, code,
   error}` instead of throwing; codes `not_found`, `disabled`, `confirmation_required`, `not_editable`, `invalid`.
 
-**Ghost cursor** (`esiri/cursor.ts`): a fixed-position SVG pointer with a "NURU" bubble, a highlight ring and a
+**Ghost cursor** (`esiri/cursor.ts`): a fixed-position SVG pointer with a "Zawadi" bubble, a highlight ring and a
 click ripple, animated with `requestAnimationFrame` (500–700 ms per move). Pure DOM.
 
 **Speech in** (`esiri/stt.ts`): the browser Web Speech API (`SpeechRecognition` / `webkitSpeechRecognition`),
 `sw-TZ` for Swahili and `en-US` for English, interim results on; one-shot listening for a request, and an optional
-continuous wake-word mode ("Nuru"). One recognizer at a time.
+continuous wake-word mode ("Zawadi"). One recognizer at a time.
 
 **Speech out** (`esiri/tts.ts`): `speak()` fetches MP3 from `POST /api/tts` (OpenAI) for Swahili, and for English
 when `ESIRI_ENGLISH_TTS=openai` (default); the browser `speechSynthesis` voice is the fallback (English only — no
@@ -57,7 +59,7 @@ network). Playback through an `<audio>` element drives the orb's level meter.
 its own microphone stream (echo cancellation, noise suppression); on stop it uploads the blob as `multipart/form-data`
 to `POST /api/katibu/jobs`. Sample mode plays the sample recording aloud from `GET /api/katibu/sample`.
 
-**Live captions** (`esiri/captions.ts`): Web Speech (`sw-TZ` / `en-US`) shown in the meeting; they pause while NURU
+**Live captions** (`esiri/captions.ts`): Web Speech (`sw-TZ` / `en-US`) shown in the meeting; they pause while Zawadi
 itself listens and never touch the recorder.
 
 **Live-event client** (`esiri/events.ts`): one `EventSource` per signed-in device on `GET /api/events?token=…`
@@ -110,7 +112,7 @@ in full (older ones become "[old snapshot omitted]"). Swahili clock phrases in a
 - `ask_confirmation` — ask the user to approve sensitive actions (`covers` = how many).
 - `ask_user` — one clarifying question; ends the turn.
 - `set_language` — switch UI, speech and replies to en/sw.
-- `moderator_mode` — NURU runs the meeting lobby (on is sensitive).
+- `moderator_mode` — Zawadi runs the meeting lobby (on is sensitive).
 - `schedule_reminder` — add an item with a spoken reminder to the user's day.
 - `update_task_status` — set the status of the user's own WERIS task.
 - `weris_report` — status / fill the weekly report (one structured call).
@@ -151,7 +153,7 @@ announces them through `proactive.announce` (a queue that waits for the agent to
 
 **Weekly report fill** (`api_weris.py` `fill_report`, `esiri/werisReport.ts`): `POST /api/weris/reports/current/fill`
 makes **one** OpenAI call with a strict JSON schema (`weekly_report`) using the items, last week's promises and this
-week's real data (tasks, PDP, NURU activity); text always English. Nothing is saved by the call: the browser types
+week's real data (tasks, PDP, Zawadi activity); text always English. Nothing is saved by the call: the browser types
 the result into the cards with the ghost cursor and clicks Save Draft (`PUT /api/weris/reports/current`). Submit
 (`weris.report.submit`) is sensitive; on submit the server notifies the supervisor (`weris_report` event).
 
@@ -175,7 +177,7 @@ valid 7 days; sent as `Authorization: Bearer`.
 
 1. Browser uploads the meeting audio (`multipart/form-data`, `POST /api/katibu/jobs`) or asks for the sample.
 2. Backend converts it with ffmpeg to 16 kHz mono WAV and checks length and loudness (§3). Live never falls back to
-   the sample silently: `live_unusable` → NURU asks the user; only with `allow_sample`/`use_sample` is the sample used.
+   the sample silently: `live_unusable` → Zawadi asks the user; only with `allow_sample`/`use_sample` is the sample used.
    In sample mode the sample is also played aloud in the room.
 3. A `KatibuJob` row is created; the job runs in a background task.
 4. **Auth:** OAuth2 **password grant** at `POST {KATIBU_BASE_URL}/oauth2/access_token` (`client_id` default
@@ -204,10 +206,10 @@ valid 7 days; sent as `Authorization: Bearer`.
 | To | What | Model / API | Source |
 |---|---|---|---|
 | OpenAI | Agent step: system prompt + app map + user name/e-mail + request + screen snapshot | Chat Completions, `gpt-4.1-mini` (`OPENAI_MODEL`), function tools | `main.py`, `agent.py` |
-| OpenAI | Speech audio for NURU's replies and announcements | `gpt-4o-mini-tts` (`OPENAI_TTS_MODEL`), voice `coral`; retry with `tts-1` | `tts.py` |
+| OpenAI | Speech audio for Zawadi's replies and announcements | `gpt-4o-mini-tts` (`OPENAI_TTS_MODEL`), voice `coral`; retry with `tts-1` | `tts.py` |
 | OpenAI | Briefing parse (spoken day → timetable) | same chat model, strict JSON schema | `api_hub.py` |
 | OpenAI | Weekly report fill (one call) | same chat model, strict JSON schema | `api_weris.py` |
-| Google (via Chrome) | Microphone audio for speech recognition (requests, wake word, live captions) | Web Speech API | `stt.ts`, `captions.ts`; that Chrome sends audio to Google's servers is **unverified in NURU code** (Chrome's documented behaviour) |
+| Google (via Chrome) | Microphone audio for speech recognition (requests, wake word, live captions) | Web Speech API | `stt.ts`, `captions.ts`; that Chrome sends audio to Google's servers is **unverified in Zawadi code** (Chrome's documented behaviour) |
 | KatibuAI | Meeting audio (16 kHz WAV), title, chair and attendee names; later the send request with recipient e-mails | OAuth2 + GraphQL + chunked REST upload | `katibu.py` |
 | Cloudflare (only with `--share`) | All app traffic of phones, over HTTPS | quick tunnel | `start.sh` |
 
@@ -223,9 +225,9 @@ documents built with python-docx and converted to **PDF** by LibreOffice (or Got
 **Leaves the machine:**
 - **To OpenAI:** the user's typed/spoken request text, the screen snapshot (visible labels and field values — e.g.
   e-mail subjects and bodies being read or drafted, task titles, room names and tokens), the user's name and e-mail
-  in the system prompt, conversation history (12 turns); every sentence NURU speaks (TTS); the briefing transcript;
-  the weekly-report items plus this week's tasks, PDP entries and NURU activity requests.
-- **To Google (via Chrome):** microphone audio while NURU listens or captions run (**unverified in NURU code**).
+  in the system prompt, conversation history (12 turns); every sentence Zawadi speaks (TTS); the briefing transcript;
+  the weekly-report items plus this week's tasks, PDP entries and Zawadi activity requests.
+- **To Google (via Chrome):** microphone audio while Zawadi listens or captions run (**unverified in Zawadi code**).
 - **To KatibuAI:** the meeting recording, meeting title, chair and attendee names, and recipient e-mail addresses.
   KatibuAI then sends the audio to its AI engine (Gemini by default) and e-mails the minutes (KatibuAI docs).
 - **To Cloudflare:** everything a phone sends, when the HTTPS tunnel is used.
@@ -244,7 +246,7 @@ documents built with python-docx and converted to **PDF** by LibreOffice (or Got
 
 ## 7. Not used in the diagram (unverified or out of scope)
 
-- Exact Google endpoint and retention for Chrome speech recognition (Chrome behaviour, not NURU code).
+- Exact Google endpoint and retention for Chrome speech recognition (Chrome behaviour, not Zawadi code).
 - KatibuAI internals beyond its docs (exact Gemini model names, worker counts, retry policy).
 - `TTS_PROVIDER=chatterbox` (a stub, not implemented).
 - e-Mikutano video/audio between participants (the meeting screen is a mock-up; the moderator lobby is simulated).

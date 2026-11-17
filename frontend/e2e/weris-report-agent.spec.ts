@@ -1,5 +1,5 @@
 /**
- * NURU fills the WERIS weekly report (real model): A one Swahili overview, B card by card with
+ * Zawadi fills the WERIS weekly report (real model): A one Swahili overview, B card by card with
  * "mengine yote yaendelee vizuri", C "do it for me" (generic items marked for review, no invented numbers),
  * declining and confirming the submit (Dkt. Halima is notified). The report text is always English.
  */
@@ -13,7 +13,7 @@ async function report(request: APIRequestContext): Promise<{ status: string; wee
   return (await request.get(`${API}/api/weris/reports/current`, { headers: auth(token) })).json();
 }
 
-/** Send a typed message and wait until NURU is idle or waiting for an answer; confirmation cards get `confirm`. */
+/** Send a typed message and wait until Zawadi is idle or waiting for an answer; confirmation cards get `confirm`. */
 async function say(page: Page, text: string, confirm: 'yes' | 'no' = 'no', timeout = 150_000): Promise<string> {
   await openPanel(page).catch(() => undefined);
   await page.getByTestId('esiri-input').fill(text);
@@ -31,13 +31,13 @@ async function say(page: Page, text: string, confirm: 'yes' | 'no' = 'no', timeo
     if (s === 'idle' || s === 'awaiting_answer') return s;
     await page.waitForTimeout(300);
   }
-  throw new Error(`NURU did not finish "${text}"`);
+  throw new Error(`Zawadi did not finish "${text}"`);
 }
 
 const SWAHILI = /\b(nimemaliza|inaendelea|nahangaika|bado|mradi|wiki|vizuri|kazi|mengine|yote)\b/i;
 const complete = (i: Item) => !!i.progress.trim() && !!i.plan.trim();
 
-test.describe('NURU fills the weekly report @llm', () => {
+test.describe('Zawadi fills the weekly report @llm', () => {
   test.beforeEach(async ({ request }) => {
     await resetDemo(request);
   });

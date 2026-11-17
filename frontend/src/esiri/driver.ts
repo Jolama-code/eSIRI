@@ -179,7 +179,7 @@ export async function navigate(page: string, roomId: string | undefined, ctx: Dr
     return { ok: false, code: 'invalid', error: 'You are in a meeting. Use meeting.leave (after confirmation) to leave it.' };
   }
   if (page !== 'landing' && !useSession.getState().token) {
-    return { ok: false, code: 'invalid', error: 'The user is not signed in to NURU.' };
+    return { ok: false, code: 'invalid', error: 'The user is not signed in to Zawadi.' };
   }
   const { rooms } = useApp.getState();
   let path = NAV_PAGES[page] ?? '/';

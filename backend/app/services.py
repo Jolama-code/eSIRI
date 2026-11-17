@@ -33,7 +33,7 @@ def notify(
     announce: bool = True,
     store: bool = True,
 ) -> None:
-    """Store a Notification (the Hub's history of what NURU announced) and push the event."""
+    """Store a Notification (the Hub's history of what Zawadi announced) and push the event."""
     note_id = None
     if store:
         n = Notification(

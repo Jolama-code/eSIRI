@@ -510,7 +510,7 @@ export function GmsCompose() {
 }
 
 // ---------------------------------------------------------------------------
-// Login (skipped when signed in to NURU — single sign-on)
+// Login (skipped when signed in to Zawadi — single sign-on)
 
 export function GmsLogin() {
   const t = useT();

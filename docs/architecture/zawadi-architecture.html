@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NURU Architecture Map</title>
-<!-- NURU v2 architecture diagram. Every label comes from docs/ARCHITECTURE_FACTS.md. Works offline:
+<title>Zawadi Architecture Map</title>
+<!-- Zawadi v3 architecture diagram. Every label comes from docs/ARCHITECTURE_FACTS.md. Works offline:
      fonts and logos are in ./assets, icons are Font Awesome Free solid paths inlined below. -->
 <style>
 @font-face { font-family: Montserrat; font-weight: 600; src: url(assets/fonts/Montserrat-600.woff2) format("woff2"); }
@@ -16,7 +16,7 @@
 @font-face { font-family: Inter; font-weight: 700; src: url(assets/fonts/Inter-700.woff2) format("woff2"); }
 
 :root {
-  /* design-system tokens (reference/nuru-v2/nuru-v2-design/design-system/tokens.json) */
+  /* design-system tokens (the design system's tokens.json) */
   --ocean: #0b5b8c; --azure: #3a84b1; --sky: #4aa8c3; --ice: #cef1ff; --mist: #ecf9ff;
   --navy: #1e2761; --navy-deep: #141b45; --royal: #254e96; --cyan: #23b8ee;
   --orange: #ff6b35; --orange-ink: #c2410c; --sand: #e8ded6;
@@ -181,11 +181,11 @@ body.anim .legend, body.anim .howto, body.anim #trustBtn { display: none; }
 </head>
 <body>
 <header class="top">
-  <img class="mark" src="assets/nuru-mark.svg" alt="NURU">
+  <img class="mark" src="assets/zawadi-mark.svg" alt="Zawadi">
   <div class="titles">
-    <div class="eyebrow">Architecture · NURU v2 prototype</div>
-    <h1>How NURU Works</h1>
-    <p class="sub">NURU is a personal AI assistant for Tanzanian government officials: it listens in English or Swahili, operates government systems on screen where you can watch, and asks before anything consequential.</p>
+    <div class="eyebrow">Architecture · Zawadi v3 prototype</div>
+    <h1>How Zawadi Works</h1>
+    <p class="sub">Zawadi is a personal AI assistant for Tanzanian government officials: it listens in English or Swahili, operates government systems on screen where you can watch, and asks before anything consequential.</p>
   </div>
   <img class="ega" src="assets/ega-logo.png" alt="e-Government Authority">
 </header>
@@ -195,11 +195,11 @@ body.anim .legend, body.anim .howto, body.anim #trustBtn { display: none; }
     <button role="tab" id="tabStatic" aria-selected="true">Static</button>
     <button role="tab" id="tabAnim" aria-selected="false">Animated</button>
   </div>
-  <div class="howto"><b>How to read this</b>Left to right: what runs on your device, what runs on the NURU backend, and the outside services it calls. Hover to highlight; click any box or arrow for details.</div>
+  <div class="howto"><b>How to read this</b>Left to right: what runs on your device, what runs on the Zawadi backend, and the outside services it calls. Hover to highlight; click any box or arrow for details.</div>
   <button class="btn" id="trustBtn" aria-pressed="false"><svg viewBox="0 0 512 512"><path id="trustIco"/></svg>Trust &amp; data</button>
   <button class="btn" id="printBtn"><svg viewBox="0 0 512 512"><path id="printIco"/></svg>Print / Save as PDF</button>
 </div>
-<main class="stage"><svg id="map" viewBox="0 0 1800 770" preserveAspectRatio="xMidYMid meet" role="img" aria-label="NURU architecture map"></svg></main>
+<main class="stage"><svg id="map" viewBox="0 0 1800 770" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Zawadi architecture map"></svg></main>
 <div>
   <div class="legend" id="legend"></div>
   <div class="player">
@@ -232,20 +232,20 @@ const NS = 'http://www.w3.org/2000/svg';
 
 const ZONES = [
   { id: 'device', x: 12, w: 576, fill: '#eef3fc', color: '#254e96', icon: ['laptop', 'mobile'], label: 'YOUR DEVICE (BROWSER)', sub: 'laptop or phone · Google Chrome' },
-  { id: 'backend', x: 712, w: 624, fill: '#ecf9ff', color: '#0b5b8c', icon: ['server'], label: 'NURU BACKEND', sub: 'on the laptop · port 8010' },
+  { id: 'backend', x: 712, w: 624, fill: '#ecf9ff', color: '#0b5b8c', icon: ['server'], label: 'Zawadi BACKEND', sub: 'on the laptop · port 8010' },
   { id: 'external', x: 1344, w: 444, fill: '#f6f2ee', color: '#1e2761', icon: ['cloud'], label: 'EXTERNAL SERVICES', sub: 'over the internet' },
 ];
 
 const NODES = {
-  assistant: { x: 32, y: 108, w: 528, h: 192, icon: 'nuru', name: 'NURU assistant',
+  assistant: { x: 32, y: 108, w: 528, h: 192, icon: 'mark', name: 'Zawadi assistant',
     lines: ['Listens and speaks in English or Swahili, reads the screen,', 'clicks and types where you can watch, and asks before', 'anything consequential. Runs in every page of the app.'] },
-  screens: { group: true, x: 28, y: 346, w: 542, h: 262, name: 'SCREENS NURU OPERATES', children: ['hub', 'gms', 'weris', 'mikutano'] },
-  hub: { x: 38, y: 380, w: 251, h: 102, icon: 'window', name: 'NURU Hub', lines: ['Your day, tasks, meetings', 'and minutes'], parent: 'screens' },
+  screens: { group: true, x: 28, y: 346, w: 542, h: 262, name: 'SCREENS Zawadi OPERATES', children: ['hub', 'gms', 'weris', 'mikutano'] },
+  hub: { x: 38, y: 380, w: 251, h: 102, icon: 'window', name: 'Zawadi Hub', lines: ['Your day, tasks, meetings', 'and minutes'], parent: 'screens' },
   gms: { x: 309, y: 380, w: 251, h: 102, icon: 'env', name: 'GMS', lines: ['Government e-mail'], tag: 'test', parent: 'screens' },
   weris: { x: 38, y: 494, w: 251, h: 102, icon: 'tasks', name: 'WERIS', lines: ['Tasks, projects and', 'weekly reports'], tag: 'test', parent: 'screens' },
   mikutano: { x: 309, y: 494, w: 251, h: 102, icon: 'video', name: 'e-Mikutano', lines: ['Video meeting rooms'], tag: 'test', parent: 'screens' },
   recorder: { x: 309, y: 628, w: 251, h: 100, icon: 'rec', name: 'Meeting recorder', lines: ['Records the meeting', 'for the minutes'] },
-  agent: { x: 740, y: 108, w: 240, h: 108, icon: 'robot', name: 'Agent service', lines: ['Asks the AI for the next', 'step; makes NURU\'s voice'] },
+  agent: { x: 740, y: 108, w: 240, h: 108, icon: 'robot', name: 'Agent service', lines: ['Asks the AI for the next', 'step; makes Zawadi\'s voice'] },
   events: { x: 740, y: 232, w: 240, h: 108, icon: 'broadcast', name: 'Event hub', lines: ['Pushes news to every', 'device you are signed in on'] },
   app: { x: 740, y: 384, w: 240, h: 108, icon: 'server', name: 'App services', lines: ['Sign-in and the data of', 'Hub, GMS and WERIS'] },
   link: { x: 740, y: 612, w: 240, h: 140, icon: 'fileaudio', name: 'KatibuAI link', lines: ['Converts the recording,', 'sends it to KatibuAI and', 'follows its progress'] },
@@ -253,7 +253,7 @@ const NODES = {
   db: { db: true, x: 1092, y: 430, w: 226, h: 184, icon: 'db', name: 'Database', lines: ['SQLite file on the laptop'],
     tables: [['User', 'Session'], ['Task', 'Reminder'], ['MailMessage', 'KatibuJob'], ['AuditRecord']] },
   google: { x: 1368, y: 58, w: 400, h: 104, icon: 'brain', name: 'Google speech', lines: ['Chrome\'s speech recognition turns', 'your voice into text'], tag: 'ai' },
-  openai: { x: 1368, y: 174, w: 400, h: 156, icon: 'brain', name: 'OpenAI', lines: ['AI model: chooses NURU\'s next step,', 'drafts the day plan and the weekly', 'report, and makes the spoken voice'], tag: 'ai' },
+  openai: { x: 1368, y: 174, w: 400, h: 156, icon: 'brain', name: 'OpenAI', lines: ['AI model: chooses Zawadi\'s next step,', 'drafts the day plan and the weekly', 'report, and makes the spoken voice'], tag: 'ai' },
   katibu: { x: 1368, y: 612, w: 400, h: 140, icon: 'minutes', name: 'KatibuAI', lines: ['Transcribes the meeting and writes', 'the minutes in Swahili and English,', 'then e-mails them'], tag: 'real' },
 };
 
@@ -289,7 +289,7 @@ const SHIELDS = [
   { x: 968, y: 500, label: 'E-mail domain block', side: 'right' },
 ];
 const NOTES = [
-  { x: 1368, y: 428, w: 400, title: 'To Google (via Chrome)', body: ['Microphone audio while NURU listens', 'or captions run (Chrome behaviour).'] },
+  { x: 1368, y: 428, w: 400, title: 'To Google (via Chrome)', body: ['Microphone audio while Zawadi listens', 'or captions run (Chrome behaviour).'] },
   { x: 1368, y: 498, w: 400, title: 'To OpenAI', body: ['Your request, the screen snapshot, your name', 'and e-mail, spoken replies, plan and report text.'] },
   { x: 38, y: 616, w: 251, title: 'To KatibuAI (by the backend)', body: ['Meeting audio, title,', 'attendee names and', 'recipient e-mails.'] },
   { x: 38, y: 700, w: 251, title: 'Phones via tunnel', body: ['All traffic goes through', 'Cloudflare (HTTPS).'] },
@@ -299,15 +299,15 @@ const NOTES = [
 // Detail panels (plain words first, technical second). Facts: docs/ARCHITECTURE_FACTS.md
 
 const NODE_INFO = {
-  assistant: { kind: 'Your device', lead: 'NURU itself, in the browser. It hears your request, looks at the screen, asks the backend what to do, then does it on screen with a visible cursor and speaks the result.',
-    parts: ['Speech in: Web Speech API, <code>sw-TZ</code> or <code>en-US</code>; optional wake word “Nuru”', 'Screen snapshot: page, state and every visible element with a <code>data-esiri-id</code>; excludes password fields, the NURU panel, hidden elements and anything behind an open dialog', 'Agent driver: runs <code>click</code>, <code>type_text</code>, <code>select_option</code>, <code>navigate</code>', 'Ghost cursor: an on-screen pointer with a highlight ring and click ripple', '<b>Confirmation gate</b>: sensitive clicks are refused unless you said yes (credits) — enforced here in the browser only', 'Speech out: plays MP3 from the backend; browser voice as fallback', 'Live-event client and announcement queue', 'Audit: one record per task (browser storage + server)'],
-    tech: 'React + TypeScript, zustand stores, installable PWA. Browser storage: <code>nuru-token</code>, <code>nuru-user</code>, <code>emikutano-store</code> (rooms, recordings, up to 500 audit records).',
+  assistant: { kind: 'Your device', lead: 'Zawadi itself, in the browser. It hears your request, looks at the screen, asks the backend what to do, then does it on screen with a visible cursor and speaks the result.',
+    parts: ['Speech in: Web Speech API, <code>sw-TZ</code> or <code>en-US</code>; optional wake word “Zawadi”', 'Screen snapshot: page, state and every visible element with a <code>data-esiri-id</code>; excludes password fields, the Zawadi panel, hidden elements and anything behind an open dialog', 'Agent driver: runs <code>click</code>, <code>type_text</code>, <code>select_option</code>, <code>navigate</code>', 'Ghost cursor: an on-screen pointer with a highlight ring and click ripple', '<b>Confirmation gate</b>: sensitive clicks are refused unless you said yes (credits) — enforced here in the browser only', 'Speech out: plays MP3 from the backend; browser voice as fallback', 'Live-event client and announcement queue', 'Audit: one record per task (browser storage + server)'],
+    tech: 'React + TypeScript, zustand stores, installable PWA. Browser storage: the session token and profile, and the e-Mikutano store (rooms, recordings, up to 500 audit records).',
     api: ['<code>POST /api/agent/step</code>', '<code>POST /api/tts</code>', '<code>GET /api/events</code> (SSE)', '<code>POST /api/audit</code>'], tables: ['AuditRecord (via the API)'],
     files: ['frontend/src/esiri/controller.ts', 'driver.ts', 'snapshot.ts', 'cursor.ts', 'stt.ts', 'tts.ts', 'events.ts', 'proactive.ts'] },
-  screens: { kind: 'Your device', lead: 'The four systems NURU operates. One sign-in covers all of them. NURU Hub is NURU\'s own app; e-Mikutano, GMS and WERIS are test copies with fictional people (@mfano.go.tz).',
-    parts: ['NURU Hub — <code>/hub</code>', 'GMS — <code>/gms</code>', 'WERIS — <code>/weris</code>', 'e-Mikutano — <code>/</code>, <code>/rooms</code>'], tech: 'One React app with routes per system; every actionable element carries a stable id for the agent.',
+  screens: { kind: 'Your device', lead: 'The four systems Zawadi operates. One sign-in covers all of them. Zawadi Hub is Zawadi\'s own app; e-Mikutano, GMS and WERIS are test copies with fictional people (@mfano.go.tz).',
+    parts: ['Zawadi Hub — <code>/hub</code>', 'GMS — <code>/gms</code>', 'WERIS — <code>/weris</code>', 'e-Mikutano — <code>/</code>, <code>/rooms</code>'], tech: 'One React app with routes per system; every actionable element carries a stable id for the agent.',
     api: ['<code>/api/day</code>, <code>/api/tasks</code>, <code>/api/mail</code>, <code>/api/weris</code>'], tables: [], files: ['frontend/src/App.tsx', 'frontend/src/hub/*', 'gms/*', 'weris/*', 'pages/*'] },
-  hub: { kind: 'Your device · NURU app', lead: 'Your personal dashboard: today\'s plan, tasks, meetings, minutes from KatibuAI, notifications, activity (the audit log) and settings.',
+  hub: { kind: 'Your device · Zawadi app', lead: 'Your personal dashboard: today\'s plan, tasks, meetings, minutes from KatibuAI, notifications, activity (the audit log) and settings.',
     parts: ['Today (the day view and the morning briefing)', 'Tasks, Meetings, Minutes (the minutes journey)', 'Notifications, Activity, Systems, Settings'], tech: 'React pages under <code>/hub</code>.',
     api: ['<code>GET /api/day</code>', '<code>POST /api/briefing/parse</code>', '<code>GET /api/katibu/jobs</code>', '<code>GET /api/audit</code>'], tables: ['ScheduleItem', 'ScheduledMeeting', 'Task', 'KatibuJob', 'Notification'], files: ['frontend/src/hub/*'] },
   gms: { kind: 'Your device · test copy', lead: 'A test copy of the Government Mailing System. Mail is delivered only between demo users; addresses outside @mfano.go.tz are refused.',
@@ -321,46 +321,46 @@ const NODE_INFO = {
   recorder: { kind: 'Your device', lead: 'Records the meeting from the microphone so KatibuAI can write the minutes. In sample mode it plays a sample meeting aloud instead, and says so.',
     parts: ['MediaRecorder on its own microphone stream (Opus in WebM)', 'Level meter and timer', 'Upload when the meeting ends'], tech: 'MediaRecorder API; <code>multipart/form-data</code> upload.',
     api: ['<code>POST /api/katibu/jobs</code>', '<code>GET /api/katibu/sample</code>'], tables: ['KatibuJob'], files: ['frontend/src/esiri/meetingFlow.ts', 'pages/MeetingKatibu.tsx'] },
-  agent: { kind: 'NURU backend', lead: 'Turns your request and the current screen into the next actions, by asking the AI model. It also turns NURU\'s replies into speech.',
+  agent: { kind: 'Zawadi backend', lead: 'Turns your request and the current screen into the next actions, by asking the AI model. It also turns Zawadi\'s replies into speech.',
     parts: ['System prompt + the app map (every page and element id; sensitive ones marked)', 'Memory per user and session in RAM: last 12 requests; only the newest snapshot sent in full', 'Swahili clock phrases converted in code (“saa nane mchana” = 14:00)', '17 tools: click, type_text, select_option, navigate, ask_confirmation, ask_user, set_language, moderator_mode, schedule_reminder, update_task_status, weris_report, katibu_prepare_minutes, katibu_status, katibu_open_minutes, katibu_send_minutes, finish', 'Speech: OpenAI TTS with one fixed voice, cached in memory'],
     tech: 'FastAPI; OpenAI Chat Completions with function tools, model <code>gpt-4.1-mini</code>, temperature 0.2; TTS <code>gpt-4o-mini-tts</code>, voice coral.',
     api: ['<code>POST /api/agent/step</code>', '<code>POST /api/agent/reset</code>', '<code>POST /api/tts</code>'], tables: ['— (memory is in RAM)'], files: ['backend/app/main.py', 'agent.py', 'app_map.md', 'llm.py', 'tts.py'] },
-  events: { kind: 'NURU backend', lead: 'The backend\'s loudspeaker. When something happens for you — a new task, a reminder, minutes ready — it pushes the news at once to every device where you are signed in.',
+  events: { kind: 'Zawadi backend', lead: 'The backend\'s loudspeaker. When something happens for you — a new task, a reminder, minutes ready — it pushes the news at once to every device where you are signed in.',
     parts: ['One queue per connected device; an event for a user goes to all of that user\'s devices', 'History of the last 200 events per user for long-polling phones', 'Event types: reminder, task_assigned, task_updated, mail_received, katibu_progress, katibu_ready, katibu_sent, katibu_failed, katibu_delivery, weris_report, day_updated, briefing_prompt, demo_reset', 'Each event carries <code>message_sw</code> and <code>message_en</code>'],
     tech: 'Server-Sent Events (<code>text/event-stream</code>) with a long-poll fallback (waits up to 20 s) for tunnels that buffer streams. In memory: lost on restart; clients refetch.',
     api: ['<code>GET /api/events?token=…</code>', '<code>GET /api/events/poll?after=…</code>'], tables: ['Notification'], files: ['backend/app/core.py (Broker)', 'services.py (notify, push)', 'frontend/src/esiri/events.ts'] },
-  app: { kind: 'NURU backend', lead: 'The everyday API: signs you in and stores your day, tasks, mail and reports. It also makes two single AI calls: planning your day from what you said, and drafting the weekly report.',
+  app: { kind: 'Zawadi backend', lead: 'The everyday API: signs you in and stores your day, tasks, mail and reports. It also makes two single AI calls: planning your day from what you said, and drafting the weekly report.',
     parts: ['Sign-in: bcrypt passwords, Bearer session tokens (7 days)', 'Day, briefing, meetings, tasks, reminders, notifications, audit', 'GMS mail (only @mfano.go.tz addresses)', 'WERIS projects, PDP, weekly report', 'Briefing parser: one AI call with a strict schema; times converted in code', 'Weekly report fill: one AI call returns the whole report (English)'],
     tech: 'FastAPI REST + JSON, SQLModel on SQLite.',
     api: ['<code>POST /api/auth/login</code>', '<code>GET /api/day</code>', '<code>POST /api/briefing/parse</code>', '<code>POST /api/tasks</code>', '<code>POST /api/mail/send</code>', '<code>POST /api/weris/reports/current/fill</code>', '<code>POST /api/audit</code>'],
     tables: ['User', 'Session', 'ScheduleItem', 'Task', 'MailMessage', 'WeeklyReport', 'AuditRecord'], files: ['backend/app/api_hub.py', 'api_mail.py', 'api_weris.py', 'core.py'] },
-  link: { kind: 'NURU backend', lead: 'NURU\'s connection to the real KatibuAI. It prepares the recording, hands it over, watches the progress and brings the minutes back.',
-    parts: ['ffmpeg: converts to 16 kHz mono WAV; checks length (≥ 20 s) and loudness', 'Honest audio: a live recording that is missing, short or silent is refused (<code>live_unusable</code>) and NURU asks before using the sample', 'KatibuAI client: OAuth2 password grant + refresh, GraphQL (success code 9001), chunked upload', 'Polls status every 3 s, up to 10 minutes; resumes after a restart', 'On send: copies the minutes into participants\' GMS inboxes'],
+  link: { kind: 'Zawadi backend', lead: 'Zawadi\'s connection to the real KatibuAI. It prepares the recording, hands it over, watches the progress and brings the minutes back.',
+    parts: ['ffmpeg: converts to 16 kHz mono WAV; checks length (≥ 20 s) and loudness', 'Honest audio: a live recording that is missing, short or silent is refused (<code>live_unusable</code>) and Zawadi asks before using the sample', 'KatibuAI client: OAuth2 password grant + refresh, GraphQL (success code 9001), chunked upload', 'Polls status every 3 s, up to 10 minutes; resumes after a restart', 'On send: copies the minutes into participants\' GMS inboxes'],
     tech: 'Python asyncio background tasks, httpx, ffmpeg/ffprobe.',
     api: ['<code>POST /api/katibu/jobs</code> (multipart)', '<code>GET /api/katibu/jobs/{id}</code>', '<code>POST /api/katibu/jobs/{id}/send</code>', '<code>GET /api/katibu/jobs/{id}/documents/{lang}/{fmt}</code> (proxy download)'], tables: ['KatibuJob', 'MailMessage', 'Notification'], files: ['backend/app/katibu.py'] },
-  scheduler: { kind: 'NURU backend', lead: 'A clock inside the backend. Every 10 seconds it looks for reminders that are due and fires each one exactly once.',
+  scheduler: { kind: 'Zawadi backend', lead: 'A clock inside the backend. Every 10 seconds it looks for reminders that are due and fires each one exactly once.',
     parts: ['Meetings: the user\'s lead time before start', 'Tasks: 30 minutes before due', 'Day items: the user\'s lead time'], tech: 'An asyncio loop started with the app.', api: ['— (no route; fires <code>reminder</code> events)', 'demo: <code>POST /api/demo/fire-next-reminder</code>'],
     tables: ['Reminder', 'ScheduledMeeting', 'Task', 'ScheduleItem'], files: ['backend/app/services.py (scheduler_loop)'] },
-  db: { kind: 'NURU backend', lead: 'One SQLite file on the laptop holds everything the backend keeps: people, sessions, the day, tasks, mail, reports, minutes jobs and the audit log.',
-    parts: ['13 tables: User, Session, ScheduledMeeting, ScheduleItem, Reminder, Task, Notification, MailMessage, Project, PdpEntry, WeeklyReport, KatibuJob, AuditRecord', 'Times stored as UTC, shown in Africa/Dar_es_Salaam'], tech: 'SQLite via SQLModel / SQLAlchemy; file <code>backend/data/nuru.db</code>.',
+  db: { kind: 'Zawadi backend', lead: 'One SQLite file on the laptop holds everything the backend keeps: people, sessions, the day, tasks, mail, reports, minutes jobs and the audit log.',
+    parts: ['13 tables: User, Session, ScheduledMeeting, ScheduleItem, Reminder, Task, Notification, MailMessage, Project, PdpEntry, WeeklyReport, KatibuJob, AuditRecord', 'Times stored as UTC, shown in Africa/Dar_es_Salaam'], tech: 'SQLite via SQLModel / SQLAlchemy; one file in <code>backend/data/</code>.',
     api: ['— (used by the backend only)'], tables: ['all of the above'], files: ['backend/app/models.py', 'core.py', 'seed.py'] },
-  google: { kind: 'External · AI service', lead: 'Speech recognition built into Google Chrome. NURU uses the browser\'s Web Speech API; Chrome sends the audio to Google\'s service and returns text.',
+  google: { kind: 'External · AI service', lead: 'Speech recognition built into Google Chrome. Zawadi uses the browser\'s Web Speech API; Chrome sends the audio to Google\'s service and returns text.',
     parts: ['Languages: Swahili (<code>sw-TZ</code>) and English (<code>en-US</code>)', 'Used for requests, spoken answers, the wake word and live captions'], tech: 'Web Speech API (<code>webkitSpeechRecognition</code>).',
-    api: ['— (a browser API; no NURU endpoint)'], tables: [], files: ['frontend/src/esiri/stt.ts', 'captions.ts'], warn: 'That the audio goes to Google\'s servers is Chrome\'s documented behaviour; it is not visible in NURU\'s code (unverified).' },
-  openai: { kind: 'External · AI service', lead: 'The AI model NURU thinks with. Only the NURU backend talks to it; the API key never reaches the browser.',
+    api: ['— (a browser API; no Zawadi endpoint)'], tables: [], files: ['frontend/src/esiri/stt.ts', 'captions.ts'], warn: 'That the audio goes to Google\'s servers is Chrome\'s documented behaviour; it is not visible in Zawadi\'s code (unverified).' },
+  openai: { kind: 'External · AI service', lead: 'The AI model Zawadi thinks with. Only the Zawadi backend talks to it; the API key never reaches the browser.',
     parts: ['Agent steps: <code>gpt-4.1-mini</code> with function tools', 'Speech: <code>gpt-4o-mini-tts</code> (fallback <code>tts-1</code>)', 'Briefing parse and weekly-report fill: the same chat model with a strict JSON schema'], tech: 'OpenAI API over HTTPS (OpenAI Python SDK).',
     api: ['<code>chat.completions.create</code>', '<code>audio.speech.create</code>'], tables: [], files: ['backend/app/llm.py', 'main.py', 'tts.py', 'api_hub.py', 'api_weris.py'] },
-  katibu: { kind: 'External · real system', lead: 'The real KatibuAI meeting-minutes system. NURU uses only its public HTTP API: it uploads the recording, waits, then reads and sends the minutes.',
+  katibu: { kind: 'External · real system', lead: 'The real KatibuAI meeting-minutes system. Zawadi uses only its public HTTP API: it uploads the recording, waits, then reads and sends the minutes.',
     parts: ['As described in KatibuAI\'s own docs: Django with GraphQL and REST on port 8000', 'Celery workers run the pipeline: transcribe, identify speakers, write minutes, translate, render', 'PostgreSQL stores the data; Redis is the queue and cache', 'Google Gemini by default (OpenAI, then Groq as fallbacks)', 'Word and PDF documents; e-mail through SMTP'],
-    tech: 'Separate service (<code>KATIBU_BASE_URL</code>, default localhost:8000). Not modified by NURU.',
+    tech: 'Separate service (<code>KATIBU_BASE_URL</code>, default localhost:8000). Not modified by Zawadi.',
     api: ['<code>POST /oauth2/access_token</code>', '<code>POST /graphql</code>', '<code>POST /api/audio/uploads/</code>'], tables: [], files: ['backend/app/katibu.py', '../KATIBU-AI/INTEGRATION_GUIDE.md'] },
 };
 
 const EDGE_INFO = {
-  step: { dir: 'NURU assistant → Agent service, and the answer back', type: 'REST (JSON over HTTP), Bearer session', sends: '{ session_id, language: "sw",\n  user_message: "Jibu barua ya Dkt. Halima",\n  snapshot: { system, page, state, elements } }\n— or { tool_results, snapshot } on the next round', back: '{ tool_calls: [ { name: "click",\n  arguments: { element_id: "gms.message.12.open" } } ],\n  text: "" }', ep: 'POST /api/agent/step' },
-  tts: { dir: 'NURU assistant asks; Agent service returns the audio', type: 'REST, binary response (audio/mpeg)', sends: '{ text: "Barua imetumwa.", lang: "sw" }', back: 'MP3 audio (cached on the server)', ep: 'POST /api/tts' },
-  sse: { dir: 'Event hub → NURU assistant on every signed-in device', type: 'Server push: Server-Sent Events; long-poll fallback', sends: 'Nothing after connecting (token in the query string)', back: 'event: task_assigned\ndata: { message_sw: "Jolama, umepewa kazi mpya…",\n  message_en, link: "/hub/tasks", announce: true }', ep: 'GET /api/events?token=…  ·  GET /api/events/poll?after=…' },
-  drive: { dir: 'NURU assistant → the screens (inside the page)', type: 'In-page actions, no network', sends: 'click "gms.read.reply"\ntype_text "gms.compose.body" "Habari Dkt. Halima, …"', back: '{ ok: true } — or { ok: false,\n  code: "confirmation_required" } for a sensitive click without your yes', ep: 'none — frontend/src/esiri/driver.ts' },
+  step: { dir: 'Zawadi assistant → Agent service, and the answer back', type: 'REST (JSON over HTTP), Bearer session', sends: '{ session_id, language: "sw",\n  user_message: "Jibu barua ya Dkt. Halima",\n  snapshot: { system, page, state, elements } }\n— or { tool_results, snapshot } on the next round', back: '{ tool_calls: [ { name: "click",\n  arguments: { element_id: "gms.message.12.open" } } ],\n  text: "" }', ep: 'POST /api/agent/step' },
+  tts: { dir: 'Zawadi assistant asks; Agent service returns the audio', type: 'REST, binary response (audio/mpeg)', sends: '{ text: "Barua imetumwa.", lang: "sw" }', back: 'MP3 audio (cached on the server)', ep: 'POST /api/tts' },
+  sse: { dir: 'Event hub → Zawadi assistant on every signed-in device', type: 'Server push: Server-Sent Events; long-poll fallback', sends: 'Nothing after connecting (token in the query string)', back: 'event: task_assigned\ndata: { message_sw: "Jolama, umepewa kazi mpya…",\n  message_en, link: "/hub/tasks", announce: true }', ep: 'GET /api/events?token=…  ·  GET /api/events/poll?after=…' },
+  drive: { dir: 'Zawadi assistant → the screens (inside the page)', type: 'In-page actions, no network', sends: 'click "gms.read.reply"\ntype_text "gms.compose.body" "Habari Dkt. Halima, …"', back: '{ ok: true } — or { ok: false,\n  code: "confirmation_required" } for a sensitive click without your yes', ep: 'none — frontend/src/esiri/driver.ts' },
   rest: { dir: 'The screens → App services, and back', type: 'REST (JSON), Bearer session', sends: '{ to: ["halima@mfano.go.tz"],\n  subject: "Re: Bajeti", body: "Habari Dkt. Halima, …" }', back: '{ ok: true, message: {…}, delivered_to: [2] }', ep: 'POST /api/mail/send' },
   upload: { dir: 'Meeting recorder → KatibuAI link', type: 'Multipart upload (multipart/form-data), Bearer session', sends: 'audio = meeting.webm (Opus), room_id, title', back: 'the new job { id, status: "uploading", … }\n— or 422 { code: "live_unusable", reason: "too_short" }', ep: 'POST /api/katibu/jobs' },
   progress: { dir: 'KatibuAI link → Event hub (inside the backend)', type: 'In-process call', sends: 'push(user, "katibu_progress", { job: { stage: "TRANSCRIBE", progress: 40 } })', back: '—', ep: 'katibu.py → services.push / notify' },
@@ -369,9 +369,9 @@ const EDGE_INFO = {
   sched: { dir: 'Scheduler → Event hub', type: 'In-process call, every 10 s', sends: 'notify(user, "reminder", message_sw: "Jolama, una Kikao cha Kamati ya Bajeti baada ya dakika 5. Niuanzishe kwa niaba yako?")', back: '—', ep: 'services.scheduler_loop → fire_reminder' },
   sql: { dir: 'App services ↔ Database', type: 'SQL through SQLModel / SQLAlchemy', sends: 'INSERT Task (title, assigned_to, due_at …)', back: 'rows', ep: 'tables Task, Reminder, MailMessage, WeeklyReport, AuditRecord …' },
   jobs: { dir: 'KatibuAI link → Database', type: 'SQL', sends: 'KatibuJob status, minutes (SW + EN), deliveries;\nMailMessage copies for participants', back: 'rows', ep: 'tables KatibuJob, MailMessage' },
-  google: { dir: 'NURU assistant → Google (inside Chrome)', type: 'External AI service: Web Speech API', sends: 'Microphone audio while NURU listens', back: 'Text, e.g. "Nuru, jibu barua ya Dkt. Halima"', ep: 'none in NURU code (browser API)', warn: 'Leaves the machine. Destination is Chrome\'s behaviour, unverified in NURU code.' },
+  google: { dir: 'Zawadi assistant → Google (inside Chrome)', type: 'External AI service: Web Speech API', sends: 'Microphone audio while Zawadi listens', back: 'Text, e.g. "Zawadi, jibu barua ya Dkt. Halima"', ep: 'none in Zawadi code (browser API)', warn: 'Leaves the machine. Destination is Chrome\'s behaviour, unverified in Zawadi code.' },
   ai: { dir: 'Agent service → OpenAI', type: 'External AI service over HTTPS', sends: 'System prompt + app map, your name and e-mail,\nthe last 12 requests and the newest snapshot;\nfor speech: the sentence to say', back: 'Tool calls, e.g. type_text("gms.compose.body", …);\nMP3 audio', ep: 'chat.completions.create (gpt-4.1-mini)  ·  audio.speech.create (gpt-4o-mini-tts)', warn: 'Leaves the machine: request text and screen content (visible labels and field values).' },
-  aiapp: { dir: 'App services → OpenAI', type: 'External AI service over HTTPS, strict JSON schema', sends: 'Briefing: what you said about your day.\nWeekly report: the items, last week\'s promises\nand this week\'s tasks, PDP and NURU activity', back: 'Timetable items; report items { outcome, progress, plan, blockers, needs_review }', ep: 'POST /api/briefing/parse  ·  POST /api/weris/reports/current/fill', warn: 'Leaves the machine: your spoken plan and work data.' },
+  aiapp: { dir: 'App services → OpenAI', type: 'External AI service over HTTPS, strict JSON schema', sends: 'Briefing: what you said about your day.\nWeekly report: the items, last week\'s promises\nand this week\'s tasks, PDP and Zawadi activity', back: 'Timetable items; report items { outcome, progress, plan, blockers, needs_review }', ep: 'POST /api/briefing/parse  ·  POST /api/weris/reports/current/fill', warn: 'Leaves the machine: your spoken plan and work data.' },
   kauth: { dir: 'KatibuAI link → KatibuAI', type: 'OAuth2 password grant, then GraphQL with a Bearer token', sends: 'mutation createMeeting(input: { title, meetingType: UNSTRUCTURED,\n  source: UPLOAD, spokenLanguage: MIXED, chairName, attendeeNames })', back: '{ code: 9001, data: { uid, status, title } }', ep: 'POST /oauth2/access_token  ·  POST /graphql', warn: 'Leaves the machine: meeting title, chair and attendee names; later the recipient e-mails.' },
   kupload: { dir: 'KatibuAI link → KatibuAI', type: 'Chunked REST upload', sends: 'POST /api/audio/uploads/ { meeting_uid, total_bytes, sha256 }\nPUT …/chunks/0, 1, 2 …  then POST …/complete', back: '{ success: true, upload_uid, chunk_size }', ep: 'POST /api/audio/uploads/', warn: 'Leaves the machine: the meeting recording (16 kHz WAV).' },
   kpoll: { dir: 'KatibuAI link → KatibuAI, every 3 s for up to 10 minutes', type: 'GraphQL query', sends: 'getProcessingStatus(meetingUid)', back: '{ status: "PROCESSING", stage: "WRITE_MINUTES", progress: 70 }\nthen getMeetingMinutes(SW), getMeetingMinutes(EN)', ep: 'POST /graphql', warn: 'Leaves the machine: only the meeting id.' },
@@ -382,20 +382,20 @@ const EDGE_INFO = {
 
 const FLOWS = {
   B: { name: 'B · One agent step', steps: [
-    { nodes: ['assistant', 'google'], path: [['google', 1], ['google', -1]], p: 'You say “Nuru, jibu barua ya Dkt. Halima”. Chrome\'s speech recognition turns it into text.', t: 'Web Speech API · <code>sw-TZ</code> / <code>en-US</code>' },
-    { nodes: ['assistant', 'screens', 'gms'], path: [['drive', -1]], p: 'NURU reads the screen: which page is open and which buttons and fields are visible.', t: '<code>buildSnapshot()</code> · elements with <code>data-esiri-id</code>, password fields excluded' },
-    { nodes: ['assistant', 'agent'], path: [['step', 1]], p: 'NURU sends your request and the screen to the Agent service.', t: 'REST · <code>POST /api/agent/step</code> {user_message, snapshot}' },
+    { nodes: ['assistant', 'google'], path: [['google', 1], ['google', -1]], p: 'You say “Zawadi, jibu barua ya Dkt. Halima”. Chrome\'s speech recognition turns it into text.', t: 'Web Speech API · <code>sw-TZ</code> / <code>en-US</code>' },
+    { nodes: ['assistant', 'screens', 'gms'], path: [['drive', -1]], p: 'Zawadi reads the screen: which page is open and which buttons and fields are visible.', t: '<code>buildSnapshot()</code> · elements with <code>data-esiri-id</code>, password fields excluded' },
+    { nodes: ['assistant', 'agent'], path: [['step', 1]], p: 'Zawadi sends your request and the screen to the Agent service.', t: 'REST · <code>POST /api/agent/step</code> {user_message, snapshot}' },
     { nodes: ['agent', 'openai'], path: [['ai', 1]], p: 'The Agent service asks the AI model what to do next.', t: 'OpenAI Chat Completions · <code>gpt-4.1-mini</code> · 17 tools · last 12 requests' },
     { nodes: ['openai', 'agent', 'assistant'], path: [['ai', -1], ['step', -1]], p: 'The model answers with actions: open the e-mail, press Reply, type the answer.', t: '<code>{tool_calls: [click, click, type_text]}</code>' },
     { nodes: ['assistant', 'screens', 'gms'], path: [['drive', 1]], p: 'The ghost cursor clicks and types in GMS, so you can watch every move.', t: '<code>driver.ts</code> · <code>click("gms.read.reply")</code> · <code>type_text("gms.compose.body", …)</code>' },
-    { nodes: ['assistant'], gate: true, p: 'Sending is consequential, so NURU asks: “Nitume barua hii?” Without your yes, the Send click is refused.', t: '<code>ask_confirmation</code> → credits · <code>driver.ts</code> refuses sensitive clicks (enforced in the browser)' },
+    { nodes: ['assistant'], gate: true, p: 'Sending is consequential, so Zawadi asks: “Nitume barua hii?” Without your yes, the Send click is refused.', t: '<code>ask_confirmation</code> → credits · <code>driver.ts</code> refuses sensitive clicks (enforced in the browser)' },
     { nodes: ['screens', 'gms', 'app', 'db'], path: [['rest', 1], ['sql', 1]], p: 'You say yes. The e-mail is sent in GMS and stored.', t: 'REST · <code>POST /api/mail/send</code> · only <code>@mfano.go.tz</code> · table <code>MailMessage</code>' },
-    { nodes: ['assistant', 'app', 'db'], path: [['rest', 1], ['sql', 1]], p: 'NURU writes one audit record for the whole task.', t: '<code>POST /api/audit</code> → <code>AuditRecord</code> · copy in browser storage' },
-    { nodes: ['assistant', 'agent', 'openai'], path: [['step', 1], ['ai', 1], ['ai', -1], ['step', -1]], p: 'NURU sends the results and a fresh snapshot; the loop repeats until the AI says the task is finished.', t: '<code>{tool_results}</code> + snapshot → … → <code>finish</code>' },
-    { nodes: ['assistant', 'agent', 'openai'], path: [['ai', 1], ['ai', -1], ['tts', 1]], p: 'NURU speaks the result: “Barua imetumwa kwa Dkt. Halima.”', t: 'REST · <code>POST /api/tts</code> → OpenAI <code>gpt-4o-mini-tts</code> → MP3' },
+    { nodes: ['assistant', 'app', 'db'], path: [['rest', 1], ['sql', 1]], p: 'Zawadi writes one audit record for the whole task.', t: '<code>POST /api/audit</code> → <code>AuditRecord</code> · copy in browser storage' },
+    { nodes: ['assistant', 'agent', 'openai'], path: [['step', 1], ['ai', 1], ['ai', -1], ['step', -1]], p: 'Zawadi sends the results and a fresh snapshot; the loop repeats until the AI says the task is finished.', t: '<code>{tool_results}</code> + snapshot → … → <code>finish</code>' },
+    { nodes: ['assistant', 'agent', 'openai'], path: [['ai', 1], ['ai', -1], ['tts', 1]], p: 'Zawadi speaks the result: “Barua imetumwa kwa Dkt. Halima.”', t: 'REST · <code>POST /api/tts</code> → OpenAI <code>gpt-4o-mini-tts</code> → MP3' },
   ] },
-  C: { name: 'C · NURU to NURU and reminders', steps: [
-    { nodes: ['screens', 'weris'], p: 'On Dkt. Halima\'s laptop, her NURU fills the WERIS task form for Jolama and, after her yes, submits it.', t: '<code>weris.task.submit</code> · sensitive when the assignee is someone else' },
+  C: { name: 'C · Zawadi to Zawadi and reminders', steps: [
+    { nodes: ['screens', 'weris'], p: 'On Dkt. Halima\'s laptop, her Zawadi fills the WERIS task form for Jolama and, after her yes, submits it.', t: '<code>weris.task.submit</code> · sensitive when the assignee is someone else' },
     { nodes: ['screens', 'weris', 'app'], path: [['rest', 1]], p: 'The task goes to App services.', t: 'REST · <code>POST /api/tasks</code>' },
     { nodes: ['app', 'db'], path: [['sql', 1]], p: 'The task is saved, with a reminder 30 minutes before it is due.', t: 'tables <code>Task</code>, <code>Reminder</code>' },
     { nodes: ['app', 'events'], path: [['notify', 1]], p: 'App services creates a “new task” event for Jolama.', t: '<code>notify()</code> → <code>Notification</code> row + event <code>task_assigned</code>' },
@@ -408,27 +408,27 @@ const FLOWS = {
     { nodes: ['recorder', 'mikutano', 'screens'], p: 'During the meeting, the Meeting recorder records the microphone.', t: 'MediaRecorder · Opus in WebM · its own microphone stream' },
     { nodes: ['recorder', 'link'], path: [['upload', 1]], p: 'When the meeting ends, the recording is uploaded to the KatibuAI link.', t: 'Multipart · <code>POST /api/katibu/jobs</code>' },
     { nodes: ['link'], p: 'The audio is converted and checked. A missing, too-short or silent recording is never swapped for the sample without asking you.', t: 'ffmpeg → 16 kHz mono WAV · ≥ 20 s · <code>live_unusable</code>' },
-    { nodes: ['link', 'katibu'], path: [['kauth', 1], ['kauth', -1]], p: 'NURU signs in to KatibuAI and creates the meeting.', t: 'OAuth2 password grant · GraphQL <code>createMeeting</code>' },
+    { nodes: ['link', 'katibu'], path: [['kauth', 1], ['kauth', -1]], p: 'Zawadi signs in to KatibuAI and creates the meeting.', t: 'OAuth2 password grant · GraphQL <code>createMeeting</code>' },
     { nodes: ['link', 'katibu'], path: [['kupload', 1]], p: 'The recording is sent in chunks.', t: 'REST · <code>POST /api/audio/uploads/</code> → <code>PUT …/chunks/{i}</code> → <code>…/complete</code>' },
     { nodes: ['katibu'], p: 'KatibuAI\'s workers transcribe, identify speakers and write the minutes.', t: 'Celery pipeline · Gemini by default (KatibuAI docs)' },
-    { nodes: ['link', 'katibu'], path: [['kpoll', 1], ['kpoll', -1]], p: 'NURU asks for the status every 3 seconds, for up to 10 minutes.', t: 'GraphQL <code>getProcessingStatus</code>' },
+    { nodes: ['link', 'katibu'], path: [['kpoll', 1], ['kpoll', -1]], p: 'Zawadi asks for the status every 3 seconds, for up to 10 minutes.', t: 'GraphQL <code>getProcessingStatus</code>' },
     { nodes: ['link', 'events', 'assistant'], path: [['progress', 1], ['sse', 1]], p: 'Each change becomes a progress event; the Hub\'s minutes journey moves on.', t: 'event <code>katibu_progress</code> · SSE' },
     { nodes: ['link', 'katibu', 'db'], path: [['kpoll', 1], ['kpoll', -1], ['jobs', 1]], p: 'When ready, the minutes are fetched in Swahili and English and saved.', t: 'GraphQL <code>getMeetingMinutes(SW, EN)</code>, <code>getMeetingDocuments</code> · table <code>KatibuJob</code>' },
-    { nodes: ['link', 'events', 'assistant'], path: [['progress', 1], ['sse', 1]], p: 'NURU says: “Kumbukumbu ziko tayari. Ungependa kuziona?”', t: 'event <code>katibu_ready</code>' },
-    { nodes: ['assistant'], gate: true, p: 'Sending is consequential: NURU asks “Nitume kumbukumbu hizi kwa washiriki?” and waits for your yes.', t: '<code>katibu_send_minutes</code> · credits checked in its executor' },
+    { nodes: ['link', 'events', 'assistant'], path: [['progress', 1], ['sse', 1]], p: 'Zawadi says: “Kumbukumbu ziko tayari. Ungependa kuziona?”', t: 'event <code>katibu_ready</code>' },
+    { nodes: ['assistant'], gate: true, p: 'Sending is consequential: Zawadi asks “Nitume kumbukumbu hizi kwa washiriki?” and waits for your yes.', t: '<code>katibu_send_minutes</code> · credits checked in its executor' },
     { nodes: ['screens', 'app', 'link', 'katibu'], path: [['rest', 1], ['minutes', 1], ['kauth', 1]], p: 'KatibuAI approves the minutes and e-mails the PDFs to the recipients.', t: '<code>POST /api/katibu/jobs/{id}/send</code> → GraphQL <code>approveAndSendMinutes</code>(SW, EN, PDF)' },
     { nodes: ['link', 'db'], path: [['jobs', 1]], p: 'A copy also goes into each participant\'s GMS inbox.', t: '<code>MailMessage</code> from <code>katibu@mfano.go.tz</code>' },
-    { nodes: ['link', 'events', 'assistant'], path: [['progress', 1], ['sse', 1]], p: 'The participants\' NURU announce the new e-mail.', t: 'event <code>mail_received</code> · owner gets <code>katibu_sent</code>' },
+    { nodes: ['link', 'events', 'assistant'], path: [['progress', 1], ['sse', 1]], p: 'The participants\' Zawadi announce the new e-mail.', t: 'event <code>mail_received</code> · owner gets <code>katibu_sent</code>' },
   ] },
   E: { name: 'E · The weekly report fill', steps: [
     { nodes: ['assistant', 'agent', 'openai'], path: [['step', 1], ['ai', 1], ['ai', -1], ['step', -1]], p: 'You say “Jaza ripoti yangu ya wiki…”. The AI chooses the weekly-report tool.', t: 'agent step → <code>weris_report(action: fill, scope: all)</code>' },
-    { nodes: ['assistant', 'screens', 'weris'], path: [['drive', 1]], p: 'NURU opens the WERIS report form on screen.', t: '<code>navigate("weris_report")</code>' },
+    { nodes: ['assistant', 'screens', 'weris'], path: [['drive', 1]], p: 'Zawadi opens the WERIS report form on screen.', t: '<code>navigate("weris_report")</code>' },
     { nodes: ['screens', 'weris', 'app', 'openai'], path: [['rest', 1], ['aiapp', 1]], p: 'One request asks the AI to draft every item at once.', t: 'REST · <code>POST /api/weris/reports/current/fill</code>' },
     { nodes: ['openai', 'app', 'screens', 'weris'], path: [['aiapp', -1], ['rest', -1]], p: 'The AI returns the whole report, in English, as structured data. Nothing is saved yet.', t: 'strict JSON schema <code>weekly_report</code> · outcome, progress, plan, blockers' },
     { nodes: ['assistant', 'screens', 'weris'], path: [['drive', 1]], p: 'The ghost cursor types each card and saves the draft.', t: '<code>type_text("weris.report.{key}.progress", …)</code> · <code>PUT /api/weris/reports/current</code>' },
-    { nodes: ['assistant'], gate: true, p: 'NURU asks “Niwasilishe ripoti hii?”. Submitting needs your yes.', t: '<code>weris.report.submit</code> is sensitive · gate in <code>driver.ts</code>' },
+    { nodes: ['assistant'], gate: true, p: 'Zawadi asks “Niwasilishe ripoti hii?”. Submitting needs your yes.', t: '<code>weris.report.submit</code> is sensitive · gate in <code>driver.ts</code>' },
     { nodes: ['screens', 'weris', 'app', 'db'], path: [['rest', 1], ['sql', 1]], p: 'The report is submitted and stored.', t: '<code>PUT /api/weris/reports/current</code> (submit) · table <code>WeeklyReport</code>' },
-    { nodes: ['app', 'events', 'assistant'], path: [['notify', 1], ['sse', 1]], p: 'Dkt. Halima\'s NURU is told: “Jolama amewasilisha ripoti ya wiki.”', t: 'event <code>weris_report</code> → every session of the supervisor' },
+    { nodes: ['app', 'events', 'assistant'], path: [['notify', 1], ['sse', 1]], p: 'Dkt. Halima\'s Zawadi is told: “Jolama amewasilisha ripoti ya wiki.”', t: 'event <code>weris_report</code> → every session of the supervisor' },
   ] },
 };
 
@@ -444,14 +444,14 @@ const el = (tag, attrs = {}, parent = svg) => {
 };
 const text = (parent, x, y, str, cls, extra = {}) => { const t = el('text', { x, y, class: cls, ...extra }, parent); t.textContent = str; return t; };
 function icon(parent, key, x, y, size, color) {
-  if (key === 'nuru') return el('image', { href: 'assets/nuru-mark.svg', x, y, width: size, height: size }, parent);
+  if (key === 'mark') return el('image', { href: 'assets/zawadi-mark.svg', x, y, width: size, height: size }, parent);
   const ic = ICONS[key];
   const g = el('g', { transform: `translate(${x} ${y}) scale(${size / Math.max(ic.w, ic.h)})` }, parent);
   el('path', { d: ic.d, fill: color, transform: `translate(${(Math.max(ic.w, ic.h) - ic.w) / 2} ${(Math.max(ic.w, ic.h) - ic.h) / 2})` }, g);
   return g;
 }
 function tile(parent, key, x, y, fill = '#254e96') {
-  if (key === 'nuru') return icon(parent, 'nuru', x, y, 40);
+  if (key === 'mark') return icon(parent, 'mark', x, y, 40);
   el('rect', { x, y, width: 40, height: 40, rx: 10, fill }, parent);
   icon(parent, key, x + 9, y + 9, 22, '#fff');
 }
@@ -597,7 +597,7 @@ function unfocus() {
 
 const panel = document.getElementById('panel');
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
-const iconSvg = (key) => key === 'nuru' ? '<img src="assets/nuru-mark.svg" alt="">' : `<svg viewBox="0 0 ${ICONS[key].w} ${ICONS[key].h}"><path d="${ICONS[key].d}"/></svg>`;
+const iconSvg = (key) => key === 'mark' ? '<img src="assets/zawadi-mark.svg" alt="">' : `<svg viewBox="0 0 ${ICONS[key].w} ${ICONS[key].h}"><path d="${ICONS[key].d}"/></svg>`;
 let lastFocus = null;
 function openPanel(kind, id) {
   lastFocus = document.activeElement;
@@ -606,7 +606,7 @@ function openPanel(kind, id) {
     const n = NODES[id], i = NODE_INFO[id];
     document.getElementById('pIcon').innerHTML = iconSvg(n.icon || 'window');
     document.getElementById('pKind').textContent = i.kind;
-    document.getElementById('pTitle').textContent = n.group ? 'Screens NURU operates' : n.name;
+    document.getElementById('pTitle').textContent = n.group ? 'Screens Zawadi operates' : n.name;
     body.innerHTML = `<p class="lead">${i.lead}</p>
       ${i.warn ? `<p class="warn">${i.warn}</p>` : ''}
       <h3>Inside</h3><ul>${i.parts.map((p) => `<li>${p}</li>`).join('')}</ul>
@@ -676,7 +676,7 @@ document.querySelector('#printBtn svg').setAttribute('viewBox', `0 0 ${ICONS.pri
 document.getElementById('legend').innerHTML = `
   <span class="lt">Legend</span>
   <span class="it"><span class="sw" style="background:#eef3fc;border-color:#254e96"></span>Your device</span>
-  <span class="it"><span class="sw" style="background:#ecf9ff;border-color:#0b5b8c"></span>NURU backend</span>
+  <span class="it"><span class="sw" style="background:#ecf9ff;border-color:#0b5b8c"></span>Zawadi backend</span>
   <span class="it"><span class="sw" style="background:#f6f2ee;border-color:#1e2761"></span>External</span>
   <span class="it"><svg width="44" height="12"><line x1="2" y1="6" x2="36" y2="6" stroke="#1e2761" stroke-width="2.2"/><path d="M34 2 L42 6 L34 10z" fill="#1e2761"/></svg>Request / response</span>
   <span class="it"><svg width="44" height="12"><line x1="2" y1="6" x2="36" y2="6" stroke="#1e2761" stroke-width="2.2" stroke-dasharray="7 5"/><path d="M34 2 L42 6 L34 10z" fill="#1e2761"/></svg>Server push</span>

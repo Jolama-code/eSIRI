@@ -1,5 +1,5 @@
 /**
- * The real NURU ↔ KatibuAI link with a LIVE recording: Chrome's fake microphone plays a generated Swahili
+ * The real Zawadi ↔ KatibuAI link with a LIVE recording: Chrome's fake microphone plays a generated Swahili
  * budget meeting (OpenAI TTS; it decides to buy ten computers and names Juma Hassan as responsible), the meeting
  * records it, Leave → "Ndiyo, ziandae" → real KatibuAI → the minutes must mention the computers.
  * Sends nothing by e-mail. Needs OPENAI_API_KEY (to generate the audio once) and KatibuAI on :8000.

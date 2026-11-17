@@ -1,5 +1,5 @@
 /**
- * NURU v2 agent scenarios (section 14 of the build prompt). Needs OPENAI_API_KEY.
+ * Zawadi v2 agent scenarios (section 14 of the build prompt). Needs OPENAI_API_KEY.
  * Assertions check the final state (server data, events received), not the model's exact steps.
  */
 import { test, expect, type Browser, type Page } from '@playwright/test';
@@ -48,7 +48,7 @@ async function lastAudit(page: Page) {
   return page.evaluate(() => (window as any).__esiriTest.useApp.getState().audit[0]);
 }
 
-test.describe('NURU v2 agent @llm', () => {
+test.describe('Zawadi v2 agent @llm', () => {
   test('1. reply to Dkt. Halima in GMS after one confirmation; she receives it', async ({ browser }) => {
     test.setTimeout(240_000);
     const halima = await device(browser, 'halima', '/gms/inbox');
@@ -88,7 +88,7 @@ test.describe('NURU v2 agent @llm', () => {
     expect((await lastAudit(page)).outcome).toBe('Declined');
   });
 
-  test('4. Halima assigns Jolama a task through WERIS; his NURU receives it', async ({ browser }) => {
+  test('4. Halima assigns Jolama a task through WERIS; his Zawadi receives it', async ({ browser }) => {
     test.setTimeout(240_000);
     const jolama = await device(browser, 'jolama', '/hub');
     const halima = await device(browser, 'halima', '/hub');
@@ -105,7 +105,7 @@ test.describe('NURU v2 agent @llm', () => {
     await expect.poll(() => got(jolama, 'task_assigned', t0), { timeout: 5000 }).toBe(true);
   });
 
-  test('5. Jolama tells Dkt. Halima he finished; the status is done and her NURU is told', async ({ browser }) => {
+  test('5. Jolama tells Dkt. Halima he finished; the status is done and her Zawadi is told', async ({ browser }) => {
     test.setTimeout(240_000);
     const req = (await browser.newContext()).request;
     const { token } = await apiLogin(req, 'halima');

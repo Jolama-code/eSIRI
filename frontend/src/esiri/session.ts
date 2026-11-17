@@ -1,5 +1,5 @@
 /**
- * NURU account session: the bearer token (localStorage), the signed-in user, and an authenticated
+ * Zawadi account session: the bearer token (localStorage), the signed-in user, and an authenticated
  * fetch helper used by every /api call. Signing in to the Hub signs in to every mock system (SSO).
  */
 import { create } from 'zustand';
@@ -136,7 +136,7 @@ export async function api<T = unknown>(path: string, opts: { method?: string; bo
     });
   } catch (e) {
     if ((e as Error).name === 'AbortError') throw e;
-    throw new HttpError(0, 'network', 'The NURU service could not be reached.', 'Huduma ya NURU haipatikani.');
+    throw new HttpError(0, 'network', 'The Zawadi service could not be reached.', 'Huduma ya Zawadi haipatikani.');
   }
   let j: unknown = null;
   try {

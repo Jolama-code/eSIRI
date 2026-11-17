@@ -11,7 +11,7 @@ const errs = [];
 async function page(w, h) {
   const p = await b.newPage({ viewport: { width: w, height: h } });
   p.on('pageerror', (e) => errs.push(e.message));
-  await p.goto('file://' + ROOT + '/nuru-architecture.html');
+  await p.goto('file://' + ROOT + '/zawadi-architecture.html');
   await p.waitForSelector('body[data-ready="1"]');
   return p;
 }
@@ -42,9 +42,9 @@ for (const [f, n] of Object.entries(flows)) {
 }
 // Static export: PNG + A3 PDF
 const q = await page(1920, 1080);
-await q.screenshot({ path: `${ROOT}/nuru-architecture-static.png` });
+await q.screenshot({ path: `${ROOT}/zawadi-architecture-static.png` });
 await q.emulateMedia({ media: 'print' });
-await q.pdf({ path: `${ROOT}/nuru-architecture-A3.pdf`, format: 'A3', landscape: true, printBackground: true, preferCSSPageSize: true });
+await q.pdf({ path: `${ROOT}/zawadi-architecture-A3.pdf`, format: 'A3', landscape: true, printBackground: true, preferCSSPageSize: true });
 await q.screenshot({ path: `${OUT}/print-preview.png`, fullPage: true });
 console.log('flows', flows, 'errors', errs);
 await b.close();

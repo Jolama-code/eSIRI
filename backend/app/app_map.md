@@ -1,4 +1,4 @@
-# NURU app map (NURU Hub, e-Mikutano, GMS, WERIS)
+# Zawadi app map (Zawadi Hub, e-Mikutano, GMS, WERIS)
 
 The signed-in user is in `snapshot.user` (name, role supervisor|staff, id). The UI language is English (en) or Swahili (sw); element ids never change with language, only labels do.
 
@@ -21,7 +21,7 @@ Only these addresses exist; sending outside mfano.go.tz is refused.
 - `state.rooms`: every room with `id`, `name`, `token`, `last_session`. Use these ids to build element ids such as `room-card.{roomId}.open`.
 - `state.current_room` (on room and meeting pages): `settings` toggles, `viewer_code`, `moderator_code`, `shared_users`, `presentation`, `recordings`.
 - `state.meeting` (meeting page only): `live`, `recording`, `mic` (on/off; off = muted), `camera`, `screen_share`, `hand_raised`, `moderator_mode`, `lobby` (people waiting), `participants` (admitted), `panel`, `last_chat_messages`, `notes_length`.
-- `state.open_reminders`: reminders NURU is showing right now (any system).
+- `state.open_reminders`: reminders Zawadi is showing right now (any system).
 - `elements`: the actionable elements visible right now: `{id, role, label, state/value, disabled, sensitive}`. When a modal is open (`open_modal`), only the modal's elements are listed; close it or finish inside it first.
 - `sensitive: true` elements can only be clicked after ask_confirmation was approved (each approval allows `covers` sensitive clicks).
 
@@ -82,7 +82,7 @@ Entry screen of e-Mikutano. Shown when signed out.
 - Left sidebar: `meeting.panel.public-chat` (shows Public Chat), `meeting.panel.shared-notes` (shows Shared Notes). Users list shows "Jolama (You)".
 - Public Chat (visible when panel = chat): `meeting.chat-input` then `meeting.chat-send` to post a message. Typical batch: click `meeting.panel.public-chat` only if the chat panel is not already open, type_text `meeting.chat-input`, click `meeting.chat-send`.
 - Shared Notes (visible when panel = notes): `meeting.notes-input` (type_text replaces the whole notes text).
-- Moderator mode (moderator_mode tool): a badge "Nuru is moderating" with `meeting.moderator.handback` ("I'm back"; hands control back). A waiting-room panel lists people with `meeting.lobby.{id}.admit` and `meeting.lobby.{id}.deny`; in moderator mode NURU admits them by itself.
+- Moderator mode (moderator_mode tool): a badge "Zawadi is moderating" with `meeting.moderator.handback` ("I'm back"; hands control back). A waiting-room panel lists people with `meeting.lobby.{id}.admit` and `meeting.lobby.{id}.deny`; in moderator mode Zawadi admits them by itself.
 - A red "Recording for KatibuAI" label shows that the meeting audio is being recorded for the minutes.
 - Top bar: `meeting.record-toggle` ⚠ (Start recording / Stop recording; sensitive both ways; disabled when the room's Allow recording setting is off), `meeting.leave` ⚠ (Leave meeting; sensitive).
 - Bottom bar: `meeting.mic-toggle` (mute/unmute; state off = muted), `meeting.camera-toggle`, `meeting.screenshare-toggle`, `meeting.raise-hand` (raise/lower hand), `meeting.reactions-btn` opens the reactions picker with `meeting.reaction.thumbs`, `meeting.reaction.clap`, `meeting.reaction.laugh`, `meeting.reaction.heart`, `meeting.reaction.party`.
@@ -92,7 +92,7 @@ Entry screen of e-Mikutano. Shown when signed out.
 - `audit.export-csv` downloads the log as CSV. `audit.clear` opens a confirmation (open_modal = clear-audit) with `audit.clear-confirm` ⚠ and `audit.clear-cancel`.
 - Filter chips `audit.filter.all`, `audit.filter.completed`, `audit.filter.declined`, `audit.filter.cancelled`, `audit.filter.failed`.
 
-## NURU Hub (system = hub)
+## Zawadi Hub (system = hub)
 
 ### Today `/hub` (page hub_today)
 - `state.today`: the day's items in time order (`key`, `time`, `title`, `kind`, `done`; meetings also `room_id`, `meeting_status`, `i_organize`). `state.my_tasks`, `state.unread_mail`, `state.minutes`.
@@ -137,7 +137,7 @@ Entry screen of e-Mikutano. Shown when signed out.
 ### Special tasks `/weris/tasks` (weris_tasks)
 - `state.special_tasks`: `id`, `title`, `assigned_by`, `assigned_to`, `due`, `status`, `can_change_status` (true for the user's own tasks).
 - `weris.tasks.add`: "Add Special Tasks" opens the modal weris-add-task with: `weris.task.assignee` (select; options are people with their user id as value), `weris.task.title`, `weris.task.description`, `weris.task.start-date` (YYYY-MM-DD, defaults to today), `weris.task.end-date` (YYYY-MM-DD), `weris.task.due-time` (HH:MM), `weris.task.submit` ⚠ (sensitive when the assignee is not the user), `weris.task.cancel`. `state.add_task_form` shows the values and any error.
-- Row status select (own tasks only): `weris.task.{id}.status` with values assigned, in_progress, done. Changing it tells the assigner's NURU.
+- Row status select (own tasks only): `weris.task.{id}.status` with values assigned, in_progress, done. Changing it tells the assigner's Zawadi.
 
 ### Always available
 - `toast.close` closes the visible notification (it is not listed in `elements`; use it only when the user asks to close a notification and `toasts` is not empty).

@@ -1,5 +1,5 @@
 /**
- * NURU's typing box: a textarea that grows upwards to about 6 lines, then scrolls inside; Enter sends,
+ * Zawadi's typing box: a textarea that grows upwards to about 6 lines, then scrolls inside; Enter sends,
  * Shift+Enter makes a new line; long messages wrap in the conversation. Hub, GMS, WERIS and e-Mikutano.
  * The agent call is stubbed, so no OpenAI request is made.
  */
@@ -7,7 +7,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { openPanel, resetDemo, signIn } from './helpers';
 
 const LONG =
-  'Tafadhali niandalie barua pepe kwa Dkt. Halima Said kuhusu maendeleo ya mradi wa NURU, ukieleza kwamba majaribio ' +
+  'Tafadhali niandalie barua pepe kwa Dkt. Halima Said kuhusu maendeleo ya mradi wa Zawadi, ukieleza kwamba majaribio ' +
   'ya simu yamekamilika, kumbukumbu za vikao zinatumwa kupitia KatibuAI, na ripoti ya wiki itawasilishwa kabla ya Ijumaa. ' +
   'Neno-refu-sana-lisilo-na-nafasi-ambalo-lazima-likatwe-ndani-ya-kiputo-bila-kupanua-dirisha-la-mazungumzo-kabisa-kabisa.';
 

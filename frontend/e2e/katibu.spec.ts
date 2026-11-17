@@ -35,7 +35,7 @@ test('KatibuAI: sample recording → READY minutes → sent to the test recipien
   expect(job.minutes_en.summary?.length).toBeGreaterThan(20);
   expect(job.documents.some((d: { format: string }) => d.format === 'PDF')).toBe(true);
 
-  // The PDF downloads through NURU's backend.
+  // The PDF downloads through Zawadi's backend.
   const pdf = await request.get(`${API}/api/katibu/jobs/${job.id}/documents/SW/PDF`, { headers: auth(token) });
   expect(pdf.status()).toBe(200);
   expect((await pdf.body()).subarray(0, 4).toString()).toBe('%PDF');

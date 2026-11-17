@@ -1,5 +1,5 @@
 /**
- * NURU v2 without the LLM: accounts and single sign-on, the day timeline, reminders across devices,
+ * Zawadi v2 without the LLM: accounts and single sign-on, the day timeline, reminders across devices,
  * GMS and WERIS between users (live SSE), moderator mode, the PWA, the code-enforced gates and layout.
  */
 import { test, expect, type Browser, type Page } from '@playwright/test';
@@ -63,7 +63,7 @@ test.describe('accounts and single sign-on', () => {
   });
 });
 
-test.describe('NURU Hub', () => {
+test.describe('Zawadi Hub', () => {
   test('Today: timeline in time order with the "now" marker in the right place', async ({ page }) => {
     await signIn(page, 'jolama', '/hub');
     const items = page.getByTestId('timeline-item');
@@ -167,7 +167,7 @@ test.describe('reminders', () => {
 });
 
 test.describe('moderator mode', () => {
-  test('lobby simulation: invitees knock, NURU admits them visibly, summary on hand-back', async ({ page }) => {
+  test('lobby simulation: invitees knock, Zawadi admits them visibly, summary on hand-back', async ({ page }) => {
     test.setTimeout(60_000);
     await signIn(page, 'jolama', '/hub');
     await page.goto('/rooms/kamati-ya-bajeti-k7b2/meeting');
@@ -176,7 +176,7 @@ test.describe('moderator mode', () => {
     const res = await page.evaluate(() => (window as any).__esiriTest.enableModerator(true));
     expect(res.ok).toBe(true);
     expect(res.expected_people).toContain('Dkt. Halima Said');
-    await expect(page.getByTestId('moderator-badge')).toContainText('Nuru is moderating');
+    await expect(page.getByTestId('moderator-badge')).toContainText('Zawadi is moderating');
     await expect(page.locator(esiriId('meeting.mic-toggle'))).toHaveAttribute('data-esiri-state', 'off');
     const room = await page.evaluate(() => (window as any).__esiriTest.useApp.getState().rooms.find((r: any) => r.id === 'kamati-ya-bajeti-k7b2'));
     expect(room.settings.requireApproval).toBe(true);
@@ -234,7 +234,7 @@ test.describe('GMS', () => {
   });
 });
 
-test.describe('WERIS NURU-to-NURU', () => {
+test.describe('WERIS Zawadi-to-Zawadi', () => {
   test('Halima assigns a special task; Jolama is told within 3 s; his status change flows back', async ({ browser }) => {
     const jolama = await device(browser, 'jolama', '/hub/tasks');
     const halima = await device(browser, 'halima', '/weris/tasks');
@@ -309,7 +309,7 @@ test.describe('safety gates in code', () => {
 test.describe('PWA and layout', () => {
   test('the manifest and service worker are served and the worker registers', async ({ page, request }) => {
     const m = await (await request.get('/manifest.webmanifest')).json();
-    expect(m.name).toBe('NURU');
+    expect(m.name).toBe('Zawadi');
     expect(m.start_url).toBe('/hub');
     expect(m.display).toBe('standalone');
     expect(m.icons.map((i: { sizes: string }) => i.sizes)).toEqual(expect.arrayContaining(['192x192', '512x512']));

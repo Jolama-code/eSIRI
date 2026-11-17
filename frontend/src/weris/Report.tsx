@@ -16,7 +16,7 @@ import './report.css';
 export type ItemKind = 'project' | 'assignment' | 'pdp';
 export type Outcome = '' | 'done' | 'partial' | 'not_done';
 export type TextField = 'progress' | 'plan' | 'blockers';
-/** Which fields NURU wrote: 'ok' or 'review' (needs the user's review). Removed when the user edits the field. */
+/** Which fields Zawadi wrote: 'ok' or 'review' (needs the user's review). Removed when the user edits the field. */
 export type NuruMarks = Partial<Record<TextField | 'outcome', 'ok' | 'review'>>;
 
 export interface ReportItem {
@@ -91,7 +91,7 @@ export const useReport = create<ReportState>()((set, get) => ({
     }
   },
   setTab: (tab) => set({ tab }),
-  // A human edit (or NURU typing, which marks the field afterwards) clears the "prepared by NURU" chip.
+  // A human edit (or Zawadi typing, which marks the field afterwards) clears the "prepared by Zawadi" chip.
   setField: (key, field, value) => set((s) => ({ report: patchItem(s.report, key, (i) => ({ ...i, [field]: value, nuru: unmark(i.nuru, field) })) })),
   setOutcome: (key, outcome) => set((s) => ({ report: patchItem(s.report, key, (i) => ({ ...i, outcome, nuru: unmark(i.nuru, 'outcome') })) })),
   mark: (key, marks) => set((s) => ({ report: patchItem(s.report, key, (i) => ({ ...i, nuru: { ...i.nuru, ...marks } })) })),

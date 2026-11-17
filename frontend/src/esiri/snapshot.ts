@@ -140,7 +140,7 @@ function mikutanoState(page: string, path: string): Record<string, unknown> {
       camera: s.live.camera ? 'on' : 'off',
       screen_share: s.live.screenShare ? 'on' : 'off',
       hand_raised: s.live.handRaised ? 'yes' : 'no',
-      moderator_mode: s.live.moderator ? 'on (NURU admits people and announces them)' : 'off',
+      moderator_mode: s.live.moderator ? 'on (Zawadi admits people and announces them)' : 'off',
       lobby: s.live.lobby.map((p) => p.name),
       participants: s.live.participants.map((p) => p.name),
       panel: s.live.panel,
@@ -192,7 +192,7 @@ function gmsState(page: string): Record<string, unknown> {
   const state: Record<string, unknown> = {
     folder: g.folder,
     unread: g.unread,
-    note: 'NURU only drafts; sending needs ask_confirmation. Use only facts from the user and the opened e-mail.',
+    note: 'Zawadi only drafts; sending needs ask_confirmation. Use only facts from the user and the opened e-mail.',
   };
   if (page !== 'gms_compose') {
     state.messages = g.messages.slice(0, 20).map((m) => ({

@@ -146,8 +146,9 @@ function listenOnceRaw(lang: Language, onInterim: (text: string) => void): Promi
 // ---------------------------------------------------------------------------
 // Wake word: continuous background recognition
 
-// "Nuru" and close recognizer spellings. Deliberately NOT "new room" (a common phrase in this app).
-export const WAKE_RE = /\b(nuru|nooru|noor|nuroo)\b/i;
+// "Zawadi" and close recognizer spellings. Deliberately NOT "new room" (a common phrase in this app).
+// The name is Zawadi in both languages: sw-TZ and en-US recognizers may spell it slightly differently.
+export const WAKE_RE = /\b(zawadi|zawady|zawaddi|zawaadi|zawadie|sawadi)\b/i;
 
 let wakeRec: SpeechRecognitionLike | null = null;
 let wakeWanted = false;
@@ -353,12 +354,12 @@ function listenLongRaw(
 let captionsPauser: (() => void) | null = null;
 let nuruListens = 0;
 
-/** captions.ts registers a function that stops captions at once when NURU starts listening. */
+/** captions.ts registers a function that stops captions at once when Zawadi starts listening. */
 export function setCaptionsPauser(fn: (() => void) | null): void {
   captionsPauser = fn;
 }
 
-/** True while NURU itself listens (push-to-talk, an answer, the briefing, the wake word). */
+/** True while Zawadi itself listens (push-to-talk, an answer, the briefing, the wake word). */
 export function nuruIsListening(): boolean {
   return nuruListens > 0 || wakeWanted;
 }

@@ -1,4 +1,4 @@
-"""NURU Hub API: auth, profile, day, briefing, meetings, tasks, reminders, notifications, audit, events, demo."""
+"""Zawadi Hub API: auth, profile, day, briefing, meetings, tasks, reminders, notifications, audit, events, demo."""
 
 from __future__ import annotations
 
@@ -584,7 +584,7 @@ def read_all(db: DBSession = Depends(get_db), user: User = Depends(current_user)
 
 
 # ---------------------------------------------------------------------------
-# Audit (server copy of every NURU task)
+# Audit (server copy of every Zawadi task)
 
 @router.post("/audit")
 def post_audit(record: dict[str, Any], db: DBSession = Depends(get_db), user: User = Depends(current_user)) -> dict[str, Any]:

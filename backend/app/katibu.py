@@ -680,7 +680,7 @@ def _minutes_mail_body(job: KatibuJob) -> str:
             extra = ", ".join(x for x in [a.get("owner") or "", a.get("due") or ""] if x)
             lines.append(f"{a.get('number', '')}. {a.get('task', '')}" + (f" ({extra})" if extra else ""))
         lines.append("")
-    lines += ["Imeandaliwa na KatibuAI kwa ombi la NURU.", "Prepared by KatibuAI at NURU's request."]
+    lines += ["Imeandaliwa na KatibuAI kwa ombi la Zawadi.", "Prepared by KatibuAI at Zawadi's request."]
     return "\n".join(lines)
 
 

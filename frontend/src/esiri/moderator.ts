@@ -1,5 +1,5 @@
 /**
- * Moderator mode in e-Mikutano: NURU keeps the user muted, turns on "Require moderator approval",
+ * Moderator mode in e-Mikutano: Zawadi keeps the user muted, turns on "Require moderator approval",
  * and admits the invitees who knock in the (simulated) lobby — visibly, with the ghost cursor — announcing each one.
  */
 import { useApp, randomId, type AuditStep, type LobbyPerson } from '../store/appStore';
@@ -92,7 +92,7 @@ async function admitVisibly(p: LobbyPerson): Promise<void> {
   }
 }
 
-/** Admit someone from the lobby (button handler; also used by NURU's visible click). */
+/** Admit someone from the lobby (button handler; also used by Zawadi's visible click). */
 export function admit(id: string): void {
   const live = useApp.getState().live;
   if (!live) return;
@@ -149,7 +149,7 @@ export function enableModerator(muteUser: boolean): ModeratorResult {
     muted: muteUser || !live.mic,
     require_approval: 'on',
     expected_people: mod.waiting,
-    note: 'Moderator mode is on. NURU admits people from the lobby by itself and announces them. Finish with a short confirmation.',
+    note: 'Moderator mode is on. Zawadi admits people from the lobby by itself and announces them. Finish with a short confirmation.',
   };
 }
 

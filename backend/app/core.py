@@ -202,7 +202,7 @@ def bearer(authorization: str = Header(default="")) -> str:
 def current_user(token: str = Depends(bearer), db: DBSession = Depends(get_db)) -> User:
     u = user_for_token(db, token)
     if not u:
-        raise HTTPException(status_code=401, detail={"code": "unauthenticated", "error": "Please sign in to NURU."})
+        raise HTTPException(status_code=401, detail={"code": "unauthenticated", "error": "Please sign in to Zawadi."})
     return u
 
 
@@ -214,7 +214,7 @@ def user_from_query(token: str = Query(default="")) -> User:
         if u:
             db.expunge(u)
     if not u:
-        raise HTTPException(status_code=401, detail={"code": "unauthenticated", "error": "Please sign in to NURU."})
+        raise HTTPException(status_code=401, detail={"code": "unauthenticated", "error": "Please sign in to Zawadi."})
     return u
 
 

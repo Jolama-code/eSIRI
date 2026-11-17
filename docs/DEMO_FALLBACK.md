@@ -1,12 +1,16 @@
-# Demo fallback: the stable NURU v2 copy
+# Demo fallback: the stable Zawadi copies
 
-If the new version (`feature/v2.1`) misbehaves before or during a presentation, switch to the
-stable copy of the version that was presented: tag `demo-v2-stable`, branch `demo/v2-stable`.
+**Present v3.** It is the version named Zawadi: tag `demo-v3-stable`, branch `demo/v3-stable`, folder
+`../eSIRI-demo-v3`. If the working folder (`eSIRI`) misbehaves before or during a presentation, switch
+to it. The older v2 copy is kept but still carries the previous name, so do not show it.
 
 | Copy | Folder | Git branch |
 |---|---|---|
-| Stable demo (v2) | `../eSIRI-demo` (next to `eSIRI`) | `demo/v2-stable` (tag `demo-v2-stable`) |
-| New version (v2.1) | `eSIRI` | `feature/v2.1` |
+| **Stable demo (v3, Zawadi) — present this** | `../eSIRI-demo-v3` (next to `eSIRI`) | `demo/v3-stable` (tag `demo-v3-stable`) |
+| Old stable demo (v2, previous name — do not present) | `../eSIRI-demo` | `demo/v2-stable` (tag `demo-v2-stable`) |
+| Working copy | `eSIRI` | `feature/rename-zawadi` and later branches |
+
+Every command below works the same for `../eSIRI-demo-v3`; replace the folder name.
 
 The stable copy is a separate git worktree with its own `backend/.venv`, `frontend/node_modules`,
 `.env`, sample recording and database (`backend/data/nuru.db`). Nothing is shared with `eSIRI` except
@@ -45,10 +49,10 @@ cd ../eSIRI
 
 ## Keeping the stable copy as it is
 
-- Do not commit in `../eSIRI-demo`, and never merge anything into `demo/v2-stable`.
+- Do not commit in `../eSIRI-demo` or `../eSIRI-demo-v3`, and never merge anything into `demo/v2-stable` or `demo/v3-stable`.
 - `.env` in `../eSIRI-demo` is a copy. If you change a key in `eSIRI/.env`, copy the file again:
   `cp ../eSIRI/.env ../eSIRI-demo/.env`.
 - If the folder is lost, recreate it from the eSIRI folder:
-  `git worktree add ../eSIRI-demo demo/v2-stable`, then copy `.env` and
+  `git worktree add ../eSIRI-demo-v3 demo/v3-stable` (or `../eSIRI-demo demo/v2-stable`), then copy `.env` and
   `backend/assets/sample_meeting.wav` into it and run `./start.sh` (it creates the venv and runs
   `npm install` on the first run).

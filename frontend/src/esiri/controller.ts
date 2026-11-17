@@ -166,7 +166,7 @@ export interface SubmitOptions {
   /** Extra context for the model (e.g. the reminder the user is answering). */
   context?: string;
   /**
-   * The user already said yes to a NURU question that is itself the confirmation (a reminder's
+   * The user already said yes to a Zawadi question that is itself the confirmation (a reminder's
    * "Shall I start it for you?"). Grants credits scoped to this new task only, and is audited.
    */
   preapproved?: { summary: string; covers: number };
@@ -591,7 +591,7 @@ async function execute(task: Task, call: ToolCall, appearWaitMs: number): Promis
           job instanceof LiveUnusable
             ? { ok: false, code: 'invalid', error: 'live_unusable', live_unusable: true, reason: job.reason, seconds: job.seconds, note: 'The live recording cannot be used. Tell the user why and ask_user whether to use the sample recording; on yes call katibu_prepare_minutes with use_sample true.' }
             : job
-              ? { ok: true, job_id: job.id, title: job.title, status: job.status, audio_source: job.audio_source, audio_note: job.audio_note, note: 'Katibu is preparing the minutes of this meeting from its own recording; NURU will announce when they are ready.' }
+              ? { ok: true, job_id: job.id, title: job.title, status: job.status, audio_source: job.audio_source, audio_note: job.audio_note, note: 'Katibu is preparing the minutes of this meeting from its own recording; Zawadi will announce when they are ready.' }
               : { ok: false, error: 'Katibu could not start.' };
       }
       es().patchMsg(msgId, { status: res.ok ? 'ok' : 'fail' });
@@ -762,7 +762,7 @@ function finalizeTask(task: Task, outcome: Outcome, finalMessage: string): void 
   postAudit(rec);
 }
 
-/** Audit record for things NURU does outside the agent loop (briefing, reminders, moderator mode, Katibu). */
+/** Audit record for things Zawadi does outside the agent loop (briefing, reminders, moderator mode, Katibu). */
 export function logActivity(r: {
   system: NonNullable<AuditRecord['system']>;
   request: string;

@@ -1,6 +1,6 @@
-/* NURU service worker: caches the app shell and static assets. /api/* always goes to the network. */
-const CACHE = 'nuru-shell-v1';
-const SHELL = ['/hub', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/brand/nuru-logo-horizontal.svg', '/brand/nuru-logo-stacked.svg'];
+/* Zawadi service worker: caches the app shell and static assets. /api/* always goes to the network. */
+const CACHE = 'zawadi-shell-v1';
+const SHELL = ['/hub', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/brand/zawadi-logo-horizontal.svg', '/brand/zawadi-logo-stacked.svg'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).catch(() => undefined).then(() => self.skipWaiting()));

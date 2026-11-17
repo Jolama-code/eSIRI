@@ -1,4 +1,4 @@
-"""NURU v2 database tables (SQLModel on SQLite).
+"""Zawadi v2 database tables (SQLModel on SQLite).
 
 All datetimes are stored as naive UTC. Dates shown to people use NURU_TZ
 (Africa/Dar_es_Salaam); see core.py for the helpers.

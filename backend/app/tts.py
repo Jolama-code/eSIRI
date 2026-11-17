@@ -1,7 +1,7 @@
 """Text-to-speech behind one interface, with an in-memory cache.
 
 TTS_PROVIDER selects the engine:
-- "openai" (default): OpenAI gpt-4o-mini-tts with one fixed voice (OPENAI_TTS_VOICE), so NURU always
+- "openai" (default): OpenAI gpt-4o-mini-tts with one fixed voice (OPENAI_TTS_VOICE), so Zawadi always
   sounds like the same person in Swahili and English.
 - "chatterbox": reserved for a future self-hosted Chatterbox server. It is a documented stub: it is not
   implemented in this build (no voice cloning), and selecting it falls back to OpenAI with a warning.

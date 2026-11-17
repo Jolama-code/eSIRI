@@ -21,7 +21,7 @@ import { orbStateFor } from './orbState';
 import { BriefingSheet, DemoPanel, EventToasts, ReminderStack, UnlockOverlay } from './NuruOverlays';
 import '../esiri.css';
 
-/** "Habari! Mimi ni Nuru. Nikusaidie?" beside the orb, once per session per system. */
+/** "Habari! Mimi ni Zawadi. Nikusaidie?" beside the orb, once per session per system. */
 function useGreetingBubble(system: SystemName): [boolean, () => void] {
   const key = `nuru-bubble-${system}`;
   const [show, setShow] = useState(false);
@@ -65,7 +65,7 @@ function FloatingStack({ system, orbState, active }: { system: SystemName; orbSt
         </button>
         {bubble ? (
           <div className="stack-bubble" role="status" onClick={() => { hideBubble(); activate(); }} data-testid="nuru-bubble">
-            <strong>NURU</strong>
+            <strong>Zawadi</strong>
             {t('stack.greeting')}
             <button
               className="stack-bubble-x"
@@ -178,7 +178,7 @@ export function EsiriRoot() {
     return () => window.removeEventListener('keydown', onKey, true);
   }, []);
 
-  // Let modals know when Esc belongs to NURU.
+  // Let modals know when Esc belongs to Zawadi.
   useEffect(() => {
     document.body.dataset.esiriBusy = status !== 'idle' || micOpen ? '1' : '0';
   }, [status, micOpen]);
@@ -248,7 +248,7 @@ export function EsiriRoot() {
 
       {!panelOpen && hasMessages && (
         <button className="panel-tab" onClick={() => useEsiri.getState().setPanelOpen(true)}>
-          NURU
+          Zawadi
         </button>
       )}
       <Panel />

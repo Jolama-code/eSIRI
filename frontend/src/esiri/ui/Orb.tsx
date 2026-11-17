@@ -5,7 +5,7 @@ import './orb.css';
 export type OrbState = 'idle' | 'listening' | 'thinking' | 'acting' | 'speaking' | 'error';
 
 /**
- * The live NURU orb: an animated version of logo/nuru-mark.svg (navy → royal → cyan glass sphere,
+ * The live Zawadi orb: an animated version of logo/zawadi-mark.svg (navy → royal → cyan glass sphere,
  * a pulsing white four-point spark, a small orange spark and two voice arcs).
  * The live audio level is applied as the CSS variable --level without re-rendering React.
  */

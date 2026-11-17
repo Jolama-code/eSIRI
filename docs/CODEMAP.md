@@ -1,8 +1,8 @@
-# NURU (eSiri) — Code Map
+# Zawadi (eSiri) — Code Map
 
-> **Rename note (2026-09-30).** The assistant was renamed from **eSiri** to **NURU** in everything a user sees (spoken as "Nuru"; wake word "Nuru"/"Noor"/"Nooru", deliberately not "new room"), and the signed-in user from **Rahma Mbuyu** to **Jolama** (initials JO, seed room "Jolama's Room", id `jolamas-room-r7k2`, token `JLM-7K2Q`). Internal identifiers keep "esiri" (`frontend/src/esiri/`, `data-esiri-*`, CSS classes, `data-testid`s, localStorage keys). The rest of this document was written before the rename and still uses the old names; the captured snapshots and traces are unchanged historical records.
+> **Rename note (2026-09-30).** The assistant was renamed from **eSiri** to **Zawadi** in everything a user sees (the v3 name; see the v3 note below), and the signed-in user from **Rahma Mbuyu** to **Jolama** (initials JO, seed room "Jolama's Room", id `jolamas-room-r7k2`, token `JLM-7K2Q`). Internal identifiers keep "esiri" (`frontend/src/esiri/`, `data-esiri-*`, CSS classes, `data-testid`s, localStorage keys). The rest of this document was written before the rename and still uses the old names; the captured snapshots and traces are unchanged historical records.
 
-> **NURU v2 (2026-10-22).** Section 0 below describes v2: accounts, the Hub, proactive NURU, GMS, WERIS and KatibuAI. Sections 1–20 were written for v1 (the e-Mikutano agent). They remain accurate for that layer except for these changes:
+> **Zawadi v2 (2026-10-22).** Section 0 below describes v2: accounts, the Hub, proactive Zawadi, GMS, WERIS and KatibuAI. Sections 1–20 were written for v1 (the e-Mikutano agent). They remain accurate for that layer except for these changes:
 > - the backend runs on **port 8010** (KatibuAI uses 8000);
 > - the hard-coded user is replaced by the signed-in account (`session.ts` `currentPerson()`);
 > - the default language is Swahili;
@@ -11,17 +11,27 @@
 > - the snapshot gains `system`, `user` and per-system state;
 > - the agent has 15 tools.
 
-## 0.0 NURU v2.1 (2026-10-25, branch `feature/v2.1`)
+## 0.00 Zawadi v3 (2026-11-17, branch `feature/rename-zawadi`)
+
+v3 is v2.1 under its new name, **Zawadi**, with no change in behaviour. Tagged `demo-v3-stable` (branch `demo/v3-stable`, runnable copy `../eSIRI-demo-v3`).
+
+- Every user-visible text, the logos (`frontend/public/brand/zawadi-*`, wordmark outlined from Montserrat ExtraBold; the orb mark is unchanged), the PWA name, the page titles, the docs and the architecture diagram say **Zawadi**.
+- The name is the same in both languages and never translated: rule in `SYSTEM_PROMPT` (LANGUAGE AND STYLE), `agent.fix_name()` applied in `main.py` to `finish`, `ask_confirmation`, `ask_user` and the reply text ("Gift", "Zawadi AI", a former name → "Zawadi"), and `translate="no"` + `<meta name="google" content="notranslate">` in `index.html` so Chrome's page translation cannot rename it.
+- Wake word: `WAKE_RE` in `stt.ts` matches "Zawadi" and close spellings (zawady, zawaddi, zawaadi, zawadie, sawadi); `isStopUtterance` accepts "Zawadi stop". Untested by voice.
+- Service-worker cache renamed to `zawadi-shell-v1`, so installed apps drop the old logos.
+- Internal identifiers (`NURU_*`, `X-Nuru-Test`, `nuru-*` keys and CSS variables, `nuruStore.ts`) are unchanged.
+
+## 0.0 Zawadi v2.1 (2026-10-25, branch `feature/v2.1`)
 
 The presented v2 is tagged `demo-v2-stable` (branch `demo/v2-stable`, runnable copy in `../eSIRI-demo`, see `docs/DEMO_FALLBACK.md`). v2.1 adds:
 
 - **Typing box** (`esiri/ui/Panel.tsx`, `esiri.css`): a textarea that grows to about 6 lines (max-height 140 px) and then scrolls; Enter sends, Shift+Enter is a new line; bubbles use `white-space: pre-wrap` and `overflow-wrap: anywhere`. Test: `e2e/typing.spec.ts`, plus a phone test in `mobile.spec.ts`.
 - **KatibuAI recording** (`esiri/meetingFlow.ts`):
-  - Live mode: a MediaRecorder on its own microphone stream for the whole meeting (meeting mute, moderator mode and NURU's listening never touch it), with a level meter and a timer (`pages/MeetingKatibu.tsx` `KatibuRecBadge`).
+  - Live mode: a MediaRecorder on its own microphone stream for the whole meeting (meeting mute, moderator mode and Zawadi's listening never touch it), with a level meter and a timer (`pages/MeetingKatibu.tsx` `KatibuRecBadge`).
   - Sample mode (`user.meeting_audio_source === 'sample'`): plays `GET /api/katibu/sample` aloud with a visible player (`SamplePlayer`); the job is created with `use_sample`.
   - `prepareMinutes` stops a running recorder first (an in-meeting request sends that meeting's audio) and suppresses the second offer on Leave.
   - `POST /api/katibu/jobs` returns **422 `live_unusable`** (`reason`: no_recording | too_short | silent | unreadable, `seconds`) instead of silently using the sample. The client then asks (offer card with `question`/`yesLabel`) and retries with `allow_sample=true`. The agent tool `katibu_prepare_minutes` gets `use_sample` and the error code.
-- **Live captions** (`esiri/captions.ts`, `CaptionsPanel`): a continuous Web Speech recogniser in the meeting. `stt.ts` `setCaptionsPauser` and `nuruIsListening()` pause it whenever NURU listens (`listenOnce`, `listenLong`, the wake word), because the browser runs one recogniser at a time.
+- **Live captions** (`esiri/captions.ts`, `CaptionsPanel`): a continuous Web Speech recogniser in the meeting. `stt.ts` `setCaptionsPauser` and `nuruIsListening()` pause it whenever Zawadi listens (`listenOnce`, `listenLong`, the wake word), because the browser runs one recogniser at a time.
 - **Minutes journey** (`KatibuJob.journey` JSON, `katibu.py`; UI `hub/Journey.tsx` in the minutes detail):
   - `recording`: {source, note, seconds, bytes, peaks[120], file, at}.
   - `upload`: {katibu_uid, chunks_sent, chunks_total, started_at, done_at}, via the `on_chunk` callback of `KatibuClient.upload`.
@@ -39,7 +49,7 @@ The presented v2 is tagged `demo-v2-stable` (branch `demo/v2-stable`, runnable c
   - Tests: `weris-report.spec.ts` (no LLM) and `weris-report-agent.spec.ts` (@llm).
 - **Tests added:** `katibu-audio.spec.ts` (no KatibuAI) and `katibu-live.spec.ts` (@katibu). The latter uses Chrome's fake microphone with a generated Swahili budget meeting from `backend/scripts/make_test_meeting.py`, cached in `e2e/.cache/`. `helpers.startSignedIn` now resets the demo data.
 
-## 0. NURU v2
+## 0. Zawadi v2
 
 ### 0.1 Pieces
 
@@ -66,7 +76,7 @@ The presented v2 is tagged `demo-v2-stable` (branch `demo/v2-stable`, runnable c
 
 Event types: `reminder`, `reminder_closed`, `task_assigned`, `task_updated`, `mail_received`, `katibu_progress`, `katibu_ready`, `katibu_sent`, `katibu_failed`, `katibu_delivery`, `notification`, `day_updated`, `briefing_prompt`, `demo_reset`. Each carries `message_sw`, `message_en`, `announce`, `data`.
 
-### 0.3 NURU-to-NURU messages (exact wording in `api_hub.py`, `api_mail.py`, `katibu.py`)
+### 0.3 Zawadi-to-Zawadi messages (exact wording in `api_hub.py`, `api_mail.py`, `katibu.py`)
 
 - **Task assigned** → assignee: "{first}, umepewa kazi mpya na {assigner}: {title}, iwe tayari {sw_when}." The due phrase comes from `llm.sw_when`, e.g. "Ijumaa saa nane mchana".
 - **Status set to in_progress/done by the assignee** → assigner: "{first}, {name} ameanza/amekamilisha kazi: {title}."
@@ -94,7 +104,7 @@ Event types: `reminder`, `reminder_closed`, `task_assigned`, `task_updated`, `ma
   The **Anzisha kama msimamizi** button starts the meeting, mutes the user and turns moderator mode on, without the LLM.
 - **Moderator mode** (`moderator.ts`):
   - **On:** sets require-approval on, mutes the user if asked, then lets an invitee from the scheduled meeting (or a fallback list) knock every 6–10 s.
-  - **Admitting:** NURU waits until the agent is not acting, clicks `meeting.lobby.{id}.admit` with the cursor, announces "{name} amejiunga na mkutano." and records an `admit` step.
+  - **Admitting:** Zawadi waits until the agent is not acting, clicks `meeting.lobby.{id}.admit` with the cursor, announces "{name} amejiunga na mkutano." and records an `admit` step.
   - **Off:** returns the summary "Karibu tena. Watu {n} wamejiunga: …" and writes one audit record.
 - **Meeting ↔ Katibu** (`meetingFlow.ts`):
   - **While open:** the meeting page records the microphone (MediaRecorder, Opus/WebM) and marks the scheduled meeting live (organizer).
@@ -125,7 +135,7 @@ Event types: `reminder`, `reminder_closed`, `task_assigned`, `task_updated`, `ma
 | File | What | Needs |
 |---|---|---|
 | `ui.spec.ts` (14) | v1 e-Mikutano human flows, gate, snapshot, TTS/audit with auth | — |
-| `v2.spec.ts` (16) | sign-in/out, SSO, timeline + now marker, unlock, demo panel, reminder on two contexts, snooze, meeting-soon, start as moderator from the card, lobby, GMS reply/draft/delivery/external, WERIS NURU-to-NURU within 3 s, the code gates, PWA, overflow at 390/1366/1920, briefing parse | key for the parse test |
+| `v2.spec.ts` (16) | sign-in/out, SSO, timeline + now marker, unlock, demo panel, reminder on two contexts, snooze, meeting-soon, start as moderator from the card, lobby, GMS reply/draft/delivery/external, WERIS Zawadi-to-Zawadi within 3 s, the code gates, PWA, overflow at 390/1366/1920, briefing parse | key for the parse test |
 | `v2-agent.spec.ts` (8) | the eight @llm scenarios of the build prompt | key |
 | `agent.spec.ts` (8), `demo.spec.ts` | v1 agent scenarios and demo script | key |
 | `katibu.spec.ts` | real KatibuAI with the sample; sends only to the test recipient | KatibuAI on :8000 |
@@ -143,7 +153,7 @@ Event types: `reminder`, `reminder_closed`, `task_assigned`, `task_updated`, `ma
   - the gate is client-side;
   - the lobby is simulated;
   - the long-poll history is in RAM, so a backend restart loses undelivered events (clients refetch);
-  - the live microphone also records NURU's own voice.
+  - the live microphone also records Zawadi's own voice.
 
 This document describes what is built in this repository today. Every claim points to a file and a function or component. Where something is uncertain or not verified, it says so. The real snapshots and model trace in sections 9 and 10 were captured from the running app on 2026-09-29 with the project's `.env` key and model `gpt-4.1-mini`.
 

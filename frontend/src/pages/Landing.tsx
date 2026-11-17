@@ -98,7 +98,7 @@ export default function Landing() {
             <button
               className="reserve-btn"
               onClick={() => {
-                // Single sign-on: the NURU account is the e-Mikutano account.
+                // Single sign-on: the Zawadi account is the e-Mikutano account.
                 if (authed) {
                   signIn();
                   navigate('/rooms');

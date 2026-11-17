@@ -36,7 +36,7 @@ function Splash() {
   );
 }
 
-/** Single sign-on: every system needs the NURU session (signing in to the Hub signs in everywhere). */
+/** Single sign-on: every system needs the Zawadi session (signing in to the Hub signs in everywhere). */
 export function RequireNuru({ children, login = '/hub/login' }: { children: ReactNode; login?: string }) {
   const status = useSession((s) => s.status);
   const location = useLocation();
@@ -60,7 +60,7 @@ function Shell() {
     <div className={`app-shell sys-${system} ${panelOpen ? 'panel-open' : ''} ${onMeeting ? 'on-meeting' : ''}`}>
       <NavBridge />
       <Routes>
-        {/* NURU Hub */}
+        {/* Zawadi Hub */}
         <Route path="/hub/login" element={<Login />} />
         <Route path="/hub" element={<RequireNuru><Today /></RequireNuru>} />
         <Route path="/hub/tasks" element={<RequireNuru><Tasks /></RequireNuru>} />

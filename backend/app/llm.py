@@ -1,4 +1,4 @@
-"""OpenAI client and the spoken date/time phrases NURU uses in both languages."""
+"""OpenAI client and the spoken date/time phrases Zawadi uses in both languages."""
 
 from __future__ import annotations
 

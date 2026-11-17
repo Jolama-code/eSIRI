@@ -1,6 +1,6 @@
-# CLAUDE.md — NURU v2
+# CLAUDE.md — Zawadi (v3)
 
-NURU is a personal AI assistant for Tanzanian government officials (English + Swahili, voice or typed). Each official signs in to **NURU Hub** (`/hub`, an installable PWA). NURU:
+Zawadi is a personal AI assistant for Tanzanian government officials (English + Swahili, voice or typed). Each official signs in to **Zawadi Hub** (`/hub`, an installable PWA). Zawadi:
 - plans their day and reminds them aloud on every device;
 - runs e-Mikutano meetings (moderator mode);
 - asks the **real KatibuAI** backend for meeting minutes;
@@ -9,9 +9,9 @@ NURU is a personal AI assistant for Tanzanian government officials (English + Sw
 
 It operates every system visibly with a ghost cursor, asks before consequential actions (enforced in code), and audits every task. e-Mikutano, GMS and WERIS are front-end mockups with fictional people (`@mfano.go.tz`).
 
-**Naming:** the user-visible name is **NURU** ("Nuru" when spoken). Internal identifiers keep `esiri` (folder, `data-esiri-*`, CSS classes, `data-testid`s, localStorage keys) — do not rename them. Demo accounts: `jolama` (staff), `halima` (Dkt. Halima Said, supervisor), `baraka` (staff); password `Demo@2026` (demo only). Seed rooms: `jolamas-room-r7k2` ("{display_name}'s Room", token `JLM-7K2Q`) and `kamati-ya-bajeti-k7b2`.
+**Naming:** the user-visible name is **Zawadi**: written, spoken and as the wake word, identical in English and Swahili. It is a proper name: never translate it (not "Gift"), never write "Zawadi AI"/"ZawadiAI", never use a former name. `agent.py` tells the model so and `agent.fix_name()` corrects its spoken replies in code; `index.html` has `translate="no"` so Chrome never translates the page. Internal identifiers are legacy and stay as they are: `esiri` (folder, `data-esiri-*`, CSS classes, `data-testid`s) and `nuru` (`NURU_*` env vars, `X-Nuru-Test`, `nuru-*` localStorage keys and CSS variables, `nuruStore.ts`, `useNuru`) — do not rename them, and never show them to users. Demo accounts: `jolama` (staff), `halima` (Dkt. Halima Said, supervisor), `baraka` (staff); password `Demo@2026` (demo only). Seed rooms: `jolamas-room-r7k2` ("{display_name}'s Room", token `JLM-7K2Q`) and `kamati-ya-bajeti-k7b2`.
 
-**Full details: `docs/CODEMAP.md` (v2.1 and v2 sections first). Demo: `docs/DEMO_SCRIPT.md`; rehearsal checklist `docs/FEATURE_CHECKLIST.md`.** Keep them in sync when you change behaviour. The presented v2 is tag `demo-v2-stable` / branch `demo/v2-stable` (never merge into it); a runnable copy lives in `../eSIRI-demo` (`docs/DEMO_FALLBACK.md`). Only one copy can run at a time (same ports).
+**Full details: `docs/CODEMAP.md` (v2.1 and v2 sections first). Demo: `docs/DEMO_SCRIPT.md`; rehearsal checklist `docs/FEATURE_CHECKLIST.md`.** Keep them in sync when you change behaviour. The version to present is v3, tag `demo-v3-stable` / branch `demo/v3-stable`, runnable copy in `../eSIRI-demo-v3`; the older v2 is `demo-v2-stable` in `../eSIRI-demo`. Never merge into either stable branch (`docs/DEMO_FALLBACK.md`). Only one copy can run at a time (same ports).
 
 ## Run and test
 
@@ -31,7 +31,7 @@ npx playwright test --project=mobile   # Hub on Pixel 7 (mobile.spec.ts)
 
 - The project path contains spaces: **quote every path** in shell commands.
 - `pkill -f`/`pgrep -f` with a pattern that appears in your own command line kills your own shell; find processes by port (`ss -ltnp | grep :8010`).
-- Port **8000 is KatibuAI**: never point NURU or its tests at it. **Never create, edit or delete anything under `../KATIBU-AI`**; use only its HTTP API.
+- Port **8000 is KatibuAI**: never point Zawadi or its tests at it. **Never create, edit or delete anything under `../KATIBU-AI`**; use only its HTTP API.
 - The backend does not auto-reload: restart it after changing `backend/app/*.py` or `app_map.md`.
 - Playwright starts the backend with `NURU_TEST_MODE=1` and `NURU_DB=backend/data/test.db` (or reuses a running one) and sends `X-Nuru-Test: 1`. Either one forces Katibu e-mails to `KATIBU_TEST_RECIPIENT`.
 - Tests sign in through the API (`e2e/helpers.ts` `signIn`, `resetDemo`). Server sessions survive `/api/demo/reset`.
@@ -42,7 +42,7 @@ npx playwright test --project=mobile   # Hub on Pixel 7 (mobile.spec.ts)
 ## Architecture in brief
 
 ```
-One React app: /hub/* (Hub) · / and /rooms/* (e-Mikutano) · /gms/* · /weris/*   + NURU overlay everywhere
+One React app: /hub/* (Hub) · / and /rooms/* (e-Mikutano) · /gms/* · /weris/*   + Zawadi overlay everywhere
   agent: snapshot.ts → controller.ts runLoop → POST /api/agent/step → OpenAI tools (agent.py) → driver.ts (cursor)
   proactive.ts: events.ts (SSE /api/events, long-poll fallback /api/events/poll) → reminder cards, announcements
   briefing.ts (guided flow) · moderator.ts (simulated lobby) · meetingFlow.ts (MediaRecorder → /api/katibu/jobs)
@@ -79,8 +79,8 @@ Agent loop: snapshot → tool calls (`click`, `type_text`, `select_option`, `nav
 ## Conventions
 
 - **Every actionable element** gets `{...ez('area.thing[.action]', t('label.key'), opts)}`; ids lower-case, hyphenated, language-independent, embedding real ids (`gms.message.{id}.open`, `weris.task.{id}.status`, `hub.item.{key}.done`). Stateful controls pass `state`. Dialogs use `Modal`; selects are driven with `select_option`.
-- **Sensitive = consequential:** create room; start/join/leave meeting (and `navigate` to `meeting`, `hub.item.*.start`, `hub.meeting.*.open`); start/stop recording; remove access; delete room/recording; clear audit; `gms.compose.send`; `weris.task.submit` **when the assignee is not the user** (attribute set dynamically); `weris.report.submit` (the weekly report); `send-minutes.confirm`; tools `katibu_send_minutes` and `moderator_mode(enabled)` (checked in their executors). List new ones in `SYSTEM_PROMPT` and mark ⚠ in `app_map.md`. Never sensitive: drafting, saving drafts (including NURU filling the weekly report), opening pages, own reminders, own task status, preparing minutes, the briefing save (it has its own yes).
-- **KatibuAI audio is honest:** live mode never falls back to the sample silently (`live_unusable` → NURU asks); sample mode plays the sample aloud. The weekly report text is always English.
+- **Sensitive = consequential:** create room; start/join/leave meeting (and `navigate` to `meeting`, `hub.item.*.start`, `hub.meeting.*.open`); start/stop recording; remove access; delete room/recording; clear audit; `gms.compose.send`; `weris.task.submit` **when the assignee is not the user** (attribute set dynamically); `weris.report.submit` (the weekly report); `send-minutes.confirm`; tools `katibu_send_minutes` and `moderator_mode(enabled)` (checked in their executors). List new ones in `SYSTEM_PROMPT` and mark ⚠ in `app_map.md`. Never sensitive: drafting, saving drafts (including Zawadi filling the weekly report), opening pages, own reminders, own task status, preparing minutes, the briefing save (it has its own yes).
+- **KatibuAI audio is honest:** live mode never falls back to the sample silently (`live_unusable` → Zawadi asks); sample mode plays the sample aloud. The weekly report text is always English.
 - **No hard-coded UI text.** v2 strings go in `v2en.ts` + `v2sw.ts` (natural Tanzanian Swahili). User data is never translated.
 - A new page or element must be documented in `app_map.md`; expose data the model needs in `buildSnapshot()` state. Never put passwords or tokens in snapshots.
 - Server events carry `message_sw` and `message_en`; announcements go through `proactive.announce` (a queue that waits for the agent to be idle).

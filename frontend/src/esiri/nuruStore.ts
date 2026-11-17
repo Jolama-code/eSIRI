@@ -1,4 +1,4 @@
-/** UI state of proactive NURU: reminder cards, event toasts, the briefing flow, the unlock overlay, demo controls. */
+/** UI state of proactive Zawadi: reminder cards, event toasts, the briefing flow, the unlock overlay, demo controls. */
 import { create } from 'zustand';
 
 export interface ReminderCard {

@@ -15,13 +15,13 @@ test.describe('e-Mikutano mockup (human, no LLM)', () => {
     await expect(page.locator('.gov-subtitle')).toHaveText('Mfumo Wa Mawasiliano Kwa Njia ya Video');
     await expect(page.locator('img.coat-lg')).toBeVisible();
     await expect(page.getByText('Conduct a Meeting through the Internet, Anywhere and Anytime')).toBeVisible();
-    await expect(page.getByText('© 2020 – 2026 e-GA. All rights reserved. | e-Mikutano version 4.0 (NURU PoC)')).toBeVisible();
+    await expect(page.getByText('© 2020 – 2026 e-GA. All rights reserved. | e-Mikutano version 4.0 (Zawadi PoC)')).toBeVisible();
     const html = await page.content();
     expect(html).not.toMatch(/Joseph Laurent/i);
     expect(html).not.toMatch(/BigBlueButton/i);
   });
 
-  test('single sign-on gate: /rooms needs the NURU sign-in, then shows the seeded rooms', async ({ page }) => {
+  test('single sign-on gate: /rooms needs the Zawadi sign-in, then shows the seeded rooms', async ({ page }) => {
     await page.goto('/rooms?mute=1');
     await expect(page).toHaveURL(/\/hub\/login\?next=%2Frooms/);
     await page.goto('/?mute=1');
@@ -192,7 +192,7 @@ test.describe('e-Mikutano mockup (human, no LLM)', () => {
     await page.locator(esiriId('header.user-menu')).click();
     await page.locator(esiriId('header.menu.audit-log')).click();
     await expect(page).toHaveURL(/\/audit$/);
-    await expect(page.getByText('No NURU tasks have been recorded yet.')).toBeVisible();
+    await expect(page.getByText('No Zawadi tasks have been recorded yet.')).toBeVisible();
     await page.locator(esiriId('header.user-menu')).click();
     await page.locator(esiriId('header.menu.reset-demo')).click();
     await expect(page).toHaveURL(/\/rooms$/);

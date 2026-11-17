@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# NURU v2 — install (first run) and start everything.
+# Zawadi v3 — install (first run) and start everything.
 #   ./start.sh            backend :8010 + frontend :5173 on this machine (and the LAN)
 #   ./start.sh --share    also opens a Cloudflare quick tunnel (HTTPS) and prints a QR code for phones
 set -e
@@ -13,7 +13,7 @@ for arg in "$@"; do
   esac
 done
 
-echo "== NURU v2 =="
+echo "== Zawadi v3 =="
 
 # --- checks -----------------------------------------------------------------
 command -v python3 >/dev/null 2>&1 || { echo "ERROR: python3 (3.10+) is required."; exit 1; }
@@ -23,14 +23,14 @@ command -v ffmpeg >/dev/null 2>&1 || echo "WARNING: ffmpeg is missing (sudo apt 
 if [ ! -f "$ROOT/.env" ]; then
   echo "WARNING: no .env file found. Copy .env.example to .env and fill in the keys."
 elif ! grep -Eq '^OPENAI_API_KEY=.+' "$ROOT/.env" || grep -Eq '^OPENAI_API_KEY=sk-\.\.\.\s*$' "$ROOT/.env"; then
-  echo "WARNING: OPENAI_API_KEY is missing in .env. NURU will show a banner until you add it."
+  echo "WARNING: OPENAI_API_KEY is missing in .env. Zawadi will show a banner until you add it."
 fi
 
 KATIBU_URL="$(grep -E '^KATIBU_BASE_URL=' "$ROOT/.env" 2>/dev/null | head -1 | cut -d= -f2- | cut -d' ' -f1)"
 KATIBU_URL="${KATIBU_URL:-http://localhost:8000}"
 if command -v curl >/dev/null 2>&1 && ! curl -s -m 3 "$KATIBU_URL/healthz" >/dev/null 2>&1; then
   echo "WARNING: KatibuAI is not reachable at $KATIBU_URL. Start it first (cd ../KATIBU-AI/katibuAI-backend && make demo)."
-  echo "         NURU still runs; meeting minutes will fail until KatibuAI is up."
+  echo "         Zawadi still runs; meeting minutes will fail until KatibuAI is up."
 fi
 
 # --- backend ----------------------------------------------------------------
@@ -62,7 +62,7 @@ BACKEND_PID=""
 TUNNEL_PID=""
 cleanup() {
   echo ""
-  echo "-- Stopping NURU..."
+  echo "-- Stopping Zawadi..."
   for pid in "$TUNNEL_PID" "$BACKEND_PID"; do
     if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
       kill "$pid" 2>/dev/null || true
@@ -94,7 +94,7 @@ if [ "$SHARE" = "1" ]; then
         if [ -n "$URL" ]; then
           echo ""
           echo "======================================================================"
-          echo " NURU is shared at:  $URL/hub"
+          echo " Zawadi is shared at:  $URL/hub"
           echo " Scan this QR code with each phone (open it in Chrome):"
           echo "======================================================================"
           if command -v qrencode >/dev/null 2>&1; then

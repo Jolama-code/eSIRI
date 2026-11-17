@@ -168,7 +168,7 @@ export function Panel() {
           : [t('esiri.suggest1'), t('esiri.suggest2'), t('esiri.suggest3'), t('esiri.suggest4')];
 
   return (
-    <aside className={`esiri-panel ${open ? 'open' : ''}`} aria-hidden={!open} aria-label="NURU">
+    <aside className={`esiri-panel ${open ? 'open' : ''}`} aria-hidden={!open} aria-label="Zawadi">
       <header className="ep-head">
         <Orb size={30} state={orbState} />
         <div className="ep-title">

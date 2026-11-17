@@ -1,4 +1,4 @@
-"""Demo data for NURU v2. Used on first start and by POST /api/demo/reset.
+"""Demo data for Zawadi v2. Used on first start and by POST /api/demo/reset.
 
 All people and addresses are fictional (domain mfano.go.tz). Times are relative to
 "now" in NURU_TZ so the demo always has something coming up.
@@ -133,8 +133,8 @@ def _seed_mail(db: DBSession, now: datetime) -> None:
           "Jolama,\n\nSeva ya majaribio iko tayari. I have configured the new SSL certificate and the backups now run "
           "every night at 01:00. Tafadhali jaribu kuingia ukipata nafasi na unijulishe kama kuna tatizo.\n\n"
           "Asante,\n\n" + signature(bar), ago(22), read=True)
-    _mail(db, 1, "inbox", neema, [jol.email], "Ombi la nyaraka za mfumo wa NURU",
-          "Habari Jolama,\n\nNaomba unitumie nyaraka za usanifu (architecture) wa mfumo wa NURU pamoja na mwongozo wa "
+    _mail(db, 1, "inbox", neema, [jol.email], "Ombi la nyaraka za mfumo wa Zawadi",
+          "Habari Jolama,\n\nNaomba unitumie nyaraka za usanifu (architecture) wa mfumo wa Zawadi pamoja na mwongozo wa "
           "mtumiaji, ili tuziweke kwenye hazina ya nyaraka za Kitengo.\n\nNashukuru.\n\n" + signature(neema),
           ago(28), read=True)
     _mail(db, 1, "inbox", juma, [jol.email], "Reminder: weekly ICT report submission",
@@ -145,11 +145,11 @@ def _seed_mail(db: DBSession, now: datetime) -> None:
     # ---- Jolama's sent (3), delivered to account holders ---------------------
     sent = [
         (hal, "Taarifa ya maendeleo ya wiki", "Habari Dkt. Halima,\n\nNakutumia taarifa fupi ya maendeleo ya wiki hii: "
-              "majaribio ya NURU kwenye e-Mikutano yamekamilika na tumeanza kuandaa toleo la pili.\n\nWako,\n\n", 26),
+              "majaribio ya Zawadi kwenye e-Mikutano yamekamilika na tumeanza kuandaa toleo la pili.\n\nWako,\n\n", 26),
         (bar, "Ratiba ya majaribio ya mfumo", "Habari Baraka,\n\nTafadhali tukutane Jumatatu saa 5:00 asubuhi kupitia "
               "e-Mikutano tupange ratiba ya majaribio ya mfumo.\n\nAsante,\n\n", 50),
         (db.get(User, 7), "Ombi la vifaa vya majaribio", "Habari timu ya TEHAMA,\n\nNaomba kompyuta mpakato mbili kwa ajili "
-              "ya majaribio ya mfumo wa NURU kwa wiki mbili zijazo.\n\nAsante,\n\n", 74),
+              "ya majaribio ya mfumo wa Zawadi kwa wiki mbili zijazo.\n\nAsante,\n\n", 74),
     ]
     for rcpt, subj, body, hrs in sent:
         assert rcpt
@@ -170,7 +170,7 @@ def _seed_mail(db: DBSession, now: datetime) -> None:
 
 def _seed_weris(db: DBSession) -> None:
     projects = [
-        ("NURU — Msaidizi wa Kidijitali", ["AI/ML", "WEB"], ["Jolama", "Baraka Mollel"], "2026-08-01", "2026-12-31", "On Proof Of Concept", "Prototype"),
+        ("Zawadi — Msaidizi wa Kidijitali", ["AI/ML", "WEB"], ["Jolama", "Baraka Mollel"], "2026-08-01", "2026-12-31", "On Proof Of Concept", "Prototype"),
         ("e-Mikutano v5", ["WEB", "SYSTEMS"], ["Baraka Mollel"], "2026-02-10", "2026-11-30", "On Development", "Development"),
         ("KatibuAI Mobile", ["MOBILE", "AI/ML"], ["Neema Mwakalinga"], "2026-05-02", "2027-01-31", "On Pilot", "Pilot"),
         ("Daftari la Mali za Serikali", ["WEB"], ["Juma Hassan"], "2025-09-01", "2026-06-30", "On Production", "Production"),
@@ -191,7 +191,7 @@ def _seed_weris(db: DBSession) -> None:
         ("pdp", "Uhandisi wa maelekezo ya AI (Prompt engineering)", "Technical", "2026-07-01", "2026-12-31", "In Progress"),
         ("pdp", "Usimamizi wa miradi (PRINCE2 Foundation)", "Management", "2026-03-01", "2026-06-30", "Completed"),
         ("pdp", "Usalama wa mifumo ya wavuti (OWASP)", "Technical", "2026-09-01", "2027-02-28", "Not Started"),
-        ("projects", "NURU — Msaidizi wa Kidijitali", "AI/ML", "2026-08-01", "2026-12-31", "In Progress"),
+        ("projects", "Zawadi — Msaidizi wa Kidijitali", "AI/ML", "2026-08-01", "2026-12-31", "In Progress"),
         ("projects", "Tafsiri ya Mashine ya Kiswahili", "AI/ML", "2026-03-15", "2026-12-15", "In Progress"),
         ("activities", "Kufundisha wenzangu matumizi ya e-Mikutano", "Mentoring", "2026-10-01", "2026-10-31", "In Progress"),
     ]
@@ -252,7 +252,7 @@ def seed(db: DBSession) -> None:
     m1 = ScheduledMeeting(room_id=KAMATI_ROOM, title="Kikao cha Kamati ya Bajeti", start_at=_round_up(now + timedelta(minutes=12), 1),
                           end_at=_round_up(now + timedelta(minutes=57), 1), organizer_id=1, invitee_ids=[2, 3, 4, 5])
     m2_start = _later_today(now, 3, 30)
-    m2 = ScheduledMeeting(room_id=JOLAMA_ROOM, title="Mapitio ya Mradi wa NURU", start_at=m2_start,
+    m2 = ScheduledMeeting(room_id=JOLAMA_ROOM, title="Mapitio ya Mradi wa Zawadi", start_at=m2_start,
                           end_at=m2_start + timedelta(minutes=30), organizer_id=1, invitee_ids=[3, 4])
     tomorrow = today + timedelta(days=1)
     m3 = ScheduledMeeting(room_id=KAMATI_ROOM, title="Kikao cha Wiki cha Idara", start_at=_local(tomorrow, 10),

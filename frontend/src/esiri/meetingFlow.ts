@@ -74,7 +74,7 @@ export async function onMeetingOpened(roomId: string): Promise<void> {
 // Recording for KatibuAI
 //
 // Live mode: a MediaRecorder (Opus in WebM) on its OWN microphone stream for the whole meeting. The meeting's
-// mute button, moderator mode and NURU's speech recognition never touch this stream.
+// mute button, moderator mode and Zawadi's speech recognition never touch this stream.
 // Sample mode (Settings or the demo panel): the sample meeting is PLAYED aloud in the room with a visible player,
 // and that same recording is what goes to KatibuAI.
 

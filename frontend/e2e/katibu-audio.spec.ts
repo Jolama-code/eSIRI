@@ -54,7 +54,7 @@ test('sample mode: the meeting shows "Inacheza rekodi ya mfano" and the badge sa
   await expect(page.getByTestId('katibu-timer')).toBeVisible();
 });
 
-test('Leave without a usable live recording: NURU says why and asks about the sample; "Hapana" sends nothing', async ({ page, request }) => {
+test('Leave without a usable live recording: Zawadi says why and asks about the sample; "Hapana" sends nothing', async ({ page, request }) => {
   await signIn(page, 'jolama', '/rooms/kamati-ya-bajeti-k7b2', 'sw');
   await page.locator(esiriId('room.start-meeting')).click();
   await expect(page.getByTestId('meeting')).toBeVisible();

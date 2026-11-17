@@ -1,7 +1,7 @@
 {
-  "name": "NURU",
-  "short_name": "NURU",
-  "description": "NURU — Msaidizi wako wa kidijitali. Your digital assistant for government work.",
+  "name": "Zawadi",
+  "short_name": "Zawadi",
+  "description": "Zawadi — Msaidizi wako wa kidijitali. Your digital assistant for government work.",
   "lang": "sw",
   "start_url": "/hub",
   "scope": "/",

@@ -178,6 +178,6 @@
 .demo-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font: 600 14px/1.2 var(--nuru-font-display); color: var(--nuru-navy); flex-wrap: wrap; }
 .demo-note { font-size: 13px; color: var(--nuru-slate); background: var(--nuru-frost); border-radius: 10px; padding: 8px 10px; }
 @media (min-width: 1000px) {
-  /* centre the reminder cards in the space left of NURU's side panel */
+  /* centre the reminder cards in the space left of Zawadi's side panel */
   .panel-open .rem-stack { left: calc((100% - var(--panel-w)) / 2); width: min(620px, calc(100vw - var(--panel-w) - 24px)); }
 }

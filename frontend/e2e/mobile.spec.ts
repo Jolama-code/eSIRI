@@ -1,5 +1,5 @@
 /**
- * NURU Hub on a phone (Pixel 7 emulation, project "mobile"): bottom navigation with the raised orb,
+ * Zawadi Hub on a phone (Pixel 7 emulation, project "mobile"): bottom navigation with the raised orb,
  * the "more" sheet, the 5-tap demo controls, reminder cards that fit, and no horizontal overflow.
  */
 import { test, expect } from '@playwright/test';
@@ -67,7 +67,7 @@ test('no horizontal overflow on any Hub page; screenshots in Swahili and English
   }
 });
 
-test('typing to NURU on a phone: the box grows to about 6 lines, Enter sends, long text wraps', async ({ page }) => {
+test('typing to Zawadi on a phone: the box grows to about 6 lines, Enter sends, long text wraps', async ({ page }) => {
   await page.route('**/api/agent/step', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{"code":"test_stub","error":"stub"}' }));
   await signIn(page, 'jolama', '/hub', 'sw');
   await page.getByTestId('hub-nav-orb').click();

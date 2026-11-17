@@ -1,4 +1,4 @@
-/** Small building blocks of the NURU Hub look (design-system tokens, Font Awesome solid icons in shapes). */
+/** Small building blocks of the Zawadi Hub look (design-system tokens, Font Awesome solid icons in shapes). */
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';

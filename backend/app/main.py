@@ -1,4 +1,4 @@
-"""NURU backend: agent step, TTS, Hub/GMS/WERIS/Katibu APIs, SSE events and the reminder scheduler."""
+"""Zawadi backend: agent step, TTS, Hub/GMS/WERIS/Katibu APIs, SSE events and the reminder scheduler."""
 
 from __future__ import annotations
 
@@ -45,7 +45,7 @@ async def lifespan(_app: FastAPI):
         task.cancel()
 
 
-app = FastAPI(title="NURU backend", lifespan=lifespan)
+app = FastAPI(title="Zawadi backend", lifespan=lifespan)
 app.include_router(api_hub.router)
 app.include_router(api_mail.router)
 app.include_router(api_weris.router)
@@ -208,6 +208,9 @@ async def step(req: StepRequest, user: User = Depends(current_user)):
                     args = json.loads(fn.arguments or "{}")
                 except json.JSONDecodeError:
                     args = {}
+                key = agent.SPOKEN_ARGS.get(fn.name)
+                if key and isinstance(args.get(key), str):
+                    args[key] = agent.fix_name(args[key])
                 tool_calls_out.append({"id": tc.id, "name": fn.name, "arguments": args})
             if not assistant_msg["tool_calls"]:
                 del assistant_msg["tool_calls"]
@@ -220,7 +223,7 @@ async def step(req: StepRequest, user: User = Depends(current_user)):
             [f'{t["name"]}({t["arguments"].get("element_id") or t["arguments"].get("page") or ""})' for t in tool_calls_out],
             (choice.content or "")[:80],
         )
-        return {"tool_calls": tool_calls_out, "text": choice.content or ""}
+        return {"tool_calls": tool_calls_out, "text": agent.fix_name(choice.content or "")}
 
 
 def _room_names(snapshot: Any) -> list[str]:

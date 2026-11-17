@@ -103,8 +103,8 @@ export function HubLayout({ title, subtitle, children, actions }: { title: strin
     <div className="hub">
       {/* Desktop sidebar */}
       <aside className="hub-side">
-        <button className="side-logo" onClick={tap} aria-label="NURU" data-testid="hub-logo">
-          <img src="/brand/nuru-logo-horizontal.svg" alt="NURU — Msaidizi wako wa kidijitali" />
+        <button className="side-logo" onClick={tap} aria-label="Zawadi" data-testid="hub-logo">
+          <img src="/brand/zawadi-logo-horizontal.svg" alt="Zawadi — Msaidizi wako wa kidijitali" />
         </button>
         <nav className="side-nav">{HUB_NAV.map((n) => navLink(n))}</nav>
         <div className="side-talk">
@@ -128,8 +128,8 @@ export function HubLayout({ title, subtitle, children, actions }: { title: strin
 
       {/* Phone top bar */}
       <header className="hub-top">
-        <button className="top-logo" onClick={tap} aria-label="NURU" data-testid="hub-logo-mobile">
-          <img src="/brand/nuru-logo-horizontal-dark.svg" alt="NURU" />
+        <button className="top-logo" onClick={tap} aria-label="Zawadi" data-testid="hub-logo-mobile">
+          <img src="/brand/zawadi-logo-horizontal-dark.svg" alt="Zawadi" />
         </button>
         <button className="top-bell" onClick={() => navigate('/hub/notifications')} aria-label={t('hub.nav.notifications')}>
           <Fa icon={faBell} />
@@ -162,7 +162,7 @@ export function HubLayout({ title, subtitle, children, actions }: { title: strin
       </main>
 
       {/* Phone bottom navigation with the raised orb */}
-      <nav className="hub-bottom" aria-label="NURU">
+      <nav className="hub-bottom" aria-label="Zawadi">
         {navLink(HUB_NAV[0], true)}
         {navLink(HUB_NAV[1], true)}
         <div className="bn-orb-wrap">

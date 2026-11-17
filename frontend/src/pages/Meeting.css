@@ -301,7 +301,7 @@
   .mt-sidebar, .mt-panel { display: none; }
 }
 
-/* NURU v2: moderator mode, lobby, Katibu recording */
+/* Zawadi v2: moderator mode, lobby, Katibu recording */
 .mt-mod-badge {
   display: inline-flex;
   align-items: center;
@@ -315,7 +315,7 @@
   box-shadow: 0 0 0 2px rgba(35, 184, 238, 0.5);
   white-space: nowrap;
 }
-/* keep the slide clear of NURU's floating button stack on the right edge */
+/* keep the slide clear of Zawadi's floating button stack on the right edge */
 @media (min-width: 768px) {
   .app-shell.on-meeting .mt-slide { padding-right: 96px; }
 }

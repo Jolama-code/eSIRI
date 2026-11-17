@@ -1,7 +1,7 @@
 /**
  * WERIS individual weekly report (no LLM): the landing, the form computed from today's ISO week, tab counters,
  * validation, Save Draft, Submit → read-only + the supervisor's notification, demo reset, the
- * "Imeandaliwa na NURU" chips (fill call stubbed), and the code gate on weris.report.submit.
+ * "Imeandaliwa na Zawadi" chips (fill call stubbed), and the code gate on weris.report.submit.
  */
 import { test, expect, type Page } from '@playwright/test';
 import { API, apiLogin, auth, esiriId, resetDemo, signIn } from './helpers';
@@ -116,7 +116,7 @@ test('submit: read-only SUBMITTED, Dkt. Halima is notified; demo reset gives an 
   expect(again.items.every((i: { progress: string; plan: string }) => !i.progress && !i.plan)).toBe(true);
 });
 
-test('NURU fills cards visibly with "Imeandaliwa na NURU" chips that disappear on edit; submit is gated in code', async ({ page }) => {
+test('Zawadi fills cards visibly with "Imeandaliwa na Zawadi" chips that disappear on edit; submit is gated in code', async ({ page }) => {
   await page.route('**/api/weris/reports/current/fill', (route) =>
     route.fulfill({
       contentType: 'application/json',
@@ -138,7 +138,7 @@ test('NURU fills cards visibly with "Imeandaliwa na NURU" chips that disappear o
   await expect(sgr.getByTestId('wr-progress')).toHaveValue('I finished improving the AI engine for SGRFasta.');
   await expect(sgr.getByRole('button', { name: 'Imekamilika', exact: true })).toHaveClass(/on/);
   await expect(sgr.getByTestId('wr-nuru-chip')).toHaveCount(3); // outcome, progress, plan
-  await expect(card(page, 'FAKE PRODUCT DETECTOR').getByTestId('wr-nuru-chip').first()).toContainText('Imeandaliwa na NURU · Hakiki');
+  await expect(card(page, 'FAKE PRODUCT DETECTOR').getByTestId('wr-nuru-chip').first()).toContainText('Imeandaliwa na Zawadi · Hakiki');
   // The draft (with the chips) is saved.
   await page.reload();
   await expect(card(page, 'SGRFasta').getByTestId('wr-nuru-chip')).toHaveCount(3);
@@ -146,7 +146,7 @@ test('NURU fills cards visibly with "Imeandaliwa na NURU" chips that disappear o
   await card(page, 'SGRFasta').getByTestId('wr-plan').fill('I will test it with more routes and fix bugs.');
   await expect(card(page, 'SGRFasta').getByTestId('wr-nuru-chip')).toHaveCount(2);
 
-  // Fill the rest, then: NURU may not click Submit without a confirmation.
+  // Fill the rest, then: Zawadi may not click Submit without a confirmation.
   const { token } = await apiLogin(page.request, 'jolama');
   const cur = await (await page.request.get(`${API}/api/weris/reports/current`, { headers: auth(token) })).json();
   await page.request.put(`${API}/api/weris/reports/current`, { headers: auth(token), data: { items: cur.items.map((i: { key: string; progress: string; plan: string }) => ({ ...i, progress: i.progress || 'x', plan: i.plan || 'y' })) } });

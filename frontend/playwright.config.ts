@@ -20,7 +20,7 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     permissions: ['clipboard-read', 'clipboard-write'],
-    // Tells NURU's backend this is an automated test (Katibu e-mails only to KATIBU_TEST_RECIPIENT).
+    // Tells Zawadi's backend this is an automated test (Katibu e-mails only to KATIBU_TEST_RECIPIENT).
     extraHTTPHeaders: { 'X-Nuru-Test': '1' },
   },
   projects: [

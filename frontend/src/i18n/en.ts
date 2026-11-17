@@ -28,7 +28,7 @@ const base = {
   'footer.releaseNote': 'Release Note',
   'footer.userManual': 'User Manual',
   'footer.faq': 'Frequently asked questions',
-  'footer.copyright': '© 2020 – 2026 e-GA. All rights reserved. | e-Mikutano version 4.0 (NURU PoC)',
+  'footer.copyright': '© 2020 – 2026 e-GA. All rights reserved. | e-Mikutano version 4.0 (Zawadi PoC)',
 
   // Rooms dashboard
   'rooms.tabRooms': 'Rooms',
@@ -187,7 +187,7 @@ const base = {
 
   // Audit
   'audit.title': 'Audit Log',
-  'audit.subtitle': 'Every task NURU performs is recorded here with its steps, confirmations and outcome.',
+  'audit.subtitle': 'Every task Zawadi performs is recorded here with its steps, confirmations and outcome.',
   'audit.exportCsv': 'Export CSV',
   'audit.clear': 'Clear log',
   'audit.clearTitle': 'Clear audit log',
@@ -195,7 +195,7 @@ const base = {
   'audit.clearConfirm': 'Clear log',
   'audit.cancel': 'Cancel',
   'audit.cleared': 'The audit log has been cleared.',
-  'audit.empty': 'No NURU tasks have been recorded yet.',
+  'audit.empty': 'No Zawadi tasks have been recorded yet.',
   'audit.time': 'Time',
   'audit.request': 'Request',
   'audit.outcome': 'Outcome',
@@ -229,9 +229,9 @@ const base = {
   'page.room': 'the room page',
   'page.meeting': 'the meeting',
 
-  // NURU
-  'esiri.name': 'NURU',
-  'esiri.orbTooltip': 'Talk to NURU (Alt+S)',
+  // Zawadi
+  'esiri.name': 'Zawadi',
+  'esiri.orbTooltip': 'Talk to Zawadi (Alt+S)',
   'esiri.status.idle': 'Ready',
   'esiri.status.listening': 'Listening…',
   'esiri.status.thinking': 'Thinking…',
@@ -247,10 +247,10 @@ const base = {
   'esiri.close': 'Close panel',
   'esiri.collapse': 'Collapse panel',
   'esiri.language': 'Switch language',
-  'esiri.wakeMode': "Always listening — say 'NURU'",
+  'esiri.wakeMode': "Always listening — say 'Zawadi'",
   'esiri.wakeOn': 'Wake word on',
-  'esiri.noKey': 'The OpenAI API key is missing. Add OPENAI_API_KEY to the .env file and restart NURU.',
-  'esiri.backendDown': 'The NURU service is not reachable. Start the backend with ./start.sh.',
+  'esiri.noKey': 'The OpenAI API key is missing. Add OPENAI_API_KEY to the .env file and restart Zawadi.',
+  'esiri.backendDown': 'The Zawadi service is not reachable. Start the backend with ./start.sh.',
   'esiri.sttUnsupported': 'Voice input is not available in this browser. You can type your request instead.',
   'esiri.sttNotAllowed': 'Microphone access was blocked. Allow the microphone in the browser address bar, or type instead.',
   'esiri.sttNetwork': 'Voice recognition needs Google Chrome (not Chromium) and internet. You can type instead.',
@@ -268,7 +268,7 @@ const base = {
   'esiri.suggest3': 'Start the meeting and say hello in the chat',
   'esiri.suggest4': 'Tengeneza chumba kiitwacho Kikao cha Bodi',
   'esiri.errorGeneric': 'Sorry, something went wrong. Please try again.',
-  'esiri.errorNetwork': 'Sorry, I could not reach the Nuru service. Please check the connection and try again.',
+  'esiri.errorNetwork': 'Sorry, I could not reach the Zawadi service. Please check the connection and try again.',
   'esiri.errorModel': 'Sorry, the AI model is not available right now. Please check the settings.',
   'esiri.errorNoKey': 'I cannot work without an OpenAI API key. Please add it to the settings file.',
   'esiri.tooManySteps': 'This is taking too many steps, so I stopped. Please try a simpler request.',
@@ -286,7 +286,7 @@ const base = {
   'esiri.langName.sw': 'Swahili',
   'esiri.inputVoice': 'Spoken',
   'esiri.inputText': 'Typed',
-  'esiri.cursorLabel': 'NURU',
+  'esiri.cursorLabel': 'Zawadi',
 } as const;
 
 const en = { ...base, ...v2en } as const;
